@@ -12,7 +12,7 @@ func panicStackOverflow(fn *qruntime.Func) {
 	panic(fmt.Sprintf("can't call %s func: stack overflow", fn.Name))
 }
 
-func eval(env *EvalEnv, fn *qruntime.Func, slotptr *slotValue) {
+func eval(env *EvalEnv, fn *qruntime.Func, slotptr *qruntime.Slot) {
 	pc := 0
 	codeptr := fn.Codeptr
 
@@ -24,7 +24,7 @@ func eval(env *EvalEnv, fn *qruntime.Func, slotptr *slotValue) {
 			pc += 3
 		case bytecode.OpLoadScalarConst:
 			dstslot, constindex := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar = fn.ScalarConstants[constindex]
+			getslot(slotptr, dstslot).Scalar = fn.ScalarConstants[constindex]
 			pc += 3
 
 		case bytecode.OpMoveStr:
@@ -33,7 +33,7 @@ func eval(env *EvalEnv, fn *qruntime.Func, slotptr *slotValue) {
 			pc += 3
 		case bytecode.OpMoveScalar:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar = getslot(slotptr, srcslot).scalar
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, srcslot).Scalar
 			pc += 3
 		case bytecode.OpMoveInterface:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
@@ -46,25 +46,25 @@ func eval(env *EvalEnv, fn *qruntime.Func, slotptr *slotValue) {
 
 		case bytecode.OpStrLen:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar = uint64(len(getslot(slotptr, srcslot).String()))
+			getslot(slotptr, dstslot).Scalar = uint64(len(getslot(slotptr, srcslot).String()))
 			pc += 3
 		case bytecode.OpStrSliceFrom:
 			dstslot, strslot, fromslot := unpack8x3(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()
-			from := getslot(slotptr, fromslot).scalar
+			from := getslot(slotptr, fromslot).Scalar
 			getslot(slotptr, dstslot).SetString(str[from:])
 			pc += 4
 		case bytecode.OpStrSliceTo:
 			dstslot, strslot, toslot := unpack8x3(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()
-			to := getslot(slotptr, toslot).scalar
+			to := getslot(slotptr, toslot).Scalar
 			getslot(slotptr, dstslot).SetString(str[:to])
 			pc += 4
 		case bytecode.OpStrSlice:
 			dstslot, strslot, fromslot, toslot := unpack8x4(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()
-			from := getslot(slotptr, fromslot).scalar
-			to := getslot(slotptr, toslot).scalar
+			from := getslot(slotptr, fromslot).Scalar
+			to := getslot(slotptr, toslot).Scalar
 			getslot(slotptr, dstslot).SetString(str[from:to])
 			pc += 5
 
@@ -131,28 +131,28 @@ func eval(env *EvalEnv, fn *qruntime.Func, slotptr *slotValue) {
 
 		case bytecode.OpIntAdd:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar = getslot(slotptr, xslot).scalar + getslot(slotptr, yslot).scalar
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar + getslot(slotptr, yslot).Scalar
 			pc += 4
 		case bytecode.OpIntSub:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar = getslot(slotptr, xslot).scalar - getslot(slotptr, yslot).scalar
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar - getslot(slotptr, yslot).Scalar
 			pc += 4
 		case bytecode.OpIntMul:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar = getslot(slotptr, xslot).scalar * getslot(slotptr, yslot).scalar
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar * getslot(slotptr, yslot).Scalar
 			pc += 4
 		case bytecode.OpIntDiv:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar = getslot(slotptr, xslot).scalar / getslot(slotptr, yslot).scalar
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar / getslot(slotptr, yslot).Scalar
 			pc += 4
 
 		case bytecode.OpIntInc:
 			dstslot := unpack8(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar++
+			getslot(slotptr, dstslot).Scalar++
 			pc += 2
 		case bytecode.OpIntDec:
 			dstslot := unpack8(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar--
+			getslot(slotptr, dstslot).Scalar--
 			pc += 2
 
 		case bytecode.OpJump:
@@ -253,7 +253,7 @@ func eval(env *EvalEnv, fn *qruntime.Func, slotptr *slotValue) {
 			return
 		case bytecode.OpReturnScalar:
 			srcslot := unpack8(codeptr, pc+1)
-			env.result.scalar = getslot(slotptr, srcslot).scalar
+			env.result.Scalar = getslot(slotptr, srcslot).Scalar
 			return
 		case bytecode.OpReturnInterface:
 			srcslot := unpack8(codeptr, pc+1)

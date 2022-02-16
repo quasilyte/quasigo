@@ -36,18 +36,18 @@ type EvalEnv struct {
 	nativeFuncs []nativeFunc
 	userFuncs   []*qruntime.Func
 
-	slots    []slotValue
-	slotbase *slotValue
-	slotend  *slotValue
+	slots    []qruntime.Slot
+	slotbase *qruntime.Slot
+	slotend  *qruntime.Slot
 
-	result  slotValue
-	result2 slotValue
+	result  qruntime.Slot
+	result2 qruntime.Slot
 	vararg  []interface{}
 }
 
 type NativeCallContext struct {
 	env     *EvalEnv
-	slotptr *slotValue
+	slotptr *qruntime.Slot
 }
 
 func (ncc NativeCallContext) BoolArg(index int) bool {
@@ -91,11 +91,11 @@ func NewEnv() *Env {
 // Stack size is amount of bytes we allocate for all stack
 // frames of this env.
 func (env *Env) GetEvalEnv(stackSize int) *EvalEnv {
-	numSlots := stackSize / int(sizeofSlotValue)
+	numSlots := stackSize / int(qruntime.SizeofSlot)
 	if numSlots < 4 {
 		panic("stack size is too small")
 	}
-	slots := make([]slotValue, numSlots)
+	slots := make([]qruntime.Slot, numSlots)
 	return &EvalEnv{
 		nativeFuncs: env.nativeFuncs,
 		userFuncs:   env.userFuncs,
@@ -179,7 +179,7 @@ func Call(env *EvalEnv, fn Func) CallResult {
 
 // CallResult is a return value of Call function.
 type CallResult struct {
-	v slotValue
+	v qruntime.Slot
 }
 
 func (res CallResult) StringValue() string { return res.v.String() }

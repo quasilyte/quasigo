@@ -2,87 +2,9 @@ package quasigo
 
 import (
 	"unsafe"
+
+	"github.com/quasilyte/quasigo/internal/qruntime"
 )
-
-const sizeofSlotValue = unsafe.Sizeof(slotValue{})
-
-// Works for both empty and non-empty interfaces.
-type goIface struct {
-	typeinfo uint64
-	data     unsafe.Pointer
-}
-
-type goString struct {
-	data unsafe.Pointer
-	len  int
-}
-
-type goSlice struct {
-	data unsafe.Pointer
-	len  int
-	cap  int
-}
-
-type slotValue struct {
-	ptr     unsafe.Pointer
-	scalar  uint64
-	scalar2 uint64
-}
-
-func (slot slotValue) IsNil() bool {
-	return slot.ptr == nil
-}
-
-func (slot slotValue) IsNilInterface() bool {
-	return slot.ptr == nil && slot.scalar == 0
-}
-
-func (slot *slotValue) SetBool(v bool) {
-	if v {
-		slot.scalar = 1
-	} else {
-		slot.scalar = 0
-	}
-}
-
-func (slot slotValue) Bool() bool {
-	return *(*bool)(unsafe.Pointer(&slot.scalar))
-}
-
-func (slot *slotValue) MoveInterface(src *slotValue) {
-	slot.ptr = src.ptr
-	slot.scalar = src.scalar
-}
-
-func (slot *slotValue) SetInterface(v interface{}) {
-	raw := (*goIface)(unsafe.Pointer(&v))
-	slot.ptr = raw.data
-	slot.scalar = raw.typeinfo
-}
-
-func (slot slotValue) Interface() interface{} {
-	v := goIface{
-		typeinfo: slot.scalar,
-		data:     slot.ptr,
-	}
-	return *(*interface{})(unsafe.Pointer(&v))
-}
-
-func (slot *slotValue) SetString(v string) {
-	raw := *(*goString)(unsafe.Pointer(&v))
-	slot.ptr = raw.data
-	slot.scalar = uint64(raw.len)
-}
-
-func (slot slotValue) String() string {
-	return *(*string)(unsafe.Pointer(&slot))
-}
-
-func (slot *slotValue) SetInt(v int) {
-	slot.scalar = uint64(v)
-}
-
-func (slot slotValue) Int() int { return int(slot.scalar) }
 
 // addb returns the byte pointer p+n.
 //go:nosplit
@@ -128,21 +50,21 @@ func unpack8x4(code *byte, pc int) (byte, byte, byte, byte) {
 }
 
 //go:nosplit
-func getslot(slotptr *slotValue, index byte) *slotValue {
-	return (*slotValue)(add(unsafe.Pointer(slotptr), sizeofSlotValue*uintptr(index)))
+func getslot(slotptr *qruntime.Slot, index byte) *qruntime.Slot {
+	return (*qruntime.Slot)(add(unsafe.Pointer(slotptr), qruntime.SizeofSlot*uintptr(index)))
 }
 
 //go:nosplit
-func slotoffset(base, current *slotValue) int {
-	return int((uintptr(unsafe.Pointer(current)) - uintptr(unsafe.Pointer(base))) / sizeofSlotValue)
+func slotoffset(base, current *qruntime.Slot) int {
+	return int((uintptr(unsafe.Pointer(current)) - uintptr(unsafe.Pointer(base))) / qruntime.SizeofSlot)
 }
 
 //go:nosplit
-func canAllocFrame(current, end *slotValue, frameSize int) bool {
+func canAllocFrame(current, end *qruntime.Slot, frameSize int) bool {
 	return uintptr(unsafe.Pointer(current))+uintptr(frameSize) < uintptr(unsafe.Pointer(end))
 }
 
 //go:nosplit
-func nextFrameSlot(current *slotValue, frameSize int) *slotValue {
-	return (*slotValue)(add(unsafe.Pointer(current), uintptr(frameSize)))
+func nextFrameSlot(current *qruntime.Slot, frameSize int) *qruntime.Slot {
+	return (*qruntime.Slot)(add(unsafe.Pointer(current), uintptr(frameSize)))
 }

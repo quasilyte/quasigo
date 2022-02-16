@@ -136,7 +136,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		StrConstants:    cl.strConstants,
 		ScalarConstants: cl.scalarConstants,
 		Name:            cl.fnKey.String(),
-		FrameSize:       int(sizeofSlotValue) * numFrameSlots,
+		FrameSize:       int(qruntime.SizeofSlot) * numFrameSlots,
 		FrameSlots:      byte(numFrameSlots),
 	}
 	cl.ctx.Env.debug.funcs[compiled] = dbg

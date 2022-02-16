@@ -16,7 +16,7 @@ func disasm(env *Env, fn *qruntime.Func) string {
 		return "<unknown>\n"
 	}
 
-	numSlots := fn.FrameSize / int(sizeofSlotValue)
+	numSlots := fn.FrameSize / int(qruntime.SizeofSlot)
 	numLocals := dbg.numLocals
 	numArgs := len(dbg.slotNames) - numLocals
 	numTemps := numSlots - numArgs - numLocals

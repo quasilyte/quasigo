@@ -34,7 +34,7 @@ func (env *Env) addNativeFunc(key funcKey, f func(NativeCallContext)) {
 	env.nativeFuncs = append(env.nativeFuncs, nativeFunc{
 		mappedFunc: f,
 		name:       key.String(),
-		frameSize:  int(sizeofSlotValue) * maxNativeFuncArgs,
+		frameSize:  int(qruntime.SizeofSlot) * maxNativeFuncArgs,
 	})
 	env.nameToNativeFuncID[key] = uint16(id)
 }
