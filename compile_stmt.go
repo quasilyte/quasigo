@@ -4,6 +4,8 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+
+	"github.com/quasilyte/quasigo/internal/bytecode"
 )
 
 func (cl *compiler) compileStmt(stmt ast.Stmt) {
@@ -41,7 +43,7 @@ func (cl *compiler) compileStmt(stmt ast.Stmt) {
 
 func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 	if cl.retType == voidType {
-		cl.emit(opReturnVoid)
+		cl.emit(bytecode.OpReturnVoid)
 		return
 	}
 
@@ -51,19 +53,19 @@ func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 
 	switch {
 	case identName(ret.Results[0]) == "true":
-		cl.emit(opReturnTrue)
+		cl.emit(bytecode.OpReturnTrue)
 	case identName(ret.Results[0]) == "false":
-		cl.emit(opReturnFalse)
+		cl.emit(bytecode.OpReturnFalse)
 	default:
 		typ := cl.ctx.Types.TypeOf(ret.Results[0])
-		var op opcode
+		var op bytecode.Op
 		switch {
 		case typeIsScalar(typ):
-			op = opReturnScalar
+			op = bytecode.OpReturnScalar
 		case typeIsString(typ):
-			op = opReturnStr
+			op = bytecode.OpReturnStr
 		case typeIsInterface(typ) || typeIsPointer(typ):
-			op = opReturnInterface
+			op = bytecode.OpReturnInterface
 		default:
 			panic(cl.errorf(ret, "can't return %s typed value yet", typ.String()))
 		}
@@ -76,7 +78,7 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	if stmt.Else == nil {
 		labelEnd := cl.newLabel()
 		condslot := cl.compileRootTempExpr(stmt.Cond)
-		cl.emitCondJump(condslot, opJumpFalse, labelEnd)
+		cl.emitCondJump(condslot, bytecode.OpJumpFalse, labelEnd)
 		cl.compileStmt(stmt.Body)
 		cl.bindLabel(labelEnd)
 		return
@@ -85,10 +87,10 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	labelEnd := cl.newLabel()
 	labelElse := cl.newLabel()
 	condslot := cl.compileRootTempExpr(stmt.Cond)
-	cl.emitCondJump(condslot, opJumpFalse, labelElse)
+	cl.emitCondJump(condslot, bytecode.OpJumpFalse, labelElse)
 	cl.compileStmt(stmt.Body)
 	if !cl.isUncondJump(cl.lastOp) {
-		cl.emitJump(opJump, labelEnd)
+		cl.emitJump(bytecode.OpJump, labelEnd)
 	}
 	cl.bindLabel(labelElse)
 	cl.compileStmt(stmt.Else)
@@ -97,7 +99,7 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 
 func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 	if len(assign.Rhs) != 1 {
-		panic(cl.errorf(assign, "only single right operand is allowed in assignments"))
+		panic(cl.errorf(assign, "only single right bytecode.Operand is allowed in assignments"))
 	}
 	for _, lhs := range assign.Lhs {
 		_, ok := lhs.(*ast.Ident)
@@ -116,7 +118,7 @@ func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 	if len(assign.Lhs) == 2 {
 		dst2 := assign.Lhs[1].(*ast.Ident)
 		lhs2slot := cl.getLocal(dst2, dst2.Name)
-		cl.emit8(opMoveResult2, lhs2slot)
+		cl.emit8(bytecode.OpMoveResult2, lhs2slot)
 	}
 }
 
@@ -127,9 +129,9 @@ func (cl *compiler) compileIncDecStmt(stmt *ast.IncDecStmt) {
 	}
 	dst := cl.getLocal(varname, varname.String())
 	if stmt.Tok == token.INC {
-		cl.emit8(opIntInc, dst)
+		cl.emit8(bytecode.OpIntInc, dst)
 	} else {
-		cl.emit8(opIntDec, dst)
+		cl.emit8(bytecode.OpIntDec, dst)
 	}
 }
 
@@ -140,7 +142,7 @@ func (cl *compiler) compileBranchStmt(branch *ast.BranchStmt) {
 
 	switch branch.Tok {
 	case token.BREAK:
-		cl.emitJump(opJump, cl.breakTarget)
+		cl.emitJump(bytecode.OpJump, cl.breakTarget)
 	default:
 		panic(cl.errorf(branch, "can't compile %s yet", branch.Tok))
 	}
@@ -157,24 +159,24 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 	switch {
 	case stmt.Cond != nil && stmt.Init != nil && stmt.Post != nil:
 		// Will be implemented later.
-		panic(cl.errorf(stmt, "can't compile C-style for loops yet"))
+		panic(cl.errorf(stmt, "can't compile C-style for lobytecode.Ops yet"))
 
 	case stmt.Cond != nil && stmt.Init == nil && stmt.Post == nil:
 		// `for <cond> { ... }`
 		labelBody := cl.newLabel()
-		cl.emitJump(opJump, labelContinue)
+		cl.emitJump(bytecode.OpJump, labelContinue)
 		cl.bindLabel(labelBody)
 		cl.compileStmt(stmt.Body)
 		cl.bindLabel(labelContinue)
 		condslot := cl.compileRootTempExpr(stmt.Cond)
-		cl.emitCondJump(condslot, opJumpTrue, labelBody)
+		cl.emitCondJump(condslot, bytecode.OpJumpTrue, labelBody)
 		cl.bindLabel(labelBreak)
 
 	default:
 		// `for { ... }`
 		cl.bindLabel(labelContinue)
 		cl.compileStmt(stmt.Body)
-		cl.emitJump(opJump, labelContinue)
+		cl.emitJump(bytecode.OpJump, labelContinue)
 		cl.bindLabel(labelBreak)
 	}
 

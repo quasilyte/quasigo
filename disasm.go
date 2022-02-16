@@ -3,6 +3,8 @@ package quasigo
 import (
 	"fmt"
 	"strings"
+
+	"github.com/quasilyte/quasigo/internal/bytecode"
 )
 
 func disasm(env *Env, fn *Func) string {
@@ -32,7 +34,7 @@ func disasm(env *Env, fn *Func) string {
 
 	code := fn.code
 	labels := map[int]string{}
-	walkBytecode(code, func(pc int, op opcode) {
+	bytecode.Walk(code, func(pc int, op bytecode.Op) {
 		if !op.IsJump() {
 			return
 		}
@@ -44,7 +46,7 @@ func disasm(env *Env, fn *Func) string {
 	})
 
 	args := make([]string, 0, 4)
-	walkBytecode(code, func(pc int, op opcode) {
+	bytecode.Walk(code, func(pc int, op bytecode.Op) {
 		if l := labels[pc]; l != "" {
 			fmt.Fprintf(&out, "%s:\n", l)
 		}
@@ -52,25 +54,25 @@ func disasm(env *Env, fn *Func) string {
 
 		for i, a := range op.Args() {
 			var value string
-			switch a.kind {
-			case argkindSlot:
-				slot := int(code[pc+a.offset])
+			switch a.Kind {
+			case bytecode.ArgSlot:
+				slot := int(code[pc+a.Offset])
 				value = slotName(slot)
-			case argkindStrConst:
-				index := int(code[pc+a.offset])
+			case bytecode.ArgStrConst:
+				index := int(code[pc+a.Offset])
 				value = fmt.Sprintf("%q", fn.strConstants[index])
-			case argkindScalarConst:
-				index := int(code[pc+a.offset])
+			case bytecode.ArgScalarConst:
+				index := int(code[pc+a.Offset])
 				value = fmt.Sprintf("%d", int64(fn.scalarConstants[index]))
-			case argkindOffset:
-				offset := unpack16(fn.codeptr, pc+a.offset)
+			case bytecode.ArgOffset:
+				offset := unpack16(fn.codeptr, pc+a.Offset)
 				targetPC := pc + offset
 				value = labels[targetPC]
-			case argkindFuncID:
-				id := unpack16(fn.codeptr, pc+a.offset)
+			case bytecode.ArgFuncID:
+				id := unpack16(fn.codeptr, pc+a.Offset)
 				value = env.userFuncs[id].name + "()"
-			case argkindNativeFuncID:
-				id := unpack16(fn.codeptr, pc+a.offset)
+			case bytecode.ArgNativeFuncID:
+				id := unpack16(fn.codeptr, pc+a.Offset)
 				value = env.nativeFuncs[id].name + "()"
 			}
 			if op.HasDst() && i == 0 && len(op.Args()) != 1 {

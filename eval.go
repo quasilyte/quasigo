@@ -2,6 +2,8 @@ package quasigo
 
 import (
 	"fmt"
+
+	"github.com/quasilyte/quasigo/internal/bytecode"
 )
 
 //go:noinline
@@ -14,50 +16,50 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 	codeptr := fn.codeptr
 
 	for {
-		switch op := opcode(unpack8(codeptr, pc)); op {
-		case opLoadStrConst:
+		switch op := bytecode.Op(unpack8(codeptr, pc)); op {
+		case bytecode.OpLoadStrConst:
 			dstslot, constindex := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetString(fn.strConstants[constindex])
 			pc += 3
-		case opLoadScalarConst:
+		case bytecode.OpLoadScalarConst:
 			dstslot, constindex := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar = fn.scalarConstants[constindex]
 			pc += 3
 
-		case opMoveStr:
+		case bytecode.OpMoveStr:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetString(getslot(slotptr, srcslot).String())
 			pc += 3
-		case opMoveScalar:
+		case bytecode.OpMoveScalar:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar = getslot(slotptr, srcslot).scalar
 			pc += 3
-		case opMoveInterface:
+		case bytecode.OpMoveInterface:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).MoveInterface(getslot(slotptr, srcslot))
 			pc += 3
-		case opMoveResult2:
+		case bytecode.OpMoveResult2:
 			dstslot := unpack8(codeptr, pc+1)
 			*getslot(slotptr, dstslot) = env.result2
 			pc += 2
 
-		case opStrLen:
+		case bytecode.OpStrLen:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar = uint64(len(getslot(slotptr, srcslot).String()))
 			pc += 3
-		case opStrSliceFrom:
+		case bytecode.OpStrSliceFrom:
 			dstslot, strslot, fromslot := unpack8x3(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()
 			from := getslot(slotptr, fromslot).scalar
 			getslot(slotptr, dstslot).SetString(str[from:])
 			pc += 4
-		case opStrSliceTo:
+		case bytecode.OpStrSliceTo:
 			dstslot, strslot, toslot := unpack8x3(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()
 			to := getslot(slotptr, toslot).scalar
 			getslot(slotptr, dstslot).SetString(str[:to])
 			pc += 4
-		case opStrSlice:
+		case bytecode.OpStrSlice:
 			dstslot, strslot, fromslot, toslot := unpack8x4(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()
 			from := getslot(slotptr, fromslot).scalar
@@ -65,98 +67,98 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 			getslot(slotptr, dstslot).SetString(str[from:to])
 			pc += 5
 
-		case opNot:
+		case bytecode.OpNot:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(!getslot(slotptr, srcslot).Bool())
 			pc += 3
 
-		case opIsNil:
+		case bytecode.OpIsNil:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, srcslot).IsNil())
 			pc += 3
-		case opIsNotNil:
+		case bytecode.OpIsNotNil:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(!getslot(slotptr, srcslot).IsNil())
 			pc += 3
-		case opIsNilInterface:
+		case bytecode.OpIsNilInterface:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, srcslot).IsNilInterface())
 			pc += 3
-		case opIsNotNilInterface:
+		case bytecode.OpIsNotNilInterface:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(!getslot(slotptr, srcslot).IsNilInterface())
 			pc += 3
 
-		case opStrEq:
+		case bytecode.OpStrEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).String() == getslot(slotptr, yslot).String())
 			pc += 4
-		case opStrNotEq:
+		case bytecode.OpStrNotEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).String() != getslot(slotptr, yslot).String())
 			pc += 4
 
-		case opIntEq:
+		case bytecode.OpIntEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() == getslot(slotptr, yslot).Int())
 			pc += 4
-		case opIntNotEq:
+		case bytecode.OpIntNotEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() != getslot(slotptr, yslot).Int())
 			pc += 4
-		case opIntGt:
+		case bytecode.OpIntGt:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() > getslot(slotptr, yslot).Int())
 			pc += 4
-		case opIntGtEq:
+		case bytecode.OpIntGtEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() >= getslot(slotptr, yslot).Int())
 			pc += 4
-		case opIntLt:
+		case bytecode.OpIntLt:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() < getslot(slotptr, yslot).Int())
 			pc += 4
-		case opIntLtEq:
+		case bytecode.OpIntLtEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() <= getslot(slotptr, yslot).Int())
 			pc += 4
 
-		case opConcat:
+		case bytecode.OpConcat:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetString(getslot(slotptr, xslot).String() + getslot(slotptr, yslot).String())
 			pc += 4
 
-		case opIntAdd:
+		case bytecode.OpIntAdd:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar = getslot(slotptr, xslot).scalar + getslot(slotptr, yslot).scalar
 			pc += 4
-		case opIntSub:
+		case bytecode.OpIntSub:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar = getslot(slotptr, xslot).scalar - getslot(slotptr, yslot).scalar
 			pc += 4
-		case opIntMul:
+		case bytecode.OpIntMul:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar = getslot(slotptr, xslot).scalar * getslot(slotptr, yslot).scalar
 			pc += 4
-		case opIntDiv:
+		case bytecode.OpIntDiv:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar = getslot(slotptr, xslot).scalar / getslot(slotptr, yslot).scalar
 			pc += 4
 
-		case opIntInc:
+		case bytecode.OpIntInc:
 			dstslot := unpack8(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar++
 			pc += 2
-		case opIntDec:
+		case bytecode.OpIntDec:
 			dstslot := unpack8(codeptr, pc+1)
 			getslot(slotptr, dstslot).scalar--
 			pc += 2
 
-		case opJump:
+		case bytecode.OpJump:
 			offset := unpack16(codeptr, pc+1)
 			pc += offset
 
-		case opJumpFalse:
+		case bytecode.OpJumpFalse:
 			srcslot := unpack8(codeptr, pc+3)
 			if !getslot(slotptr, srcslot).Bool() {
 				offset := unpack16(codeptr, pc+1)
@@ -164,7 +166,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 			} else {
 				pc += 4
 			}
-		case opJumpTrue:
+		case bytecode.OpJumpTrue:
 			srcslot := unpack8(codeptr, pc+3)
 			if getslot(slotptr, srcslot).Bool() {
 				offset := unpack16(codeptr, pc+1)
@@ -173,7 +175,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 				pc += 4
 			}
 
-		case opCall:
+		case bytecode.OpCall:
 			dstslot := unpack8(codeptr, pc+1)
 			funcid := unpack16(codeptr, pc+2)
 			callFunc := env.userFuncs[funcid]
@@ -183,7 +185,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 			eval(env, callFunc, nextFrameSlot(slotptr, fn.frameSize))
 			*getslot(slotptr, dstslot) = env.result
 			pc += 4
-		case opCallRecur:
+		case bytecode.OpCallRecur:
 			dstslot := unpack8(codeptr, pc+1)
 			if !canAllocFrame(slotptr, env.slotend, fn.frameSize) {
 				panicStackOverflow(fn)
@@ -192,27 +194,27 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 			*getslot(slotptr, dstslot) = env.result
 			pc += 2
 
-		case opVariadicReset:
+		case bytecode.OpVariadicReset:
 			env.vararg = env.vararg[:0]
 			pc++
-		case opPushVariadicBoolArg:
+		case bytecode.OpPushVariadicBoolArg:
 			srcslot := unpack8(codeptr, pc+1)
 			env.vararg = append(env.vararg, getslot(slotptr, srcslot).Bool())
 			pc += 2
-		case opPushVariadicScalarArg:
+		case bytecode.OpPushVariadicScalarArg:
 			srcslot := unpack8(codeptr, pc+1)
 			env.vararg = append(env.vararg, getslot(slotptr, srcslot).Int())
 			pc += 2
-		case opPushVariadicStrArg:
+		case bytecode.OpPushVariadicStrArg:
 			srcslot := unpack8(codeptr, pc+1)
 			env.vararg = append(env.vararg, getslot(slotptr, srcslot).String())
 			pc += 2
-		case opPushVariadicInterfaceArg:
+		case bytecode.OpPushVariadicInterfaceArg:
 			srcslot := unpack8(codeptr, pc+1)
 			env.vararg = append(env.vararg, getslot(slotptr, srcslot).Interface())
 			pc += 2
 
-		case opCallNative:
+		case bytecode.OpCallNative:
 			dstslot := unpack8(codeptr, pc+1)
 			funcid := unpack16(codeptr, pc+2)
 			callFunc := env.nativeFuncs[funcid]
@@ -225,7 +227,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 			})
 			*getslot(slotptr, dstslot) = env.result
 			pc += 4
-		case opCallVoidNative:
+		case bytecode.OpCallVoidNative:
 			funcid := unpack16(codeptr, pc+1)
 			callFunc := env.nativeFuncs[funcid]
 			if !canAllocFrame(slotptr, env.slotend, callFunc.frameSize) {
@@ -236,23 +238,23 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 			})
 			pc += 3
 
-		case opReturnVoid:
+		case bytecode.OpReturnVoid:
 			return
-		case opReturnTrue:
+		case bytecode.OpReturnTrue:
 			env.result.SetBool(true)
 			return
-		case opReturnFalse:
+		case bytecode.OpReturnFalse:
 			env.result.SetBool(false)
 			return
-		case opReturnStr:
+		case bytecode.OpReturnStr:
 			srcslot := unpack8(codeptr, pc+1)
 			env.result.SetString(getslot(slotptr, srcslot).String())
 			return
-		case opReturnScalar:
+		case bytecode.OpReturnScalar:
 			srcslot := unpack8(codeptr, pc+1)
 			env.result.scalar = getslot(slotptr, srcslot).scalar
 			return
-		case opReturnInterface:
+		case bytecode.OpReturnInterface:
 			srcslot := unpack8(codeptr, pc+1)
 			env.result = *getslot(slotptr, srcslot)
 			return

@@ -7,6 +7,8 @@ import (
 	"go/types"
 
 	"github.com/quasilyte/quasigo/internal/goutil"
+
+	"github.com/quasilyte/quasigo/internal/bytecode"
 )
 
 func (cl *compiler) compileTempExpr(e ast.Expr) int {
@@ -71,13 +73,13 @@ func (cl *compiler) compileExpr(dst int, e ast.Expr) {
 func (cl *compiler) compileUnaryExpr(dst int, e *ast.UnaryExpr) {
 	switch e.Op {
 	case token.NOT:
-		cl.compileUnaryOp(dst, opNot, e.X)
+		cl.compileUnaryOp(dst, bytecode.OpNot, e.X)
 	default:
 		panic(cl.errorf(e, "can't compile unary %s yet", e.Op))
 	}
 }
 
-func (cl *compiler) compileUnaryOp(dst int, op opcode, arg ast.Expr) {
+func (cl *compiler) compileUnaryOp(dst int, op bytecode.Op, arg ast.Expr) {
 	xslot := cl.compileTempExpr(arg)
 	cl.emit8x2(op, dst, xslot)
 }
@@ -94,73 +96,73 @@ func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
 	case token.NEQ:
 		switch {
 		case identName(e.X) == "nil":
-			cl.compileUnaryOp(dst, pickOp(typeIsInterface(cl.ctx.Types.TypeOf(e.Y)), opIsNotNilInterface, opIsNotNil), e.Y)
+			cl.compileUnaryOp(dst, pickOp(typeIsInterface(cl.ctx.Types.TypeOf(e.Y)), bytecode.OpIsNotNilInterface, bytecode.OpIsNotNil), e.Y)
 		case identName(e.Y) == "nil":
-			cl.compileUnaryOp(dst, pickOp(typeIsInterface(typ), opIsNotNilInterface, opIsNotNil), e.X)
+			cl.compileUnaryOp(dst, pickOp(typeIsInterface(typ), bytecode.OpIsNotNilInterface, bytecode.OpIsNotNil), e.X)
 
 		case typeIsString(typ):
-			cl.compileBinaryOp(dst, opStrNotEq, e)
+			cl.compileBinaryOp(dst, bytecode.OpStrNotEq, e)
 		case typeIsInt(typ):
-			cl.compileBinaryOp(dst, opIntNotEq, e)
+			cl.compileBinaryOp(dst, bytecode.OpIntNotEq, e)
 		default:
-			panic(cl.errorf(e, "!= is not implemented for %s operands", typ))
+			panic(cl.errorf(e, "!= is not implemented for %s bytecode.Operands", typ))
 		}
 	case token.EQL:
 		switch {
 		case identName(e.X) == "nil":
-			cl.compileUnaryOp(dst, pickOp(typeIsInterface(cl.ctx.Types.TypeOf(e.Y)), opIsNilInterface, opIsNil), e.Y)
+			cl.compileUnaryOp(dst, pickOp(typeIsInterface(cl.ctx.Types.TypeOf(e.Y)), bytecode.OpIsNilInterface, bytecode.OpIsNil), e.Y)
 		case identName(e.Y) == "nil":
-			cl.compileUnaryOp(dst, pickOp(typeIsInterface(typ), opIsNilInterface, opIsNil), e.X)
+			cl.compileUnaryOp(dst, pickOp(typeIsInterface(typ), bytecode.OpIsNilInterface, bytecode.OpIsNil), e.X)
 
 		case typeIsString(cl.ctx.Types.TypeOf(e.X)):
-			cl.compileBinaryOp(dst, opStrEq, e)
+			cl.compileBinaryOp(dst, bytecode.OpStrEq, e)
 		case typeIsInt(cl.ctx.Types.TypeOf(e.X)):
-			cl.compileBinaryOp(dst, opIntEq, e)
+			cl.compileBinaryOp(dst, bytecode.OpIntEq, e)
 		default:
-			panic(cl.errorf(e, "== is not implemented for %s operands", typ))
+			panic(cl.errorf(e, "== is not implemented for %s bytecode.Operands", typ))
 		}
 
 	case token.GTR:
-		cl.compileIntBinaryOp(dst, e, opIntGt, typ)
+		cl.compileIntBinaryOp(dst, e, bytecode.OpIntGt, typ)
 	case token.GEQ:
-		cl.compileIntBinaryOp(dst, e, opIntGtEq, typ)
+		cl.compileIntBinaryOp(dst, e, bytecode.OpIntGtEq, typ)
 	case token.LSS:
-		cl.compileIntBinaryOp(dst, e, opIntLt, typ)
+		cl.compileIntBinaryOp(dst, e, bytecode.OpIntLt, typ)
 	case token.LEQ:
-		cl.compileIntBinaryOp(dst, e, opIntLtEq, typ)
+		cl.compileIntBinaryOp(dst, e, bytecode.OpIntLtEq, typ)
 
 	case token.ADD:
 		switch {
 		case typeIsString(typ):
-			cl.compileBinaryOp(dst, opConcat, e)
+			cl.compileBinaryOp(dst, bytecode.OpConcat, e)
 		case typeIsInt(typ):
-			cl.compileBinaryOp(dst, opIntAdd, e)
+			cl.compileBinaryOp(dst, bytecode.OpIntAdd, e)
 		default:
-			panic(cl.errorf(e, "+ is not implemented for %s operands", typ))
+			panic(cl.errorf(e, "+ is not implemented for %s bytecode.Operands", typ))
 		}
 
 	case token.SUB:
-		cl.compileIntBinaryOp(dst, e, opIntSub, typ)
+		cl.compileIntBinaryOp(dst, e, bytecode.OpIntSub, typ)
 	case token.MUL:
-		cl.compileIntBinaryOp(dst, e, opIntMul, typ)
+		cl.compileIntBinaryOp(dst, e, bytecode.OpIntMul, typ)
 	case token.QUO:
-		cl.compileIntBinaryOp(dst, e, opIntDiv, typ)
+		cl.compileIntBinaryOp(dst, e, bytecode.OpIntDiv, typ)
 
 	default:
 		panic(cl.errorf(e, "can't compile binary %s yet", e.Op))
 	}
 }
 
-func (cl *compiler) compileIntBinaryOp(dst int, e *ast.BinaryExpr, op opcode, typ types.Type) {
+func (cl *compiler) compileIntBinaryOp(dst int, e *ast.BinaryExpr, op bytecode.Op, typ types.Type) {
 	switch {
 	case typeIsInt(typ):
 		cl.compileBinaryOp(dst, op, e)
 	default:
-		panic(cl.errorf(e, "%s is not implemented for %s operands", e.Op, typ))
+		panic(cl.errorf(e, "%s is not implemented for %s bytecode.Operands", e.Op, typ))
 	}
 }
 
-func (cl *compiler) compileBinaryOp(dst int, op opcode, e *ast.BinaryExpr) {
+func (cl *compiler) compileBinaryOp(dst int, op bytecode.Op, e *ast.BinaryExpr) {
 	xslot := cl.compileTempExpr(e.X)
 	yslot := cl.compileTempExpr(e.Y)
 	cl.emit8x3(op, dst, xslot, yslot)
@@ -185,16 +187,16 @@ func (cl *compiler) compileSliceExpr(dst int, slice *ast.SliceExpr) {
 	case slice.Low == nil && slice.High != nil:
 		strslot := cl.compileTempExpr(slice.X)
 		toslot := cl.compileTempExpr(slice.High)
-		cl.emit8x3(opStrSliceTo, dst, strslot, toslot)
+		cl.emit8x3(bytecode.OpStrSliceTo, dst, strslot, toslot)
 	case slice.Low != nil && slice.High == nil:
 		strslot := cl.compileTempExpr(slice.X)
 		fromslot := cl.compileTempExpr(slice.Low)
-		cl.emit8x3(opStrSliceFrom, dst, strslot, fromslot)
+		cl.emit8x3(bytecode.OpStrSliceFrom, dst, strslot, fromslot)
 	default:
 		strslot := cl.compileTempExpr(slice.X)
 		fromslot := cl.compileTempExpr(slice.Low)
 		toslot := cl.compileTempExpr(slice.High)
-		cl.emit8x4(opStrSlice, dst, strslot, fromslot, toslot)
+		cl.emit8x4(bytecode.OpStrSlice, dst, strslot, fromslot, toslot)
 	}
 }
 
@@ -281,7 +283,7 @@ func (cl *compiler) compileBuiltinCall(dst int, fn *ast.Ident, call *ast.CallExp
 		if !typeIsString(cl.ctx.Types.TypeOf(s)) {
 			panic(cl.errorf(s, "can't compile len() with non-string argument yet"))
 		}
-		cl.emit8x2(opStrLen, dst, srcslot)
+		cl.emit8x2(bytecode.OpStrLen, dst, srcslot)
 
 	case `println`:
 		if len(call.Args) != 1 {
@@ -311,20 +313,20 @@ func (cl *compiler) compileBuiltinCall(dst int, fn *ast.Ident, call *ast.CallExp
 }
 
 func (cl *compiler) compileCallVariadicArgs(args []ast.Expr) {
-	cl.emit(opVariadicReset)
+	cl.emit(bytecode.OpVariadicReset)
 	tmpslot := cl.allocTmp()
 	for _, arg := range args {
 		cl.compileExpr(tmpslot, arg)
 		argType := cl.ctx.Types.TypeOf(arg)
 		switch {
 		case typeIsBool(argType):
-			cl.emit8(opPushVariadicBoolArg, tmpslot)
+			cl.emit8(bytecode.OpPushVariadicBoolArg, tmpslot)
 		case typeIsScalar(argType):
-			cl.emit8(opPushVariadicScalarArg, tmpslot)
+			cl.emit8(bytecode.OpPushVariadicScalarArg, tmpslot)
 		case typeIsString(argType):
-			cl.emit8(opPushVariadicStrArg, tmpslot)
+			cl.emit8(bytecode.OpPushVariadicStrArg, tmpslot)
 		case typeIsInterface(argType):
-			cl.emit8(opPushVariadicInterfaceArg, tmpslot)
+			cl.emit8(bytecode.OpPushVariadicInterfaceArg, tmpslot)
 		default:
 			panic(cl.errorf(arg, "can't pass %s typed variadic arg", argType.String()))
 		}
@@ -410,7 +412,7 @@ func (cl *compiler) compileNativeCall(dst int, key funcKey) bool {
 	// 		// int-typed values should appear in the interface{}-typed
 	// 		// objects slice, so we get all variadic args placed in one place.
 	// 		if typeIsInt(cl.ctx.Types.TypeOf(arg)) {
-	// 			cl.emit(opConvIntToIface)
+	// 			cl.emit(bytecode.OpConvIntToIface)
 	// 		}
 	// 	}
 	// 	if len(variadicArgs) > 255 {
@@ -419,15 +421,15 @@ func (cl *compiler) compileNativeCall(dst int, key funcKey) bool {
 	// 	// Even if len(variadicArgs) is 0, we still need to overwrite
 	// 	// the old variadicLen value, so the variadic func is not confused
 	// 	// by some unrelated value.
-	// 	cl.emit8(opSetVariadicLen, len(variadicArgs))
+	// 	cl.emit8(bytecode.OpSetVariadicLen, len(variadicArgs))
 	// }
 
-	cl.emitCall(opCallNative, dst, int(funcID))
+	cl.emitCall(bytecode.OpCallNative, dst, int(funcID))
 	return true
 }
 
 func (cl *compiler) compileRecurCall(dst int) bool {
-	cl.emit8(opCallRecur, dst)
+	cl.emit8(bytecode.OpCallRecur, dst)
 	return true
 }
 
@@ -437,7 +439,7 @@ func (cl *compiler) compileCall(dst int, key funcKey) bool {
 		return false
 	}
 
-	cl.emitCall(opCall, dst, int(funcID))
+	cl.emitCall(bytecode.OpCall, dst, int(funcID))
 	return true
 }
 
@@ -466,12 +468,12 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 	case constant.Bool:
 		v := constant.BoolVal(cv)
 		id := cl.internBoolConstant(v)
-		cl.emit8x2(opLoadScalarConst, dst, id)
+		cl.emit8x2(bytecode.OpLoadScalarConst, dst, id)
 
 	case constant.String:
 		v := constant.StringVal(cv)
 		id := cl.internStrConstant(v)
-		cl.emit8x2(opLoadStrConst, dst, id)
+		cl.emit8x2(bytecode.OpLoadStrConst, dst, id)
 
 	case constant.Int:
 		v, exact := constant.Int64Val(cv)
@@ -479,7 +481,7 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 			panic(cl.errorf(source, "non-exact int value"))
 		}
 		id := cl.internIntConstant(int(v))
-		cl.emit8x2(opLoadScalarConst, dst, id)
+		cl.emit8x2(bytecode.OpLoadScalarConst, dst, id)
 
 	case constant.Complex:
 		panic(cl.errorf(source, "can't compile complex number constants yet"))
@@ -495,7 +497,7 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 func (cl *compiler) compileOr(dst int, e *ast.BinaryExpr) {
 	labelEnd := cl.newLabel()
 	cl.compileExpr(dst, e.X)
-	cl.emitCondJump(dst, opJumpTrue, labelEnd)
+	cl.emitCondJump(dst, bytecode.OpJumpTrue, labelEnd)
 	cl.compileExpr(dst, e.Y)
 	cl.bindLabel(labelEnd)
 }
@@ -503,7 +505,7 @@ func (cl *compiler) compileOr(dst int, e *ast.BinaryExpr) {
 func (cl *compiler) compileAnd(dst int, e *ast.BinaryExpr) {
 	labelEnd := cl.newLabel()
 	cl.compileExpr(dst, e.X)
-	cl.emitCondJump(dst, opJumpFalse, labelEnd)
+	cl.emitCondJump(dst, bytecode.OpJumpFalse, labelEnd)
 	cl.compileExpr(dst, e.Y)
 	cl.bindLabel(labelEnd)
 }

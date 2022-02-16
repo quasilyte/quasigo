@@ -4,9 +4,11 @@ import (
 	"encoding/binary"
 	"go/ast"
 	"go/types"
+
+	"github.com/quasilyte/quasigo/internal/bytecode"
 )
 
-func pickOp(cond bool, ifTrue, otherwise opcode) opcode {
+func pickOp(cond bool, ifTrue, otherwise bytecode.Op) bytecode.Op {
 	if cond {
 		return ifTrue
 	}
@@ -67,15 +69,6 @@ func typeIsString(typ types.Type) bool {
 		return false
 	}
 	return basic.Info()&types.IsString != 0
-}
-
-func walkBytecode(code []byte, fn func(pc int, op opcode)) {
-	pc := 0
-	for pc < len(code) {
-		op := opcode(code[pc])
-		fn(pc, op)
-		pc += int(opcodeInfoTable[op].width)
-	}
 }
 
 func identName(n ast.Expr) string {

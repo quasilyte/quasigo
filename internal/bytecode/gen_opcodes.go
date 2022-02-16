@@ -103,24 +103,24 @@ const stackUnchanged = ""
 
 var fileTemplate = template.Must(template.New("opcodes.go").Parse(`// Code generated "gen_opcodes.go"; DO NOT EDIT.
 
-package quasigo
+package bytecode
 
 const (
-	opInvalid opcode = 0
+	OpInvalid Op = 0
 {{ range .Opcodes }}
 	// Encoding: {{.EncString}}
-	op{{ .Name }} opcode = {{.Opcode}}
+	Op{{ .Name }} Op = {{.Opcode}}
 {{ end -}}
 )
 
-var opcodeInfoTable = [256]opcodeInfo{
-	opInvalid: {width: 1},
+var opcodeInfoTable = [256]OpcodeInfo{
+	OpInvalid: {Width: 1},
 
 {{ range .Opcodes -}}
-	op{{.Name}}: {
-		width: {{.Width}},
-		flags: {{.Flags}},
-		args: []opcodeArgument{ {{.Args}} },
+	Op{{.Name}}: {
+		Width: {{.Width}},
+		Flags: {{.Flags}},
+		Args: []Argument{ {{.Args}} },
 	},
 {{ end }}
 }
@@ -193,45 +193,45 @@ func decodeEnc(enc string) encodingInfo {
 				panic(fmt.Sprintf("parse %s: dst arg at i=%d", enc, i))
 			}
 			hasDst = true
-			argType = "argkindSlot"
+			argType = "ArgSlot"
 			encType = "u8"
 			argWidth = 1
 		case "rslot":
-			argType = "argkindSlot"
+			argType = "ArgSlot"
 			encType = "u8"
 			argWidth = 1
 		case "strindex":
-			argType = "argkindStrConst"
+			argType = "ArgStrConst"
 			encType = "u8"
 			argWidth = 1
 		case "scalarindex":
-			argType = "argkindScalarConst"
+			argType = "ArgScalarConst"
 			encType = "u8"
 			argWidth = 1
 		case "offset":
-			argType = "argkindOffset"
+			argType = "ArgOffset"
 			encType = "i16"
 			argWidth = 2
 		case "funcid":
-			argType = "argkindFuncID"
+			argType = "ArgFuncID"
 			encType = "u16"
 			argWidth = 2
 		case "nativefuncid":
-			argType = "argkindNativeFuncID"
+			argType = "ArgNativeFuncID"
 			encType = "u16"
 			argWidth = 2
 		default:
 			panic(fmt.Sprintf("unknown op argument type: %s", typ))
 		}
 		encdocParts = append(encdocParts, argName+":"+encType)
-		argList = append(argList, fmt.Sprintf("{name: %q, kind: %s, offset: %d}", argName, argType, argOffset))
+		argList = append(argList, fmt.Sprintf("{Name: %q, Kind: %s, Offset: %d}", argName, argType, argOffset))
 		width += argWidth
 		argOffset += argWidth
 	}
 
 	var flagList []string
 	if hasDst {
-		flagList = append(flagList, "opflagHasDst")
+		flagList = append(flagList, "FlagHasDst")
 	}
 
 	flagsString := "0"

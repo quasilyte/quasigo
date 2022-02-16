@@ -6,6 +6,8 @@ import (
 	"go/token"
 	"go/types"
 	"math"
+
+	"github.com/quasilyte/quasigo/internal/bytecode"
 )
 
 var voidType = &types.Tuple{}
@@ -51,7 +53,7 @@ type compiler struct {
 	fnType  *types.Signature
 	retType types.Type
 
-	lastOp opcode
+	lastOp bytecode.Op
 
 	insideVariadic bool
 
@@ -123,7 +125,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *Func {
 
 	cl.compileStmt(fn.Body)
 	if cl.retType == voidType {
-		cl.emit(opReturnVoid)
+		cl.emit(bytecode.OpReturnVoid)
 	}
 
 	numFrameSlots := len(cl.params) + len(cl.locals) + cl.numTmp
@@ -140,7 +142,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *Func {
 	cl.linkJumps()
 
 	// Now that we know the frame size, we need to fix the arguments passing offsets.
-	walkBytecode(cl.code, func(pc int, op opcode) {
+	bytecode.Walk(cl.code, func(pc int, op bytecode.Op) {
 		if !op.HasDst() {
 			return
 		}
@@ -206,46 +208,46 @@ func (cl *compiler) bindLabel(l *label) {
 	l.targetPos = len(cl.code)
 }
 
-func (cl *compiler) emit(op opcode) {
+func (cl *compiler) emit(op bytecode.Op) {
 	cl.lastOp = op
 	cl.code = append(cl.code, byte(op))
 }
 
-func (cl *compiler) emitJump(op opcode, l *label) {
+func (cl *compiler) emitJump(op bytecode.Op, l *label) {
 	l.sources = append(l.sources, len(cl.code))
 	cl.emit(op)
 	cl.code = append(cl.code, 0, 0)
 }
 
-func (cl *compiler) emitCondJump(slot int, op opcode, l *label) {
+func (cl *compiler) emitCondJump(slot int, op bytecode.Op, l *label) {
 	l.sources = append(l.sources, len(cl.code))
 	cl.emit(op)
 	cl.code = append(cl.code, 0, 0, byte(slot))
 }
 
-func (cl *compiler) emit8(op opcode, arg8 int) {
+func (cl *compiler) emit8(op bytecode.Op, arg8 int) {
 	cl.emit(op)
 	cl.code = append(cl.code, byte(arg8))
 }
 
-func (cl *compiler) emit8x2(op opcode, arg8a, arg8b int) {
+func (cl *compiler) emit8x2(op bytecode.Op, arg8a, arg8b int) {
 	cl.emit(op)
 	cl.code = append(cl.code, byte(arg8a), byte(arg8b))
 }
 
-func (cl *compiler) emit8x3(op opcode, arg8a, arg8b, arg8c int) {
+func (cl *compiler) emit8x3(op bytecode.Op, arg8a, arg8b, arg8c int) {
 	cl.emit(op)
 	cl.code = append(cl.code, byte(arg8a), byte(arg8b), byte(arg8c))
 }
 
-func (cl *compiler) emit8x4(op opcode, arg8a, arg8b, arg8c, arg8d int) {
+func (cl *compiler) emit8x4(op bytecode.Op, arg8a, arg8b, arg8c, arg8d int) {
 	cl.emit(op)
 	cl.code = append(cl.code, byte(arg8a), byte(arg8b), byte(arg8c), byte(arg8d))
 }
 
-func (cl *compiler) emitCall(op opcode, dst int, funcid int) {
-	if dst == voidSlot && op == opCallNative {
-		cl.emit16(opCallVoidNative, funcid)
+func (cl *compiler) emitCall(op bytecode.Op, dst int, funcid int) {
+	if dst == voidSlot && op == bytecode.OpCallNative {
+		cl.emit16(bytecode.OpCallVoidNative, funcid)
 		return
 	}
 	cl.emit(op)
@@ -255,7 +257,7 @@ func (cl *compiler) emitCall(op opcode, dst int, funcid int) {
 	cl.code = append(cl.code, buf...)
 }
 
-func (cl *compiler) emit16(op opcode, arg16 int) {
+func (cl *compiler) emit16(op bytecode.Op, arg16 int) {
 	cl.emit(op)
 	buf := make([]byte, 2)
 	put16(buf, 0, arg16)
@@ -272,9 +274,9 @@ func (cl *compiler) errorf(n ast.Node, format string, args ...interface{}) compi
 	return compileError(message)
 }
 
-func (cl *compiler) isUncondJump(op opcode) bool {
+func (cl *compiler) isUncondJump(op bytecode.Op) bool {
 	switch op {
-	case opJump, opReturnFalse, opReturnTrue, opReturnStr, opReturnScalar:
+	case bytecode.OpJump, bytecode.OpReturnFalse, bytecode.OpReturnTrue, bytecode.OpReturnStr, bytecode.OpReturnScalar:
 		return true
 	default:
 		return false
@@ -311,14 +313,14 @@ func (cl *compiler) isSupportedType(typ types.Type) bool {
 	}
 }
 
-func (cl *compiler) opMoveByType(e ast.Expr, typ types.Type) opcode {
+func (cl *compiler) opMoveByType(e ast.Expr, typ types.Type) bytecode.Op {
 	switch {
 	case typeIsScalar(typ):
-		return opMoveScalar
+		return bytecode.OpMoveScalar
 	case typeIsString(typ):
-		return opMoveStr
+		return bytecode.OpMoveStr
 	case typeIsInterface(typ) || typeIsPointer(typ):
-		return opMoveInterface
+		return bytecode.OpMoveInterface
 	default:
 		panic(cl.errorf(e, "can't move %s typed value yet", typ.String()))
 	}
