@@ -1,7 +1,9 @@
 package quasigo
 
+import "github.com/quasilyte/quasigo/internal/qruntime"
+
 type debugInfo struct {
-	funcs map[*Func]funcDebugInfo
+	funcs map[*qruntime.Func]funcDebugInfo
 }
 
 type funcDebugInfo struct {
@@ -11,6 +13,6 @@ type funcDebugInfo struct {
 
 func newDebugInfo() *debugInfo {
 	return &debugInfo{
-		funcs: make(map[*Func]funcDebugInfo),
+		funcs: make(map[*qruntime.Func]funcDebugInfo),
 	}
 }

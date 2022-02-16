@@ -4,26 +4,27 @@ import (
 	"fmt"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
+	"github.com/quasilyte/quasigo/internal/qruntime"
 )
 
 //go:noinline
-func panicStackOverflow(fn *Func) {
-	panic(fmt.Sprintf("can't call %s func: stack overflow", fn.name))
+func panicStackOverflow(fn *qruntime.Func) {
+	panic(fmt.Sprintf("can't call %s func: stack overflow", fn.Name))
 }
 
-func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
+func eval(env *EvalEnv, fn *qruntime.Func, slotptr *slotValue) {
 	pc := 0
-	codeptr := fn.codeptr
+	codeptr := fn.Codeptr
 
 	for {
 		switch op := bytecode.Op(unpack8(codeptr, pc)); op {
 		case bytecode.OpLoadStrConst:
 			dstslot, constindex := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).SetString(fn.strConstants[constindex])
+			getslot(slotptr, dstslot).SetString(fn.StrConstants[constindex])
 			pc += 3
 		case bytecode.OpLoadScalarConst:
 			dstslot, constindex := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).scalar = fn.scalarConstants[constindex]
+			getslot(slotptr, dstslot).scalar = fn.ScalarConstants[constindex]
 			pc += 3
 
 		case bytecode.OpMoveStr:
@@ -179,18 +180,18 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 			dstslot := unpack8(codeptr, pc+1)
 			funcid := unpack16(codeptr, pc+2)
 			callFunc := env.userFuncs[funcid]
-			if !canAllocFrame(slotptr, env.slotend, callFunc.frameSize) {
+			if !canAllocFrame(slotptr, env.slotend, callFunc.FrameSize) {
 				panicStackOverflow(fn)
 			}
-			eval(env, callFunc, nextFrameSlot(slotptr, fn.frameSize))
+			eval(env, callFunc, nextFrameSlot(slotptr, fn.FrameSize))
 			*getslot(slotptr, dstslot) = env.result
 			pc += 4
 		case bytecode.OpCallRecur:
 			dstslot := unpack8(codeptr, pc+1)
-			if !canAllocFrame(slotptr, env.slotend, fn.frameSize) {
+			if !canAllocFrame(slotptr, env.slotend, fn.FrameSize) {
 				panicStackOverflow(fn)
 			}
-			eval(env, fn, nextFrameSlot(slotptr, fn.frameSize))
+			eval(env, fn, nextFrameSlot(slotptr, fn.FrameSize))
 			*getslot(slotptr, dstslot) = env.result
 			pc += 2
 
@@ -223,7 +224,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 			}
 			callFunc.mappedFunc(NativeCallContext{
 				env:     env,
-				slotptr: nextFrameSlot(slotptr, fn.frameSize),
+				slotptr: nextFrameSlot(slotptr, fn.FrameSize),
 			})
 			*getslot(slotptr, dstslot) = env.result
 			pc += 4
@@ -234,7 +235,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *slotValue) {
 				panicStackOverflow(fn)
 			}
 			callFunc.mappedFunc(NativeCallContext{
-				slotptr: nextFrameSlot(slotptr, fn.frameSize),
+				slotptr: nextFrameSlot(slotptr, fn.FrameSize),
 			})
 			pc += 3
 

@@ -5,9 +5,10 @@ import (
 	"strings"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
+	"github.com/quasilyte/quasigo/internal/qruntime"
 )
 
-func disasm(env *Env, fn *Func) string {
+func disasm(env *Env, fn *qruntime.Func) string {
 	var out strings.Builder
 
 	dbg, ok := env.debug.funcs[fn]
@@ -15,12 +16,12 @@ func disasm(env *Env, fn *Func) string {
 		return "<unknown>\n"
 	}
 
-	numSlots := fn.frameSize / int(sizeofSlotValue)
+	numSlots := fn.FrameSize / int(sizeofSlotValue)
 	numLocals := dbg.numLocals
 	numArgs := len(dbg.slotNames) - numLocals
 	numTemps := numSlots - numArgs - numLocals
 	fmt.Fprintf(&out, "%s code=%d frame=%d (%d slots: %d args, %d locals, %d temps)\n",
-		fn.name, len(fn.code), fn.frameSize, numSlots, numArgs, numLocals, numTemps)
+		fn.Name, len(fn.Code), fn.FrameSize, numSlots, numArgs, numLocals, numTemps)
 
 	slotName := func(index int) string {
 		if index < len(dbg.slotNames) {
@@ -32,13 +33,13 @@ func disasm(env *Env, fn *Func) string {
 		return fmt.Sprintf("tmp%d", index-len(dbg.slotNames))
 	}
 
-	code := fn.code
+	code := fn.Code
 	labels := map[int]string{}
 	bytecode.Walk(code, func(pc int, op bytecode.Op) {
 		if !op.IsJump() {
 			return
 		}
-		offset := unpack16(fn.codeptr, pc+1)
+		offset := unpack16(fn.Codeptr, pc+1)
 		targetPC := pc + offset
 		if _, ok := labels[targetPC]; !ok {
 			labels[targetPC] = fmt.Sprintf("L%d", len(labels))
@@ -60,19 +61,19 @@ func disasm(env *Env, fn *Func) string {
 				value = slotName(slot)
 			case bytecode.ArgStrConst:
 				index := int(code[pc+a.Offset])
-				value = fmt.Sprintf("%q", fn.strConstants[index])
+				value = fmt.Sprintf("%q", fn.StrConstants[index])
 			case bytecode.ArgScalarConst:
 				index := int(code[pc+a.Offset])
-				value = fmt.Sprintf("%d", int64(fn.scalarConstants[index]))
+				value = fmt.Sprintf("%d", int64(fn.ScalarConstants[index]))
 			case bytecode.ArgOffset:
-				offset := unpack16(fn.codeptr, pc+a.Offset)
+				offset := unpack16(fn.Codeptr, pc+a.Offset)
 				targetPC := pc + offset
 				value = labels[targetPC]
 			case bytecode.ArgFuncID:
-				id := unpack16(fn.codeptr, pc+a.Offset)
-				value = env.userFuncs[id].name + "()"
+				id := unpack16(fn.Codeptr, pc+a.Offset)
+				value = env.userFuncs[id].Name + "()"
 			case bytecode.ArgNativeFuncID:
-				id := unpack16(fn.codeptr, pc+a.Offset)
+				id := unpack16(fn.Codeptr, pc+a.Offset)
 				value = env.nativeFuncs[id].name + "()"
 			}
 			if op.HasDst() && i == 0 && len(op.Args()) != 1 {

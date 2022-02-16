@@ -7,6 +7,8 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+
+	"github.com/quasilyte/quasigo/internal/qruntime"
 )
 
 // TODO(quasilyte): document what is thread-safe and what not.
@@ -19,7 +21,7 @@ type Env struct {
 	nativeFuncs        []nativeFunc
 	nameToNativeFuncID map[funcKey]uint16
 
-	userFuncs    []*Func
+	userFuncs    []*qruntime.Func
 	nameToFuncID map[funcKey]uint16
 
 	// debug contains all information that is only needed
@@ -32,7 +34,7 @@ type Env struct {
 // To get one, use Env.GetEvalEnv() method.
 type EvalEnv struct {
 	nativeFuncs []nativeFunc
-	userFuncs   []*Func
+	userFuncs   []*qruntime.Func
 
 	slots    []slotValue
 	slotbase *slotValue
@@ -117,14 +119,14 @@ func (env *Env) AddNativeFunc(pkgPath, funcName string, f func(NativeCallContext
 }
 
 // AddFunc binds `$pkgPath.$funcName` symbol with f.
-func (env *Env) AddFunc(pkgPath, funcName string, f *Func) {
-	env.addFunc(funcKey{qualifier: pkgPath, name: funcName}, f)
+func (env *Env) AddFunc(pkgPath, funcName string, f Func) {
+	env.addFunc(funcKey{qualifier: pkgPath, name: funcName}, f.data)
 }
 
 // GetFunc finds previously bound function searching for the `$pkgPath.$funcName` symbol.
-func (env *Env) GetFunc(pkgPath, funcName string) *Func {
+func (env *Env) GetFunc(pkgPath, funcName string) Func {
 	id := env.nameToFuncID[funcKey{qualifier: pkgPath, name: funcName}]
-	return env.userFuncs[id]
+	return Func{data: env.userFuncs[id]}
 }
 
 // CompileContext is used to provide necessary data to the compiler.
@@ -139,8 +141,9 @@ type CompileContext struct {
 }
 
 // Compile prepares an executable version of fn.
-func Compile(ctx *CompileContext, fn *ast.FuncDecl) (compiled *Func, err error) {
-	return compile(ctx, fn)
+func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
+	compiled, err := compile(ctx, fn)
+	return Func{data: compiled}, err
 }
 
 // BindArgs prepares the arguments for the call.
@@ -169,8 +172,8 @@ func (env *EvalEnv) BindArgs(args ...interface{}) {
 // Call invokes a given function.
 // Before calling this function, be sure to bind arguments
 // to the env using BindArgs.
-func Call(env *EvalEnv, fn *Func) CallResult {
-	eval(env, fn, env.slotbase)
+func Call(env *EvalEnv, fn Func) CallResult {
+	eval(env, fn.data, env.slotbase)
 	return CallResult{v: env.result}
 }
 
@@ -188,47 +191,13 @@ func (res CallResult) BoolValue() bool { return res.v.Bool() }
 // Disasm returns the compiled function disassembly text.
 // This output is not guaranteed to be stable between versions
 // and should be used only for debugging purposes.
-func Disasm(env *Env, fn *Func) string {
-	return disasm(env, fn)
+func Disasm(env *Env, fn Func) string {
+	return disasm(env, fn.data)
 }
 
 // Func is a compiled function that is ready to be executed.
 type Func struct {
-	strConstants    []string
-	scalarConstants []uint64
-
-	codeptr *byte
-	code    []byte
-
-	frameSize  int
-	frameSlots byte
-
-	name string
+	data *qruntime.Func
 }
 
-// func (s *ValueStack) Arg(index uint) interface{} {
-// 	i := s.base + index
-// 	if i < uint(len(s.values)) {
-// 		return s.values[i].Interface()
-// 	}
-// 	return nil
-// }
-
-// func (s *ValueStack) IntArg(index uint) int {
-// 	i := s.base + index
-// 	if i < uint(len(s.values)) {
-// 		return s.values[i].Int()
-// 	}
-// 	return 0
-// }
-
-// // Push adds x to the stack.
-// // Important: for int-typed values, use PushInt.
-// func (s *ValueStack) Push(x interface{}) {
-// 	s.values = append(s.values, slotValue{object: x})
-// }
-
-// // PushInt adds x to the stack.
-// func (s *ValueStack) PushInt(x int) {
-// 	s.values = append(s.values, slotValue{scalar: uint64(x)})
-// }
+func (fn Func) IsNil() bool { return fn.data == nil }

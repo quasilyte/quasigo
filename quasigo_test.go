@@ -44,8 +44,8 @@ func parseGoFile(pkgPath, src string) (*parsedTestFile, error) {
 	return result, err
 }
 
-func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *parsedTestFile) (*quasigo.Func, error) {
-	var resultFunc *quasigo.Func
+func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *parsedTestFile) (quasigo.Func, error) {
+	var resultFunc quasigo.Func
 	for _, decl := range parsed.ast.Decls {
 		decl, ok := decl.(*ast.FuncDecl)
 		if !ok {
@@ -62,7 +62,7 @@ func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *parse
 		}
 		fn, err := quasigo.Compile(ctx, decl)
 		if err != nil {
-			return nil, fmt.Errorf("compile %s func: %v", decl.Name, err)
+			return resultFunc, fmt.Errorf("compile %s func: %v", decl.Name, err)
 		}
 		if decl.Name.String() == targetFunc {
 			resultFunc = fn
@@ -73,7 +73,7 @@ func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *parse
 	return resultFunc, nil
 }
 
-func compileTestFunc(env *quasigo.Env, fn string, parsed *parsedTestFile) (*quasigo.Func, error) {
+func compileTestFunc(env *quasigo.Env, fn string, parsed *parsedTestFile) (quasigo.Func, error) {
 	var target *ast.FuncDecl
 	for _, decl := range parsed.ast.Decls {
 		decl, ok := decl.(*ast.FuncDecl)
@@ -86,7 +86,7 @@ func compileTestFunc(env *quasigo.Env, fn string, parsed *parsedTestFile) (*quas
 		}
 	}
 	if target == nil {
-		return nil, fmt.Errorf("test function %s not found", fn)
+		return quasigo.Func{}, fmt.Errorf("test function %s not found", fn)
 	}
 
 	ctx := &quasigo.CompileContext{

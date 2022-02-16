@@ -424,7 +424,7 @@ func TestCompile(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if compiled == nil {
+		if compiled.IsNil() {
 			t.Fatal("can't find f function")
 		}
 		want := disasmLines

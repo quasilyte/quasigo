@@ -1,5 +1,7 @@
 package quasigo
 
+import "github.com/quasilyte/quasigo/internal/qruntime"
+
 type funcKey struct {
 	qualifier string
 	name      string
@@ -37,7 +39,7 @@ func (env *Env) addNativeFunc(key funcKey, f func(NativeCallContext)) {
 	env.nameToNativeFuncID[key] = uint16(id)
 }
 
-func (env *Env) addFunc(key funcKey, f *Func) {
+func (env *Env) addFunc(key funcKey, f *qruntime.Func) {
 	id := len(env.userFuncs)
 	env.userFuncs = append(env.userFuncs, f)
 	env.nameToFuncID[key] = uint16(id)

@@ -8,6 +8,7 @@ import (
 	"math"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
+	"github.com/quasilyte/quasigo/internal/qruntime"
 )
 
 var voidType = &types.Tuple{}
@@ -16,7 +17,7 @@ const voidSlot = math.MaxInt
 
 const maxNativeFuncArgs = 8
 
-func compile(ctx *CompileContext, fn *ast.FuncDecl) (compiled *Func, err error) {
+func compile(ctx *CompileContext, fn *ast.FuncDecl) (compiled *qruntime.Func, err error) {
 	defer func() {
 		if err != nil {
 			return
@@ -35,7 +36,7 @@ func compile(ctx *CompileContext, fn *ast.FuncDecl) (compiled *Func, err error) 
 	return compileFunc(ctx, fn), nil
 }
 
-func compileFunc(ctx *CompileContext, fn *ast.FuncDecl) *Func {
+func compileFunc(ctx *CompileContext, fn *ast.FuncDecl) *qruntime.Func {
 	cl := compiler{
 		ctx:                 ctx,
 		fnType:              ctx.Types.ObjectOf(fn.Name).Type().(*types.Signature),
@@ -90,7 +91,7 @@ type compileError string
 
 func (e compileError) Error() string { return string(e) }
 
-func (cl *compiler) compileFunc(fn *ast.FuncDecl) *Func {
+func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	switch cl.fnType.Results().Len() {
 	case 0:
 		cl.retType = voidType
@@ -129,14 +130,14 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *Func {
 	}
 
 	numFrameSlots := len(cl.params) + len(cl.locals) + cl.numTmp
-	compiled := &Func{
-		code:            cl.code,
-		codeptr:         &cl.code[0],
-		strConstants:    cl.strConstants,
-		scalarConstants: cl.scalarConstants,
-		name:            cl.fnKey.String(),
-		frameSize:       int(sizeofSlotValue) * numFrameSlots,
-		frameSlots:      byte(numFrameSlots),
+	compiled := &qruntime.Func{
+		Code:            cl.code,
+		Codeptr:         &cl.code[0],
+		StrConstants:    cl.strConstants,
+		ScalarConstants: cl.scalarConstants,
+		Name:            cl.fnKey.String(),
+		FrameSize:       int(sizeofSlotValue) * numFrameSlots,
+		FrameSlots:      byte(numFrameSlots),
 	}
 	cl.ctx.Env.debug.funcs[compiled] = dbg
 	cl.linkJumps()

@@ -132,7 +132,7 @@ func BenchmarkEval(b *testing.B) {
 
 	tests = append(tests, benchmarksNoAlloc...)
 
-	runBench := func(b *testing.B, env *quasigo.EvalEnv, fn *quasigo.Func) {
+	runBench := func(b *testing.B, env *quasigo.EvalEnv, fn quasigo.Func) {
 		for i := 0; i < b.N; i++ {
 			_ = quasigo.Call(env, fn)
 		}
@@ -150,7 +150,7 @@ func BenchmarkEval(b *testing.B) {
 	}
 }
 
-func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, *quasigo.Func) {
+func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, quasigo.Func) {
 	makePackageSource := func(body string) string {
 		return `
 		  package ` + testPackage + `

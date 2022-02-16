@@ -306,7 +306,7 @@ func TestEvalFile(t *testing.T) {
 		if err != nil {
 			return "", err
 		}
-		if mainFunc == nil {
+		if mainFunc.IsNil() {
 			return "", errors.New("can't find main() function")
 		}
 
