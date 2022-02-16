@@ -13,7 +13,7 @@ func newEnv() *Env {
 		nameToNativeFuncID: make(map[qruntime.FuncKey]uint16),
 		nameToFuncID:       make(map[qruntime.FuncKey]uint16),
 
-		debug: newDebugInfo(),
+		debug: qruntime.NewDebugInfo(),
 	}
 }
 

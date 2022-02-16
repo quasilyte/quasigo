@@ -27,7 +27,7 @@ type Env struct {
 	// debug contains all information that is only needed
 	// for better debugging and compiled code introspection.
 	// Right now it's always enabled, but we may allow stripping it later.
-	debug *debugInfo
+	debug *qruntime.DebugInfo
 }
 
 // EvalEnv is a goroutine-local handle for Env.

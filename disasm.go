@@ -11,7 +11,7 @@ import (
 func disasm(env *Env, fn *qruntime.Func) string {
 	var out strings.Builder
 
-	dbg, ok := env.debug.funcs[fn]
+	dbg, ok := env.debug.Funcs[fn]
 	if !ok {
 		return "<unknown>\n"
 	}

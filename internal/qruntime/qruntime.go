@@ -24,8 +24,3 @@ func (k FuncKey) String() string {
 	}
 	return k.Name
 }
-
-type FuncDebugInfo struct {
-	SlotNames []string
-	NumLocals int
-}
