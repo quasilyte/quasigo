@@ -7,6 +7,7 @@ import (
 	"go/types"
 
 	"github.com/quasilyte/quasigo/internal/goutil"
+	"github.com/quasilyte/quasigo/internal/qruntime"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
 )
@@ -202,9 +203,9 @@ func (cl *compiler) compileSliceExpr(dst int, slice *ast.SliceExpr) {
 
 func (cl *compiler) compileSelectorExpr(dst int, e *ast.SelectorExpr) {
 	typ := cl.ctx.Types.TypeOf(e.X)
-	key := funcKey{
-		name:      e.Sel.String(),
-		qualifier: typ.String(),
+	key := qruntime.FuncKey{
+		Name:      e.Sel.String(),
+		Qualifier: typ.String(),
 	}
 
 	cl.compileCallArgs(nil, []ast.Expr{e.X}, nil)
@@ -236,12 +237,12 @@ func (cl *compiler) compileCallExprImpl(dst int, call *ast.CallExpr) {
 	}
 
 	// // TODO: just use Func.FullName as a key?
-	key := funcKey{name: fn.Name()}
+	key := qruntime.FuncKey{Name: fn.Name()}
 	sig := fn.Type().(*types.Signature)
 	if sig.Recv() != nil {
-		key.qualifier = sig.Recv().Type().String()
+		key.Qualifier = sig.Recv().Type().String()
 	} else {
-		key.qualifier = fn.Pkg().Path()
+		key.Qualifier = fn.Pkg().Path()
 	}
 
 	normalArgs := call.Args
@@ -301,7 +302,7 @@ func (cl *compiler) compileBuiltinCall(dst int, fn *ast.Ident, call *ast.CallExp
 		default:
 			panic(cl.errorf(call.Args[0], "can't print %s type yet", argType.String()))
 		}
-		key := funcKey{qualifier: "builtin", name: funcName}
+		key := qruntime.FuncKey{Qualifier: "builtin", Name: funcName}
 		cl.compileCallArgs(nil, call.Args, nil)
 		if !cl.compileNativeCall(dst, key) {
 			panic(cl.errorf(fn, "builtin.%s native func is not registered", funcName))
@@ -400,7 +401,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 	}
 }
 
-func (cl *compiler) compileNativeCall(dst int, key funcKey) bool {
+func (cl *compiler) compileNativeCall(dst int, key qruntime.FuncKey) bool {
 	funcID, ok := cl.ctx.Env.nameToNativeFuncID[key]
 	if !ok {
 		return false
@@ -433,7 +434,7 @@ func (cl *compiler) compileRecurCall(dst int) bool {
 	return true
 }
 
-func (cl *compiler) compileCall(dst int, key funcKey) bool {
+func (cl *compiler) compileCall(dst int, key qruntime.FuncKey) bool {
 	funcID, ok := cl.ctx.Env.nameToFuncID[key]
 	if !ok {
 		return false

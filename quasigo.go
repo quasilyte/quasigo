@@ -19,10 +19,10 @@ type Env struct {
 	// TODO(quasilyte): store both native and user func ids in one map?
 
 	nativeFuncs        []nativeFunc
-	nameToNativeFuncID map[funcKey]uint16
+	nameToNativeFuncID map[qruntime.FuncKey]uint16
 
 	userFuncs    []*qruntime.Func
-	nameToFuncID map[funcKey]uint16
+	nameToFuncID map[qruntime.FuncKey]uint16
 
 	// debug contains all information that is only needed
 	// for better debugging and compiled code introspection.
@@ -109,23 +109,23 @@ func (env *Env) GetEvalEnv(stackSize int) *EvalEnv {
 // A typeName should be fully qualified, like `github.com/user/pkgname.TypeName`.
 // It method is defined only on pointer type, the typeName should start with `*`.
 func (env *Env) AddNativeMethod(typeName, methodName string, f func(NativeCallContext)) {
-	env.addNativeFunc(funcKey{qualifier: typeName, name: methodName}, f)
+	env.addNativeFunc(qruntime.FuncKey{Qualifier: typeName, Name: methodName}, f)
 }
 
 // AddNativeFunc binds `$pkgPath.$funcName` symbol with f.
 // A pkgPath should be a full package path in which funcName is defined.
 func (env *Env) AddNativeFunc(pkgPath, funcName string, f func(NativeCallContext)) {
-	env.addNativeFunc(funcKey{qualifier: pkgPath, name: funcName}, f)
+	env.addNativeFunc(qruntime.FuncKey{Qualifier: pkgPath, Name: funcName}, f)
 }
 
 // AddFunc binds `$pkgPath.$funcName` symbol with f.
 func (env *Env) AddFunc(pkgPath, funcName string, f Func) {
-	env.addFunc(funcKey{qualifier: pkgPath, name: funcName}, f.data)
+	env.addFunc(qruntime.FuncKey{Qualifier: pkgPath, Name: funcName}, f.data)
 }
 
 // GetFunc finds previously bound function searching for the `$pkgPath.$funcName` symbol.
 func (env *Env) GetFunc(pkgPath, funcName string) Func {
-	id := env.nameToFuncID[funcKey{qualifier: pkgPath, name: funcName}]
+	id := env.nameToFuncID[qruntime.FuncKey{Qualifier: pkgPath, Name: funcName}]
 	return Func{data: env.userFuncs[id]}
 }
 

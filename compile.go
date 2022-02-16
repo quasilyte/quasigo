@@ -50,7 +50,7 @@ func compileFunc(ctx *CompileContext, fn *ast.FuncDecl) *qruntime.Func {
 type compiler struct {
 	ctx *CompileContext
 
-	fnKey   funcKey
+	fnKey   qruntime.FuncKey
 	fnType  *types.Signature
 	retType types.Type
 
@@ -108,7 +108,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	dbg := qruntime.FuncDebugInfo{
 		SlotNames: make([]string, 0, len(cl.params)+len(cl.locals)),
 	}
-	cl.fnKey = funcKey{qualifier: cl.ctx.Package.Path(), name: fn.Name.String()}
+	cl.fnKey = qruntime.FuncKey{Qualifier: cl.ctx.Package.Path(), Name: fn.Name.String()}
 	cl.params = make(map[string]frameSlotInfo, cl.fnType.Params().Len())
 	for i := 0; i < cl.fnType.Params().Len(); i++ {
 		p := cl.fnType.Params().At(i)

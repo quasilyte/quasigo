@@ -2,18 +2,6 @@ package quasigo
 
 import "github.com/quasilyte/quasigo/internal/qruntime"
 
-type funcKey struct {
-	qualifier string
-	name      string
-}
-
-func (k funcKey) String() string {
-	if k.qualifier != "" {
-		return k.qualifier + "." + k.name
-	}
-	return k.name
-}
-
 type nativeFunc struct {
 	mappedFunc func(NativeCallContext)
 	name       string // Needed for the readable disasm
@@ -22,14 +10,14 @@ type nativeFunc struct {
 
 func newEnv() *Env {
 	return &Env{
-		nameToNativeFuncID: make(map[funcKey]uint16),
-		nameToFuncID:       make(map[funcKey]uint16),
+		nameToNativeFuncID: make(map[qruntime.FuncKey]uint16),
+		nameToFuncID:       make(map[qruntime.FuncKey]uint16),
 
 		debug: newDebugInfo(),
 	}
 }
 
-func (env *Env) addNativeFunc(key funcKey, f func(NativeCallContext)) {
+func (env *Env) addNativeFunc(key qruntime.FuncKey, f func(NativeCallContext)) {
 	id := len(env.nativeFuncs)
 	env.nativeFuncs = append(env.nativeFuncs, nativeFunc{
 		mappedFunc: f,
@@ -39,7 +27,7 @@ func (env *Env) addNativeFunc(key funcKey, f func(NativeCallContext)) {
 	env.nameToNativeFuncID[key] = uint16(id)
 }
 
-func (env *Env) addFunc(key funcKey, f *qruntime.Func) {
+func (env *Env) addFunc(key qruntime.FuncKey, f *qruntime.Func) {
 	id := len(env.userFuncs)
 	env.userFuncs = append(env.userFuncs, f)
 	env.nameToFuncID[key] = uint16(id)
