@@ -6,8 +6,7 @@ import (
 	"go/token"
 	"go/types"
 
-	"github.com/quasilyte/go-ruleguard/ruleguard/goutil"
-	"golang.org/x/tools/go/ast/astutil"
+	"github.com/quasilyte/quasigo/internal/goutil"
 )
 
 func (cl *compiler) compileTempExpr(e ast.Expr) int {
@@ -221,7 +220,7 @@ func (cl *compiler) compileCallExpr(dst int, call *ast.CallExpr) {
 }
 
 func (cl *compiler) compileCallExprImpl(dst int, call *ast.CallExpr) {
-	if id, ok := astutil.Unparen(call.Fun).(*ast.Ident); ok {
+	if id, ok := goutil.Unparen(call.Fun).(*ast.Ident); ok {
 		_, isBuiltin := cl.ctx.Types.ObjectOf(id).(*types.Builtin)
 		if isBuiltin {
 			cl.compileBuiltinCall(dst, id, call)

@@ -2,8 +2,6 @@ module github.com/quasilyte/quasigo
 
 go 1.17
 
-require (
-	github.com/google/go-cmp v0.5.7
-	github.com/quasilyte/go-ruleguard v0.3.15
-	golang.org/x/tools v0.1.9
-)
+require github.com/google/go-cmp v0.5.7
+
+require golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
