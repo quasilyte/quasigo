@@ -12,3 +12,8 @@ type Func struct {
 
 	Name string
 }
+
+type FuncDebugInfo struct {
+	SlotNames []string
+	NumLocals int
+}

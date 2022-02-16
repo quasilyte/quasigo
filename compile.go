@@ -105,8 +105,8 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		panic(cl.errorUnsupportedType(fn.Name, cl.retType, "function result"))
 	}
 
-	dbg := funcDebugInfo{
-		slotNames: make([]string, 0, len(cl.params)+len(cl.locals)),
+	dbg := qruntime.FuncDebugInfo{
+		SlotNames: make([]string, 0, len(cl.params)+len(cl.locals)),
 	}
 	cl.fnKey = funcKey{qualifier: cl.ctx.Package.Path(), name: fn.Name.String()}
 	cl.params = make(map[string]frameSlotInfo, cl.fnType.Params().Len())
@@ -118,11 +118,11 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 			panic(cl.errorUnsupportedType(fn.Name, paramType, paramName+" param"))
 		}
 		cl.params[paramName] = frameSlotInfo{i: i, v: p}
-		dbg.slotNames = append(dbg.slotNames, paramName)
+		dbg.SlotNames = append(dbg.SlotNames, paramName)
 	}
 
 	cl.collectLocals(&dbg, fn.Body)
-	dbg.numLocals = len(cl.locals)
+	dbg.NumLocals = len(cl.locals)
 
 	cl.compileStmt(fn.Body)
 	if cl.retType == voidType {
@@ -157,7 +157,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	return compiled
 }
 
-func (cl *compiler) collectLocals(dbg *funcDebugInfo, body *ast.BlockStmt) {
+func (cl *compiler) collectLocals(dbg *qruntime.FuncDebugInfo, body *ast.BlockStmt) {
 	ast.Inspect(body, func(n ast.Node) bool {
 		assign, ok := n.(*ast.AssignStmt)
 		if !ok || assign.Tok != token.DEFINE {
@@ -183,7 +183,7 @@ func (cl *compiler) collectLocals(dbg *funcDebugInfo, body *ast.BlockStmt) {
 				i: len(cl.params) + len(cl.locals),
 				v: def,
 			}
-			dbg.slotNames = append(dbg.slotNames, lhs.Name)
+			dbg.SlotNames = append(dbg.SlotNames, lhs.Name)
 		}
 		return true
 	})

@@ -17,20 +17,20 @@ func disasm(env *Env, fn *qruntime.Func) string {
 	}
 
 	numSlots := fn.FrameSize / int(qruntime.SizeofSlot)
-	numLocals := dbg.numLocals
-	numArgs := len(dbg.slotNames) - numLocals
+	numLocals := dbg.NumLocals
+	numArgs := len(dbg.SlotNames) - numLocals
 	numTemps := numSlots - numArgs - numLocals
 	fmt.Fprintf(&out, "%s code=%d frame=%d (%d slots: %d args, %d locals, %d temps)\n",
 		fn.Name, len(fn.Code), fn.FrameSize, numSlots, numArgs, numLocals, numTemps)
 
 	slotName := func(index int) string {
-		if index < len(dbg.slotNames) {
-			return dbg.slotNames[index]
+		if index < len(dbg.SlotNames) {
+			return dbg.SlotNames[index]
 		}
 		if index >= numSlots {
 			return fmt.Sprintf("arg%d", index-numSlots)
 		}
-		return fmt.Sprintf("tmp%d", index-len(dbg.slotNames))
+		return fmt.Sprintf("tmp%d", index-len(dbg.SlotNames))
 	}
 
 	code := fn.Code
