@@ -1,18 +1,17 @@
-package quasigo
+package qruntime
 
 import (
 	"fmt"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
-	"github.com/quasilyte/quasigo/internal/qruntime"
 )
 
 //go:noinline
-func panicStackOverflow(fn *qruntime.Func) {
+func panicStackOverflow(fn *Func) {
 	panic(fmt.Sprintf("can't call %s func: stack overflow", fn.Name))
 }
 
-func eval(env *EvalEnv, fn *qruntime.Func, slotptr *qruntime.Slot) {
+func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 	pc := 0
 	codeptr := fn.Codeptr
 

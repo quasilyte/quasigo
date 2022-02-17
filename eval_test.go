@@ -13,6 +13,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/quasilyte/quasigo"
 	"github.com/quasilyte/quasigo/internal/evaltest"
+	"github.com/quasilyte/quasigo/qnative"
 	"github.com/quasilyte/quasigo/stdlib/qfmt"
 	"github.com/quasilyte/quasigo/stdlib/qstrconv"
 	"github.com/quasilyte/quasigo/stdlib/qstrings"
@@ -198,17 +199,17 @@ func TestEval(t *testing.T) {
 
 	env := quasigo.NewEnv()
 
-	env.AddNativeFunc(testPackage, "imul", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(testPackage, "imul", func(ctx qnative.CallContext) {
 		x := ctx.IntArg(0)
 		y := ctx.IntArg(1)
 		ctx.SetIntResult(x * y)
 	})
-	env.AddNativeFunc(testPackage, "idiv", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(testPackage, "idiv", func(ctx qnative.CallContext) {
 		x := ctx.IntArg(0)
 		y := ctx.IntArg(1)
 		ctx.SetIntResult(x / y)
 	})
-	env.AddNativeFunc(testPackage, "idiv2", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(testPackage, "idiv2", func(ctx qnative.CallContext) {
 		x := ctx.IntArg(0)
 		y := ctx.IntArg(1)
 		quo := x / y
@@ -216,7 +217,7 @@ func TestEval(t *testing.T) {
 		ctx.SetIntResult(quo)
 		ctx.SetIntResult2(rem)
 	})
-	env.AddNativeFunc(testPackage, "nilEface", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(testPackage, "nilEface", func(ctx qnative.CallContext) {
 		ctx.SetInterfaceResult(nil)
 	})
 
@@ -282,17 +283,17 @@ func TestEvalFile(t *testing.T) {
 		}
 
 		var stdout bytes.Buffer
-		env.AddNativeFunc(`builtin`, `PrintString`, func(ctx quasigo.NativeCallContext) {
+		env.AddNativeFunc(`builtin`, `PrintString`, func(ctx qnative.CallContext) {
 			fmt.Fprintln(&stdout, ctx.StringArg(0))
 		})
-		env.AddNativeFunc(`builtin`, `PrintInt`, func(ctx quasigo.NativeCallContext) {
+		env.AddNativeFunc(`builtin`, `PrintInt`, func(ctx qnative.CallContext) {
 			fmt.Fprintln(&stdout, ctx.IntArg(0))
 		})
-		env.AddNativeFunc(`builtin`, `PrintBool`, func(ctx quasigo.NativeCallContext) {
+		env.AddNativeFunc(`builtin`, `PrintBool`, func(ctx qnative.CallContext) {
 			fmt.Fprintln(&stdout, ctx.BoolArg(0))
 		})
 
-		env.AddNativeMethod(`error`, `Error`, func(ctx quasigo.NativeCallContext) {
+		env.AddNativeMethod(`error`, `Error`, func(ctx qnative.CallContext) {
 			err := ctx.InterfaceArg(0).(error)
 			ctx.SetStringResult(err.Error())
 		})
@@ -345,59 +346,59 @@ func registerEvaltestPackage(env *quasigo.Env) {
 	const evaltestFoo = `*` + evaltestPkgPath + `.Foo`
 	const evaltestFooPair = `*` + evaltestPkgPath + `.FooPair`
 
-	env.AddNativeFunc(evaltestPkgPath, "NilFooAsEface", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(evaltestPkgPath, "NilFooAsEface", func(ctx qnative.CallContext) {
 		ctx.SetInterfaceResult((*evaltest.Foo)(nil))
 	})
-	env.AddNativeFunc(evaltestPkgPath, "NewFoo", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(evaltestPkgPath, "NewFoo", func(ctx qnative.CallContext) {
 		prefix := ctx.StringArg(0)
 		ctx.SetInterfaceResult(&evaltest.Foo{Prefix: prefix})
 	})
-	env.AddNativeFunc(evaltestPkgPath, "NilFoo", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(evaltestPkgPath, "NilFoo", func(ctx qnative.CallContext) {
 		ctx.SetInterfaceResult((*evaltest.Foo)(nil))
 	})
-	env.AddNativeFunc(evaltestPkgPath, "NilEface", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(evaltestPkgPath, "NilEface", func(ctx qnative.CallContext) {
 		ctx.SetInterfaceResult(nil)
 	})
-	env.AddNativeFunc(evaltestPkgPath, "NewFooPair", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(evaltestPkgPath, "NewFooPair", func(ctx qnative.CallContext) {
 		x := ctx.InterfaceArg(0).(*evaltest.Foo)
 		y := ctx.InterfaceArg(1).(*evaltest.Foo)
 		ctx.SetInterfaceResult(evaltest.NewFooPair(x, y))
 	})
 
-	env.AddNativeMethod(evaltestFooPair, "SetFirst", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeMethod(evaltestFooPair, "SetFirst", func(ctx qnative.CallContext) {
 		p := ctx.InterfaceArg(0).(*evaltest.FooPair)
 		x := ctx.InterfaceArg(1).(*evaltest.Foo)
 		p.SetFirst(x)
 	})
-	env.AddNativeMethod(evaltestFooPair, "SetFirstPrefix", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeMethod(evaltestFooPair, "SetFirstPrefix", func(ctx qnative.CallContext) {
 		p := ctx.InterfaceArg(0).(*evaltest.FooPair)
 		prefix := ctx.StringArg(1)
 		p.SetFirstPrefix(prefix)
 	})
-	env.AddNativeMethod(evaltestFooPair, "First", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeMethod(evaltestFooPair, "First", func(ctx qnative.CallContext) {
 		p := ctx.InterfaceArg(0).(*evaltest.FooPair)
 		ctx.SetInterfaceResult(p.First())
 	})
-	env.AddNativeMethod(evaltestFooPair, "Second", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeMethod(evaltestFooPair, "Second", func(ctx qnative.CallContext) {
 		p := ctx.InterfaceArg(0).(*evaltest.FooPair)
 		ctx.SetInterfaceResult(p.Second())
 	})
-	env.AddNativeMethod(evaltestFooPair, "Get", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeMethod(evaltestFooPair, "Get", func(ctx qnative.CallContext) {
 		p := ctx.InterfaceArg(0).(*evaltest.FooPair)
 		key := ctx.StringArg(1)
 		ctx.SetInterfaceResult(p.Get(key))
 	})
 
-	env.AddNativeMethod(evaltestFoo, "Method1", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeMethod(evaltestFoo, "Method1", func(ctx qnative.CallContext) {
 		foo := ctx.InterfaceArg(0).(*evaltest.Foo)
 		x := ctx.IntArg(1)
 		ctx.SetStringResult(foo.Prefix + fmt.Sprint(x))
 	})
-	env.AddNativeMethod(evaltestFoo, "Prefix", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeMethod(evaltestFoo, "Prefix", func(ctx qnative.CallContext) {
 		foo := ctx.InterfaceArg(0).(*evaltest.Foo)
 		ctx.SetStringResult(foo.Prefix)
 	})
-	env.AddNativeMethod(evaltestFoo, "String", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeMethod(evaltestFoo, "String", func(ctx qnative.CallContext) {
 		foo := ctx.InterfaceArg(0).(*evaltest.Foo)
 		ctx.SetStringResult(foo.Prefix)
 	})

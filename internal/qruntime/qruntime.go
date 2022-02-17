@@ -24,3 +24,8 @@ func (k FuncKey) String() string {
 	}
 	return k.Name
 }
+
+func Call(env *EvalEnv, fn *Func) Slot {
+	eval(env, fn, env.slotbase)
+	return env.result
+}

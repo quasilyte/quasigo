@@ -15,8 +15,6 @@ var voidType = &types.Tuple{}
 
 const voidSlot = math.MaxInt
 
-const maxNativeFuncArgs = 8
-
 func compile(ctx *CompileContext, fn *ast.FuncDecl) (compiled *qruntime.Func, err error) {
 	defer func() {
 		if err != nil {
@@ -139,7 +137,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		FrameSize:       int(qruntime.SizeofSlot) * numFrameSlots,
 		FrameSlots:      byte(numFrameSlots),
 	}
-	cl.ctx.Env.debug.Funcs[compiled] = dbg
+	cl.ctx.Env.data.Debug.Funcs[compiled] = dbg
 	cl.linkJumps()
 
 	// Now that we know the frame size, we need to fix the arguments passing offsets.

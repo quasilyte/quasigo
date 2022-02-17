@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/qnative"
 )
 
 func TestCompile(t *testing.T) {
@@ -397,22 +398,22 @@ func TestCompile(t *testing.T) {
 
 	for testSrc, disasmLines := range tests {
 		env := quasigo.NewEnv()
-		env.AddNativeFunc(testPackage, "imul", func(ctx quasigo.NativeCallContext) {
+		env.AddNativeFunc(testPackage, "imul", func(ctx qnative.CallContext) {
 			panic("should not be called")
 		})
-		env.AddNativeFunc(testPackage, "idiv2", func(ctx quasigo.NativeCallContext) {
+		env.AddNativeFunc(testPackage, "idiv2", func(ctx qnative.CallContext) {
 			panic("should not be called")
 		})
-		env.AddNativeFunc(testPackage, "sprintf", func(ctx quasigo.NativeCallContext) {
+		env.AddNativeFunc(testPackage, "sprintf", func(ctx qnative.CallContext) {
 			panic("should not be called")
 		})
-		env.AddNativeFunc("builtin", "PrintInt", func(ctx quasigo.NativeCallContext) {
+		env.AddNativeFunc("builtin", "PrintInt", func(ctx qnative.CallContext) {
 			panic("should not be called")
 		})
-		env.AddNativeFunc("builtin", "PrintString", func(ctx quasigo.NativeCallContext) {
+		env.AddNativeFunc("builtin", "PrintString", func(ctx qnative.CallContext) {
 			panic("should not be called")
 		})
-		env.AddNativeMethod(`error`, `Error`, func(ctx quasigo.NativeCallContext) {
+		env.AddNativeMethod(`error`, `Error`, func(ctx qnative.CallContext) {
 			panic("should not be called")
 		})
 		src := makePackageSource(testSrc)

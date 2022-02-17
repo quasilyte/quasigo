@@ -261,8 +261,8 @@ func (cl *compiler) compileCallExprImpl(dst int, call *ast.CallExpr) {
 	cl.compileCallArgs(expr, normalArgs, variadicArgs)
 
 	if cl.compileNativeCall(dst, key) {
-		if len(normalArgs) > maxNativeFuncArgs {
-			panic(cl.errorf(call.Fun, "native funcs can't have more than %d args, got %d", maxNativeFuncArgs, len(normalArgs)))
+		if len(normalArgs) > qruntime.MaxNativeFuncArgs {
+			panic(cl.errorf(call.Fun, "native funcs can't have more than %d args, got %d", qruntime.MaxNativeFuncArgs, len(normalArgs)))
 		}
 		return
 	}
@@ -402,7 +402,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 }
 
 func (cl *compiler) compileNativeCall(dst int, key qruntime.FuncKey) bool {
-	funcID, ok := cl.ctx.Env.nameToNativeFuncID[key]
+	funcID, ok := cl.ctx.Env.data.NameToNativeFuncID[key]
 	if !ok {
 		return false
 	}
@@ -435,7 +435,7 @@ func (cl *compiler) compileRecurCall(dst int) bool {
 }
 
 func (cl *compiler) compileCall(dst int, key qruntime.FuncKey) bool {
-	funcID, ok := cl.ctx.Env.nameToFuncID[key]
+	funcID, ok := cl.ctx.Env.data.NameToFuncID[key]
 	if !ok {
 		return false
 	}

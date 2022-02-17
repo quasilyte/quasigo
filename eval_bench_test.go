@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/qnative"
 	"github.com/quasilyte/quasigo/stdlib/qfmt"
 )
 
@@ -164,7 +165,7 @@ func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, qu
 	}
 
 	env := quasigo.NewEnv()
-	env.AddNativeFunc(testPackage, "imul", func(ctx quasigo.NativeCallContext) {
+	env.AddNativeFunc(testPackage, "imul", func(ctx qnative.CallContext) {
 		x := ctx.IntArg(0)
 		y := ctx.IntArg(1)
 		ctx.SetIntResult(x * y)

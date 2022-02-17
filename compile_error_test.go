@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/qnative"
 )
 
 func TestCompileError(t *testing.T) {
@@ -20,7 +21,7 @@ func TestCompileError(t *testing.T) {
 
 		{
 			src: `return manyargs(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)`,
-			err: `native funcs can't have more than 8 args, got 10`,
+			err: `native funcs can't have more than 6 args, got 10`,
 		},
 	}
 
@@ -43,25 +44,25 @@ func TestCompileError(t *testing.T) {
 		test := tests[i]
 		t.Run(fmt.Sprintf("test%d", i), func(t *testing.T) {
 			env := quasigo.NewEnv()
-			env.AddNativeFunc(testPackage, "manyargs", func(ctx quasigo.NativeCallContext) {
+			env.AddNativeFunc(testPackage, "manyargs", func(ctx qnative.CallContext) {
 				panic("should not be called")
 			})
-			env.AddNativeFunc(testPackage, "imul", func(ctx quasigo.NativeCallContext) {
+			env.AddNativeFunc(testPackage, "imul", func(ctx qnative.CallContext) {
 				panic("should not be called")
 			})
-			env.AddNativeFunc(testPackage, "idiv2", func(ctx quasigo.NativeCallContext) {
+			env.AddNativeFunc(testPackage, "idiv2", func(ctx qnative.CallContext) {
 				panic("should not be called")
 			})
-			env.AddNativeFunc(testPackage, "sprintf", func(ctx quasigo.NativeCallContext) {
+			env.AddNativeFunc(testPackage, "sprintf", func(ctx qnative.CallContext) {
 				panic("should not be called")
 			})
-			env.AddNativeFunc("builtin", "PrintInt", func(ctx quasigo.NativeCallContext) {
+			env.AddNativeFunc("builtin", "PrintInt", func(ctx qnative.CallContext) {
 				panic("should not be called")
 			})
-			env.AddNativeFunc("builtin", "PrintString", func(ctx quasigo.NativeCallContext) {
+			env.AddNativeFunc("builtin", "PrintString", func(ctx qnative.CallContext) {
 				panic("should not be called")
 			})
-			env.AddNativeMethod(`error`, `Error`, func(ctx quasigo.NativeCallContext) {
+			env.AddNativeMethod(`error`, `Error`, func(ctx qnative.CallContext) {
 				panic("should not be called")
 			})
 			src := makePackageSource(test.src)

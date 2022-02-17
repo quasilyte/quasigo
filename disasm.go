@@ -11,7 +11,7 @@ import (
 func disasm(env *Env, fn *qruntime.Func) string {
 	var out strings.Builder
 
-	dbg, ok := env.debug.Funcs[fn]
+	dbg, ok := env.data.Debug.Funcs[fn]
 	if !ok {
 		return "<unknown>\n"
 	}
@@ -71,10 +71,10 @@ func disasm(env *Env, fn *qruntime.Func) string {
 				value = labels[targetPC]
 			case bytecode.ArgFuncID:
 				id := unpack16(fn.Codeptr, pc+a.Offset)
-				value = env.userFuncs[id].Name + "()"
+				value = env.data.UserFuncs[id].Name + "()"
 			case bytecode.ArgNativeFuncID:
 				id := unpack16(fn.Codeptr, pc+a.Offset)
-				value = env.nativeFuncs[id].name + "()"
+				value = env.data.NativeFuncs[id].Name + "()"
 			}
 			if op.HasDst() && i == 0 && len(op.Args()) != 1 {
 				args = append(args, value, "=")
