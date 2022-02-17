@@ -407,24 +407,6 @@ func (cl *compiler) compileNativeCall(dst int, key qruntime.FuncKey) bool {
 		return false
 	}
 
-	// if variadic != 0 {
-	// 	for _, arg := range variadicArgs {
-	// 		cl.compileExpr(arg)
-	// 		// int-typed values should appear in the interface{}-typed
-	// 		// objects slice, so we get all variadic args placed in one place.
-	// 		if typeIsInt(cl.ctx.Types.TypeOf(arg)) {
-	// 			cl.emit(bytecode.OpConvIntToIface)
-	// 		}
-	// 	}
-	// 	if len(variadicArgs) > 255 {
-	// 		panic(cl.errorf(funcExpr, "too many variadic args"))
-	// 	}
-	// 	// Even if len(variadicArgs) is 0, we still need to overwrite
-	// 	// the old variadicLen value, so the variadic func is not confused
-	// 	// by some unrelated value.
-	// 	cl.emit8(bytecode.OpSetVariadicLen, len(variadicArgs))
-	// }
-
 	cl.emitCall(bytecode.OpCallNative, dst, int(funcID))
 	return true
 }

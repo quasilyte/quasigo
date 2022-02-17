@@ -115,16 +115,6 @@ func TestEval(t *testing.T) {
 		{`nil != nilEface()`, false},
 	}
 
-	/*
-		exprTests := []testCase{
-			// Accesing the fields.
-			{`foo.Prefix`, "Hello"},
-
-
-
-		}
-	*/
-
 	tests := []testCase{
 		{`if b { return 1 }; return 0`, 1},
 		{`if !b { return 1 }; return 0`, 0},
@@ -223,11 +213,6 @@ func TestEval(t *testing.T) {
 	env.AddNativeFunc(testPackage, "nilEface", func(ctx qnative.CallContext) {
 		ctx.SetInterfaceResult(nil)
 	})
-
-	// env.AddNativeMethod(evaltestFoo, "Prefix", func(stack *quasigo.ValueStack) {
-	// 	foo := stack.Pop().(*evaltest.Foo)
-	// 	stack.Push(foo.Prefix)
-	// })
 
 	for i := range tests {
 		test := tests[i]
