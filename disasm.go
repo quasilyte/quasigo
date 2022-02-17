@@ -1,6 +1,7 @@
 package quasigo
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strings"
 
@@ -39,7 +40,7 @@ func disasm(env *Env, fn *qruntime.Func) string {
 		if !op.IsJump() {
 			return
 		}
-		offset := unpack16(fn.Codeptr, pc+1)
+		offset := decode16(fn.Code, pc+1)
 		targetPC := pc + offset
 		if _, ok := labels[targetPC]; !ok {
 			labels[targetPC] = fmt.Sprintf("L%d", len(labels))
@@ -66,14 +67,14 @@ func disasm(env *Env, fn *qruntime.Func) string {
 				index := int(code[pc+a.Offset])
 				value = fmt.Sprintf("%d", int64(fn.ScalarConstants[index]))
 			case bytecode.ArgOffset:
-				offset := unpack16(fn.Codeptr, pc+a.Offset)
+				offset := decode16(fn.Code, pc+a.Offset)
 				targetPC := pc + offset
 				value = labels[targetPC]
 			case bytecode.ArgFuncID:
-				id := unpack16(fn.Codeptr, pc+a.Offset)
+				id := decode16(fn.Code, pc+a.Offset)
 				value = env.data.UserFuncs[id].Name + "()"
 			case bytecode.ArgNativeFuncID:
-				id := unpack16(fn.Codeptr, pc+a.Offset)
+				id := decode16(fn.Code, pc+a.Offset)
 				value = env.data.NativeFuncs[id].Name + "()"
 			}
 			if op.HasDst() && i == 0 && len(op.Args()) != 1 {
@@ -93,4 +94,8 @@ func disasm(env *Env, fn *qruntime.Func) string {
 	})
 
 	return out.String()
+}
+
+func decode16(code []byte, pos int) int {
+	return int(int16(binary.LittleEndian.Uint16(code[pos:])))
 }
