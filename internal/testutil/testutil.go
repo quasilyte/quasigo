@@ -1,4 +1,4 @@
-package quasigo_test
+package testutil
 
 import (
 	"fmt"
@@ -11,16 +11,14 @@ import (
 	"github.com/quasilyte/quasigo"
 )
 
-const testPackage = "testpkg"
-
-type parsedTestFile struct {
-	ast   *ast.File
-	pkg   *types.Package
-	types *types.Info
-	fset  *token.FileSet
+type ParsedTestFile struct {
+	Ast   *ast.File
+	Pkg   *types.Package
+	Types *types.Info
+	Fset  *token.FileSet
 }
 
-func parseGoFile(pkgPath, src string) (*parsedTestFile, error) {
+func ParseGoFile(pkgPath, src string) (*ParsedTestFile, error) {
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "test.go", src, 0)
 	if err != nil {
@@ -35,18 +33,18 @@ func parseGoFile(pkgPath, src string) (*parsedTestFile, error) {
 		Defs:  map[*ast.Ident]types.Object{},
 	}
 	pkg, err := typechecker.Check(pkgPath, fset, []*ast.File{file}, info)
-	result := &parsedTestFile{
-		ast:   file,
-		pkg:   pkg,
-		types: info,
-		fset:  fset,
+	result := &ParsedTestFile{
+		Ast:   file,
+		Pkg:   pkg,
+		Types: info,
+		Fset:  fset,
 	}
 	return result, err
 }
 
-func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *parsedTestFile) (quasigo.Func, error) {
+func CompileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *ParsedTestFile) (quasigo.Func, error) {
 	var resultFunc quasigo.Func
-	for _, decl := range parsed.ast.Decls {
+	for _, decl := range parsed.Ast.Decls {
 		decl, ok := decl.(*ast.FuncDecl)
 		if !ok {
 			continue
@@ -56,9 +54,9 @@ func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *parse
 		}
 		ctx := &quasigo.CompileContext{
 			Env:     env,
-			Package: parsed.pkg,
-			Types:   parsed.types,
-			Fset:    parsed.fset,
+			Package: parsed.Pkg,
+			Types:   parsed.Types,
+			Fset:    parsed.Fset,
 		}
 		fn, err := quasigo.Compile(ctx, decl)
 		if err != nil {
@@ -73,9 +71,9 @@ func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *parse
 	return resultFunc, nil
 }
 
-func compileTestFunc(env *quasigo.Env, fn string, parsed *parsedTestFile) (quasigo.Func, error) {
+func CompileTestFunc(env *quasigo.Env, fn string, parsed *ParsedTestFile) (quasigo.Func, error) {
 	var target *ast.FuncDecl
-	for _, decl := range parsed.ast.Decls {
+	for _, decl := range parsed.Ast.Decls {
 		decl, ok := decl.(*ast.FuncDecl)
 		if !ok {
 			continue
@@ -91,9 +89,9 @@ func compileTestFunc(env *quasigo.Env, fn string, parsed *parsedTestFile) (quasi
 
 	ctx := &quasigo.CompileContext{
 		Env:     env,
-		Package: parsed.pkg,
-		Types:   parsed.types,
-		Fset:    parsed.fset,
+		Package: parsed.Pkg,
+		Types:   parsed.Types,
+		Fset:    parsed.Fset,
 	}
 	return quasigo.Compile(ctx, target)
 }

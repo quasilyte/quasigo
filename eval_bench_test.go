@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/internal/testutil"
 	"github.com/quasilyte/quasigo/qnative"
 	"github.com/quasilyte/quasigo/stdlib/qfmt"
 )
@@ -172,11 +173,11 @@ func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, qu
 	})
 	qfmt.ImportAll(env)
 	src := makePackageSource(bodySrc)
-	parsed, err := parseGoFile(testPackage, src)
+	parsed, err := testutil.ParseGoFile(testPackage, src)
 	if err != nil {
 		t.Fatalf("parse %s: %v", bodySrc, err)
 	}
-	compiled, err := compileTestFunc(env, "f", parsed)
+	compiled, err := testutil.CompileTestFunc(env, "f", parsed)
 	if err != nil {
 		t.Fatalf("compile %s: %v", bodySrc, err)
 	}

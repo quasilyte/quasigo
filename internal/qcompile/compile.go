@@ -1,4 +1,4 @@
-package quasigo
+package qcompile
 
 import (
 	"fmt"
@@ -15,7 +15,7 @@ var voidType = &types.Tuple{}
 
 const voidSlot = math.MaxInt
 
-func compile(ctx *CompileContext, fn *ast.FuncDecl) (compiled *qruntime.Func, err error) {
+func compile(ctx *Context, fn *ast.FuncDecl) (compiled *qruntime.Func, err error) {
 	defer func() {
 		if err != nil {
 			return
@@ -34,7 +34,7 @@ func compile(ctx *CompileContext, fn *ast.FuncDecl) (compiled *qruntime.Func, er
 	return compileFunc(ctx, fn), nil
 }
 
-func compileFunc(ctx *CompileContext, fn *ast.FuncDecl) *qruntime.Func {
+func compileFunc(ctx *Context, fn *ast.FuncDecl) *qruntime.Func {
 	cl := compiler{
 		ctx:                 ctx,
 		fnType:              ctx.Types.ObjectOf(fn.Name).Type().(*types.Signature),
@@ -46,7 +46,7 @@ func compileFunc(ctx *CompileContext, fn *ast.FuncDecl) *qruntime.Func {
 }
 
 type compiler struct {
-	ctx *CompileContext
+	ctx *Context
 
 	fnKey   qruntime.FuncKey
 	fnType  *types.Signature
@@ -137,7 +137,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		FrameSize:       int(qruntime.SizeofSlot) * numFrameSlots,
 		FrameSlots:      byte(numFrameSlots),
 	}
-	cl.ctx.Env.data.Debug.Funcs[compiled] = dbg
+	cl.ctx.Env.Debug.Funcs[compiled] = dbg
 	cl.linkJumps()
 
 	// Now that we know the frame size, we need to fix the arguments passing offsets.

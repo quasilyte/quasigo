@@ -1,4 +1,4 @@
-package quasigo_test
+package qcompile_test
 
 import (
 	"fmt"
@@ -6,8 +6,11 @@ import (
 	"testing"
 
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/internal/testutil"
 	"github.com/quasilyte/quasigo/qnative"
 )
+
+const testPackage = `testpkg`
 
 func TestCompileError(t *testing.T) {
 	tests := []struct {
@@ -66,11 +69,11 @@ func TestCompileError(t *testing.T) {
 				panic("should not be called")
 			})
 			src := makePackageSource(test.src)
-			parsed, err := parseGoFile(testPackage, src)
+			parsed, err := testutil.ParseGoFile(testPackage, src)
 			if err != nil {
 				t.Fatalf("parse %s: %v", test.src, err)
 			}
-			_, err = compileTestFile(env, "f", testPackage, parsed)
+			_, err = testutil.CompileTestFile(env, "f", testPackage, parsed)
 			want := "<empty error>"
 			if test.err != "" {
 				want = test.err

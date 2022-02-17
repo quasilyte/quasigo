@@ -1,4 +1,4 @@
-package quasigo_test
+package qcompile_test
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/internal/testutil"
 	"github.com/quasilyte/quasigo/qnative"
 )
 
@@ -417,11 +418,11 @@ func TestCompile(t *testing.T) {
 			panic("should not be called")
 		})
 		src := makePackageSource(testSrc)
-		parsed, err := parseGoFile(testPackage, src)
+		parsed, err := testutil.ParseGoFile(testPackage, src)
 		if err != nil {
 			t.Fatalf("parse %s: %v", testSrc, err)
 		}
-		compiled, err := compileTestFile(env, "f", testPackage, parsed)
+		compiled, err := testutil.CompileTestFile(env, "f", testPackage, parsed)
 		if err != nil {
 			t.Fatal(err)
 		}

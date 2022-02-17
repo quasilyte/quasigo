@@ -8,6 +8,7 @@ import (
 	"go/token"
 	"go/types"
 
+	"github.com/quasilyte/quasigo/internal/qcompile"
 	"github.com/quasilyte/quasigo/internal/qruntime"
 	"github.com/quasilyte/quasigo/qnative"
 )
@@ -78,7 +79,13 @@ type CompileContext struct {
 
 // Compile prepares an executable version of fn.
 func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
-	compiled, err := compile(ctx, fn)
+	internalCtx := qcompile.Context{
+		Env:     &ctx.Env.data,
+		Package: ctx.Package,
+		Types:   ctx.Types,
+		Fset:    ctx.Fset,
+	}
+	compiled, err := qcompile.Func(&internalCtx, fn)
 	return Func{data: compiled}, err
 }
 

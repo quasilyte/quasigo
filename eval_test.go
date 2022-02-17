@@ -13,11 +13,14 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/quasilyte/quasigo"
 	"github.com/quasilyte/quasigo/internal/evaltest"
+	"github.com/quasilyte/quasigo/internal/testutil"
 	"github.com/quasilyte/quasigo/qnative"
 	"github.com/quasilyte/quasigo/stdlib/qfmt"
 	"github.com/quasilyte/quasigo/stdlib/qstrconv"
 	"github.com/quasilyte/quasigo/stdlib/qstrings"
 )
+
+const testPackage = "testpkg"
 
 func TestEval(t *testing.T) {
 	type testCase struct {
@@ -229,11 +232,11 @@ func TestEval(t *testing.T) {
 	for i := range tests {
 		test := tests[i]
 		src := makePackageSource(test.src, test.result)
-		parsed, err := parseGoFile(testPackage, src)
+		parsed, err := testutil.ParseGoFile(testPackage, src)
 		if err != nil {
 			t.Fatalf("parse %s: %v", test.src, err)
 		}
-		compiled, err := compileTestFunc(env, "target", parsed)
+		compiled, err := testutil.CompileTestFunc(env, "target", parsed)
 		if err != nil {
 			t.Fatalf("compile %s: %v", test.src, err)
 		}
@@ -277,7 +280,7 @@ func TestEvalFile(t *testing.T) {
 			return "", err
 		}
 		env := quasigo.NewEnv()
-		parsed, err := parseGoFile("main", string(src))
+		parsed, err := testutil.ParseGoFile("main", string(src))
 		if err != nil {
 			return "", fmt.Errorf("parse: %v", err)
 		}
@@ -303,7 +306,7 @@ func TestEvalFile(t *testing.T) {
 		qfmt.ImportAll(env)
 		registerEvaltestPackage(env)
 
-		mainFunc, err := compileTestFile(env, "main", "main", parsed)
+		mainFunc, err := testutil.CompileTestFile(env, "main", "main", parsed)
 		if err != nil {
 			return "", err
 		}

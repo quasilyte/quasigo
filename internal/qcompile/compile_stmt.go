@@ -1,4 +1,4 @@
-package quasigo
+package qcompile
 
 import (
 	"go/ast"

@@ -1,4 +1,4 @@
-package quasigo
+package qcompile
 
 import (
 	"go/ast"
@@ -402,7 +402,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 }
 
 func (cl *compiler) compileNativeCall(dst int, key qruntime.FuncKey) bool {
-	funcID, ok := cl.ctx.Env.data.NameToNativeFuncID[key]
+	funcID, ok := cl.ctx.Env.NameToNativeFuncID[key]
 	if !ok {
 		return false
 	}
@@ -435,7 +435,7 @@ func (cl *compiler) compileRecurCall(dst int) bool {
 }
 
 func (cl *compiler) compileCall(dst int, key qruntime.FuncKey) bool {
-	funcID, ok := cl.ctx.Env.data.NameToFuncID[key]
+	funcID, ok := cl.ctx.Env.NameToFuncID[key]
 	if !ok {
 		return false
 	}
