@@ -1,4 +1,4 @@
-package quasigo
+package qdisasm
 
 import (
 	"encoding/binary"
@@ -9,10 +9,10 @@ import (
 	"github.com/quasilyte/quasigo/internal/qruntime"
 )
 
-func disasm(env *Env, fn *qruntime.Func) string {
+func Func(env *qruntime.Env, fn *qruntime.Func) string {
 	var out strings.Builder
 
-	dbg, ok := env.data.Debug.Funcs[fn]
+	dbg, ok := env.Debug.Funcs[fn]
 	if !ok {
 		return "<unknown>\n"
 	}
@@ -72,10 +72,10 @@ func disasm(env *Env, fn *qruntime.Func) string {
 				value = labels[targetPC]
 			case bytecode.ArgFuncID:
 				id := decode16(fn.Code, pc+a.Offset)
-				value = env.data.UserFuncs[id].Name + "()"
+				value = env.UserFuncs[id].Name + "()"
 			case bytecode.ArgNativeFuncID:
 				id := decode16(fn.Code, pc+a.Offset)
-				value = env.data.NativeFuncs[id].Name + "()"
+				value = env.NativeFuncs[id].Name + "()"
 			}
 			if op.HasDst() && i == 0 && len(op.Args()) != 1 {
 				args = append(args, value, "=")

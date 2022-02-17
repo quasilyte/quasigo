@@ -9,6 +9,7 @@ import (
 	"go/types"
 
 	"github.com/quasilyte/quasigo/internal/qcompile"
+	"github.com/quasilyte/quasigo/internal/qdisasm"
 	"github.com/quasilyte/quasigo/internal/qruntime"
 	"github.com/quasilyte/quasigo/qnative"
 )
@@ -123,7 +124,7 @@ func (res CallResult) BoolValue() bool { return res.v.Bool() }
 // This output is not guaranteed to be stable between versions
 // and should be used only for debugging purposes.
 func Disasm(env *Env, fn Func) string {
-	return disasm(env, fn.data)
+	return qdisasm.Func(&env.data, fn.data)
 }
 
 // Func is a compiled function that is ready to be executed.
