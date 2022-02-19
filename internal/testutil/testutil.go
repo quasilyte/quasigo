@@ -28,9 +28,9 @@ func ParseGoFile(pkgPath, src string) (*ParsedTestFile, error) {
 		Importer: importer.ForCompiler(fset, "source", nil),
 	}
 	info := &types.Info{
-		Types: map[ast.Expr]types.TypeAndValue{},
-		Uses:  map[*ast.Ident]types.Object{},
-		Defs:  map[*ast.Ident]types.Object{},
+		Types: make(map[ast.Expr]types.TypeAndValue),
+		Uses:  make(map[*ast.Ident]types.Object),
+		Defs:  make(map[*ast.Ident]types.Object),
 	}
 	pkg, err := typechecker.Check(pkgPath, fset, []*ast.File{file}, info)
 	result := &ParsedTestFile{

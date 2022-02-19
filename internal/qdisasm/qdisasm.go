@@ -35,7 +35,7 @@ func Func(env *qruntime.Env, fn *qruntime.Func) string {
 	}
 
 	code := fn.Code
-	labels := map[int]string{}
+	labels := make(map[int]string)
 	bytecode.Walk(code, func(pc int, op bytecode.Op) {
 		if !op.IsJump() {
 			return

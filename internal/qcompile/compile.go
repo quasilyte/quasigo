@@ -205,8 +205,8 @@ func (cl *compiler) emitOp(op bytecode.Op) {
 	cl.code = append(cl.code, ir.Inst{Op: op})
 }
 
-func (cl *compiler) emitJump(op bytecode.Op, l label) {
-	cl.emit(ir.Inst{Op: op, Arg0: uint8(l.id)})
+func (cl *compiler) emitJump(l label) {
+	cl.emit(ir.Inst{Op: bytecode.OpJump, Arg0: uint8(l.id)})
 }
 
 func (cl *compiler) emitCondJump(slot int, op bytecode.Op, l label) {
@@ -378,16 +378,6 @@ func (cl *compiler) allocTmp() int {
 		cl.numTmp = cl.tmpSeq
 	}
 	return index + len(cl.params) + len(cl.locals)
-}
-
-func (cl *compiler) isTemp(i int) bool {
-	return i >= (len(cl.params) + len(cl.locals))
-}
-
-func (cl *compiler) isLocal(i int) bool {
-	from := len(cl.params)
-	to := from + len(cl.locals)
-	return i >= from && i < to
 }
 
 func (cl *compiler) isSimpleExpr(e ast.Expr) bool {
