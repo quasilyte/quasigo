@@ -291,12 +291,12 @@ func TestEvalFile(t *testing.T) {
 		qfmt.ImportAll(env)
 		registerEvaltestPackage(env)
 
-		compileFunc := testutil.CompileTestFile
+		compileFileFunc := testutil.CompileTestFile
 		if opt {
-			compileFunc = testutil.CompileOptTestFile
+			compileFileFunc = testutil.CompileOptTestFile
 		}
 
-		mainFunc, err := compileFunc(env, "main", "main", parsed)
+		mainFunc, err := compileFileFunc(env, "main", "main", parsed)
 		if err != nil {
 			return "", err
 		}

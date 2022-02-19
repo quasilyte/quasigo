@@ -42,6 +42,35 @@ func testFactorial() {
 	println(factorial(4) + factorial(8))
 }
 
+// TODO: make it possible to add codegen output tests here?
+func substringIndex(s, sub string) int {
+	head := s
+	i := 0
+	for len(head) >= len(sub) {
+		if head[:len(sub)] == sub {
+			return i
+		}
+		i++
+		head = head[1:]
+	}
+	return -1
+}
+
+func testSubstringIndex() {
+	println(substringIndex("", ""))
+	println(substringIndex("hello", "h"))
+	println(substringIndex("h", "hello"))
+	println(substringIndex("hello, world", "world"))
+	println(substringIndex("hello, world", "hello"))
+	println(substringIndex("hello, world", ","))
+	println(substringIndex("abc", "a"))
+	println(substringIndex("abc", "b"))
+	println(substringIndex("abc", "c"))
+	println(substringIndex("a", "abc"))
+	println(substringIndex("b", "abc"))
+	println(substringIndex("c", "abc"))
+}
+
 func main() {
 	helloWorld()
 	println(ten())
@@ -60,4 +89,5 @@ func main() {
 	println(hasPrefix("hello", "hello"))
 	println(hasPrefix("hello, world", "hello"))
 	testFactorial()
+	testSubstringIndex()
 }
