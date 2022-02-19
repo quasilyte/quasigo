@@ -157,295 +157,295 @@ var opcodeInfoTable = [256]OpcodeInfo{
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "value", Kind: ArgScalarConst, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "value", Kind: ArgScalarConst, Offset: 2, Flags: 0}},
 	},
 	OpLoadStrConst: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "value", Kind: ArgStrConst, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "value", Kind: ArgStrConst, Offset: 2, Flags: 0}},
 	},
 	OpMoveScalar: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "src", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "src", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpMoveStr: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "src", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "src", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpMoveInterface: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "src", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "src", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpMoveResult2: {
 		Width: 2,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite}},
 	},
 	OpNot: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpIsNil: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpIsNotNil: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpIsNilInterface: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpIsNotNilInterface: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpStrLen: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "str", Kind: ArgSlot, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "str", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 	OpStrSlice: {
 		Width: 5,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "str", Kind: ArgSlot, Offset: 2},
-			{Name: "from", Kind: ArgSlot, Offset: 3},
-			{Name: "to", Kind: ArgSlot, Offset: 4}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "str", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "from", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead},
+			{Name: "to", Kind: ArgSlot, Offset: 4, Flags: FlagIsRead}},
 	},
 	OpStrSliceFrom: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "str", Kind: ArgSlot, Offset: 2},
-			{Name: "from", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "str", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "from", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpStrSliceTo: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "str", Kind: ArgSlot, Offset: 2},
-			{Name: "to", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "str", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "to", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpConcat: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "s1", Kind: ArgSlot, Offset: 2},
-			{Name: "s2", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "s1", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "s2", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpStrEq: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "s1", Kind: ArgSlot, Offset: 2},
-			{Name: "s2", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "s1", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "s2", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpStrNotEq: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "s1", Kind: ArgSlot, Offset: 2},
-			{Name: "s2", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "s1", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "s2", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntEq: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntNotEq: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntGt: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntGtEq: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntLt: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntLtEq: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntAdd: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntSub: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntMul: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntDiv: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "x", Kind: ArgSlot, Offset: 2},
-			{Name: "y", Kind: ArgSlot, Offset: 3}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntInc: {
 		Width: 2,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite | FlagIsRead}},
 	},
 	OpIntDec: {
 		Width: 2,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite | FlagIsRead}},
 	},
 	OpJump: {
 		Width: 3,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "offset", Kind: ArgOffset, Offset: 1}},
+			{Name: "offset", Kind: ArgOffset, Offset: 1, Flags: 0}},
 	},
 	OpJumpFalse: {
 		Width: 4,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "offset", Kind: ArgOffset, Offset: 1},
-			{Name: "cond", Kind: ArgSlot, Offset: 3}},
+			{Name: "offset", Kind: ArgOffset, Offset: 1, Flags: 0},
+			{Name: "cond", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpJumpTrue: {
 		Width: 4,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "offset", Kind: ArgOffset, Offset: 1},
-			{Name: "cond", Kind: ArgSlot, Offset: 3}},
+			{Name: "offset", Kind: ArgOffset, Offset: 1, Flags: 0},
+			{Name: "cond", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpCall: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "fn", Kind: ArgFuncID, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "fn", Kind: ArgFuncID, Offset: 2, Flags: 0}},
 	},
 	OpCallRecur: {
 		Width: 2,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite}},
 	},
 	OpCallNative: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1},
-			{Name: "fn", Kind: ArgNativeFuncID, Offset: 2}},
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "fn", Kind: ArgNativeFuncID, Offset: 2, Flags: 0}},
 	},
 	OpCallVoidNative: {
 		Width: 3,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "fn", Kind: ArgNativeFuncID, Offset: 1}},
+			{Name: "fn", Kind: ArgNativeFuncID, Offset: 1, Flags: 0}},
 	},
 	OpPushVariadicBoolArg: {
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 	OpPushVariadicScalarArg: {
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 	OpPushVariadicStrArg: {
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 	OpPushVariadicInterfaceArg: {
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 	OpVariadicReset: {
 		Width: 1,
@@ -471,18 +471,18 @@ var opcodeInfoTable = [256]OpcodeInfo{
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 	OpReturnScalar: {
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 	OpReturnInterface: {
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{
-			{Name: "x", Kind: ArgSlot, Offset: 1}},
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 }

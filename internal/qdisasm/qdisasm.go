@@ -58,23 +58,23 @@ func Func(env *qruntime.Env, fn *qruntime.Func) string {
 			var value string
 			switch a.Kind {
 			case bytecode.ArgSlot:
-				slot := int(code[pc+a.Offset])
+				slot := int(code[pc+int(a.Offset)])
 				value = slotName(slot)
 			case bytecode.ArgStrConst:
-				index := int(code[pc+a.Offset])
+				index := int(code[pc+int(a.Offset)])
 				value = fmt.Sprintf("%q", fn.StrConstants[index])
 			case bytecode.ArgScalarConst:
-				index := int(code[pc+a.Offset])
+				index := int(code[pc+int(a.Offset)])
 				value = fmt.Sprintf("%d", int64(fn.ScalarConstants[index]))
 			case bytecode.ArgOffset:
-				offset := decode16(fn.Code, pc+a.Offset)
+				offset := decode16(fn.Code, pc+int(a.Offset))
 				targetPC := pc + offset
 				value = labels[targetPC]
 			case bytecode.ArgFuncID:
-				id := decode16(fn.Code, pc+a.Offset)
+				id := decode16(fn.Code, pc+int(a.Offset))
 				value = env.UserFuncs[id].Name + "()"
 			case bytecode.ArgNativeFuncID:
-				id := decode16(fn.Code, pc+a.Offset)
+				id := decode16(fn.Code, pc+int(a.Offset))
 				value = env.NativeFuncs[id].Name + "()"
 			}
 			if op.HasDst() && i == 0 && len(op.Args()) != 1 {

@@ -75,6 +75,13 @@ func TestCompile(t *testing.T) {
 			`  ReturnScalar y`,
 		},
 
+		`x := 1; y := x; return y`: {
+			`testpkg.f code=8 frame=144 (6 slots: 4 args, 2 locals, 0 temps)`,
+			`  LoadScalarConst x = 1`,
+			`  MoveScalar y = x`,
+			`  ReturnScalar y`,
+		},
+
 		`x := 0; x++; return x`: {
 			`testpkg.f code=7 frame=120 (5 slots: 4 args, 1 locals, 0 temps)`,
 			`  LoadScalarConst x = 0`,
@@ -161,6 +168,12 @@ func TestCompile(t *testing.T) {
 			`  ReturnScalar j`,
 		},
 
+		`return len(s)`: {
+			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`  StrLen tmp0 = s`,
+			`  ReturnScalar tmp0`,
+		},
+
 		`return len(s) >= 0`: {
 			`testpkg.f code=12 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
 			`  StrLen tmp1 = s`,
@@ -227,6 +240,26 @@ func TestCompile(t *testing.T) {
 			`  ReturnScalar tmp0`,
 		},
 
+		`x := 10; y := 20; return (x == 0 || x > 0) && (y < 5 || y >= 10)`: {
+			`testpkg.f code=48 frame=264 (11 slots: 4 args, 2 locals, 5 temps)`,
+			`  LoadScalarConst x = 10`,
+			`  LoadScalarConst y = 20`,
+			`  LoadScalarConst tmp1 = 0`,
+			`  IntEq tmp0 = x tmp1`,
+			`  JumpTrue L0 tmp0`,
+			`  LoadScalarConst tmp2 = 0`,
+			`  IntGt tmp0 = x tmp2`,
+			`L0:`,
+			`  JumpFalse L1 tmp0`,
+			`  LoadScalarConst tmp3 = 5`,
+			`  IntLt tmp0 = y tmp3`,
+			`  JumpTrue L1 tmp0`,
+			`  LoadScalarConst tmp4 = 10`,
+			`  IntGtEq tmp0 = y tmp4`,
+			`L1:`,
+			`  ReturnScalar tmp0`,
+		},
+
 		`return imul(i, 5) == 10`: {
 			`testpkg.f code=19 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
 			`  MoveScalar arg0 = i`,
@@ -275,6 +308,13 @@ func TestCompile(t *testing.T) {
 			`  LoadScalarConst x = 1`,
 			`  IntAdd tmp1 = x x`,
 			`  IntAdd tmp0 = tmp1 x`,
+			`  ReturnScalar tmp0`,
+		},
+
+		`x := 1; return x + x`: {
+			`testpkg.f code=9 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
+			`  LoadScalarConst x = 1`,
+			`  IntAdd tmp0 = x x`,
 			`  ReturnScalar tmp0`,
 		},
 
@@ -350,8 +390,6 @@ func TestCompile(t *testing.T) {
 			`  ReturnScalar tmp0`,
 		},
 
-		// Could use less temps here, but we should be careful
-		// not to clobber arg slots.
 		`return imul(imul(imul(1, 2), 3), 4)`: {
 			`testpkg.f code=38 frame=216 (9 slots: 4 args, 0 locals, 5 temps)`,
 			`  LoadScalarConst arg0 = 1`,
@@ -364,6 +402,46 @@ func TestCompile(t *testing.T) {
 			`  LoadScalarConst tmp4 = 4`,
 			`  MoveScalar arg0 = tmp1`,
 			`  MoveScalar arg1 = tmp4`,
+			`  CallNative tmp0 = testpkg.imul()`,
+			`  ReturnScalar tmp0`,
+		},
+
+		`x1 := 1; x2 := 2; x3 := 3; x4 := 4; return imul(imul(imul(x1, x2), x3), x4)`: {
+			`testpkg.f code=50 frame=312 (13 slots: 4 args, 4 locals, 5 temps)`,
+			`  LoadScalarConst x1 = 1`,
+			`  LoadScalarConst x2 = 2`,
+			`  LoadScalarConst x3 = 3`,
+			`  LoadScalarConst x4 = 4`,
+			`  MoveScalar arg0 = x1`,
+			`  MoveScalar arg1 = x2`,
+			`  CallNative tmp2 = testpkg.imul()`,
+			`  MoveScalar tmp3 = x3`,
+			`  MoveScalar arg0 = tmp2`,
+			`  MoveScalar arg1 = tmp3`,
+			`  CallNative tmp1 = testpkg.imul()`,
+			`  MoveScalar tmp4 = x4`,
+			`  MoveScalar arg0 = tmp1`,
+			`  MoveScalar arg1 = tmp4`,
+			`  CallNative tmp0 = testpkg.imul()`,
+			`  ReturnScalar tmp0`,
+		},
+
+		`x1 := 1; x2 := 2; x3 := 3; x4 := 4; return imul(x1, imul(x2, imul(x3, x4)))`: {
+			`testpkg.f code=50 frame=312 (13 slots: 4 args, 4 locals, 5 temps)`,
+			`  LoadScalarConst x1 = 1`,
+			`  LoadScalarConst x2 = 2`,
+			`  LoadScalarConst x3 = 3`,
+			`  LoadScalarConst x4 = 4`,
+			`  MoveScalar tmp1 = x1`,
+			`  MoveScalar tmp3 = x2`,
+			`  MoveScalar arg0 = x3`,
+			`  MoveScalar arg1 = x4`,
+			`  CallNative tmp4 = testpkg.imul()`,
+			`  MoveScalar arg0 = tmp3`,
+			`  MoveScalar arg1 = tmp4`,
+			`  CallNative tmp2 = testpkg.imul()`,
+			`  MoveScalar arg0 = tmp1`,
+			`  MoveScalar arg1 = tmp2`,
 			`  CallNative tmp0 = testpkg.imul()`,
 			`  ReturnScalar tmp0`,
 		},

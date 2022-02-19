@@ -173,9 +173,11 @@ func decodeEnc(enc string) encodingInfo {
 
 	var encdocParts []string
 	var argList []string
+	var argFlagList []string
 	hasDst := false
 	argOffset := 1
 	for i, f := range argfields {
+		argFlagList = argFlagList[:0]
 		parts := strings.Split(f, ":")
 		var typ string
 		if len(parts) == 2 {
@@ -187,16 +189,23 @@ func decodeEnc(enc string) encodingInfo {
 		argType := ""
 		encType := ""
 		argWidth := 0
+
 		switch typ {
 		case "wslot", "rwslot":
 			if i != 0 {
 				panic(fmt.Sprintf("parse %s: dst arg at i=%d", enc, i))
+			}
+			if typ == "wslot" {
+				argFlagList = append(argFlagList, "FlagIsWrite")
+			} else {
+				argFlagList = append(argFlagList, "FlagIsWrite", "FlagIsRead")
 			}
 			hasDst = true
 			argType = "ArgSlot"
 			encType = "u8"
 			argWidth = 1
 		case "rslot":
+			argFlagList = append(argFlagList, "FlagIsRead")
 			argType = "ArgSlot"
 			encType = "u8"
 			argWidth = 1
@@ -223,8 +232,12 @@ func decodeEnc(enc string) encodingInfo {
 		default:
 			panic(fmt.Sprintf("unknown op argument type: %s", typ))
 		}
+		argFlags := "0"
+		if len(argFlagList) != 0 {
+			argFlags = strings.Join(argFlagList, " | ")
+		}
 		encdocParts = append(encdocParts, argName+":"+encType)
-		argList = append(argList, fmt.Sprintf("{Name: %q, Kind: %s, Offset: %d}", argName, argType, argOffset))
+		argList = append(argList, fmt.Sprintf("{Name: %q, Kind: %s, Offset: %d, Flags: %s}", argName, argType, argOffset, argFlags))
 		width += argWidth
 		argOffset += argWidth
 	}

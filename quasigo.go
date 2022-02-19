@@ -76,17 +76,21 @@ type CompileContext struct {
 	Package *types.Package
 	Types   *types.Info
 	Fset    *token.FileSet
+
+	Optimize bool
 }
 
 // Compile prepares an executable version of fn.
 func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
 	internalCtx := qcompile.Context{
-		Env:     &ctx.Env.data,
-		Package: ctx.Package,
-		Types:   ctx.Types,
-		Fset:    ctx.Fset,
+		Env:      &ctx.Env.data,
+		Optimize: ctx.Optimize,
+		Package:  ctx.Package,
+		Types:    ctx.Types,
+		Fset:     ctx.Fset,
 	}
-	compiled, err := qcompile.Func(&internalCtx, fn)
+	compiler := qcompile.NewCompiler()
+	compiled, err := compiler.CompileFunc(&internalCtx, fn)
 	return Func{data: compiled}, err
 }
 

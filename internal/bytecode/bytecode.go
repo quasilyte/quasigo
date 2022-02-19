@@ -40,8 +40,19 @@ const (
 type Argument struct {
 	Name   string
 	Kind   ArgumentKind
-	Offset int
+	Offset uint8
+	Flags  ArgumentFlags
 }
+
+func (a Argument) IsWriteSlot() bool { return a.Flags&FlagIsWrite != 0 }
+func (a Argument) IsReadSlot() bool  { return a.Flags&FlagIsRead != 0 }
+
+type ArgumentFlags uint8
+
+const (
+	FlagIsWrite ArgumentFlags = 1 << iota
+	FlagIsRead
+)
 
 type OpcodeInfo struct {
 	Width uint8

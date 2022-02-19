@@ -8,51 +8,26 @@ import (
 	"math"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
+	"github.com/quasilyte/quasigo/internal/ir"
+	"github.com/quasilyte/quasigo/internal/qopt"
 	"github.com/quasilyte/quasigo/internal/qruntime"
 )
+
+// TODO/ideas.
+//
+// - Add ret slots? Could use 1 less temp in some functions.
 
 var voidType = &types.Tuple{}
 
 const voidSlot = math.MaxInt
 
-func compile(ctx *Context, fn *ast.FuncDecl) (compiled *qruntime.Func, err error) {
-	defer func() {
-		if err != nil {
-			return
-		}
-		rv := recover()
-		if rv == nil {
-			return
-		}
-		if compileErr, ok := rv.(compileError); ok {
-			err = compileErr
-			return
-		}
-		panic(rv) // not our panic
-	}()
-
-	return compileFunc(ctx, fn), nil
-}
-
-func compileFunc(ctx *Context, fn *ast.FuncDecl) *qruntime.Func {
-	cl := compiler{
-		ctx:                 ctx,
-		fnType:              ctx.Types.ObjectOf(fn.Name).Type().(*types.Signature),
-		strConstantsPool:    make(map[string]int),
-		scalarConstantsPool: make(map[uint64]int),
-		locals:              make(map[string]frameSlotInfo),
-	}
-	return cl.compileFunc(fn)
-}
-
 type compiler struct {
 	ctx *Context
 
+	fnName  *ast.Ident
 	fnKey   qruntime.FuncKey
 	fnType  *types.Signature
 	retType types.Type
-
-	lastOp bytecode.Op
 
 	insideVariadic bool
 
@@ -65,14 +40,14 @@ type compiler struct {
 
 	params map[string]frameSlotInfo
 
-	code            []byte
+	code            []ir.Inst
 	strConstants    []string
 	scalarConstants []uint64
 
-	breakTarget    *label
-	continueTarget *label
+	breakTarget    label
+	continueTarget label
 
-	labels []*label
+	numLabels int
 }
 
 type frameSlotInfo struct {
@@ -81,8 +56,7 @@ type frameSlotInfo struct {
 }
 
 type label struct {
-	targetPos int
-	sources   []int
+	id int
 }
 
 type compileError string
@@ -106,6 +80,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	dbg := qruntime.FuncDebugInfo{
 		SlotNames: make([]string, 0, len(cl.params)+len(cl.locals)),
 	}
+	cl.fnName = fn.Name
 	cl.fnKey = qruntime.FuncKey{Qualifier: cl.ctx.Package.Path(), Name: fn.Name.String()}
 	cl.params = make(map[string]frameSlotInfo, cl.fnType.Params().Len())
 	for i := 0; i < cl.fnType.Params().Len(); i++ {
@@ -124,31 +99,50 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 
 	cl.compileStmt(fn.Body)
 	if cl.retType == voidType {
-		cl.emit(bytecode.OpReturnVoid)
+		cl.emitOp(bytecode.OpReturnVoid)
 	}
 
-	numFrameSlots := len(cl.params) + len(cl.locals) + cl.numTmp
+	irFunc := ir.Func{
+		Code:          cl.code,
+		NumParams:     len(cl.params),
+		NumLocals:     len(cl.locals),
+		NumFrameSlots: len(cl.params) + len(cl.locals) + cl.numTmp,
+	}
+
+	if cl.ctx.Optimize {
+		qopt.Func(&irFunc)
+	}
+
+	var asm assembler
+	code, err := asm.Assemble(&irFunc)
+	if err != nil {
+		panic(cl.errorf(fn.Name, "unexpected result: %s", err))
+	}
+	if len(code) == 0 {
+		panic(cl.errorf(fn.Name, "unexpected result: 0-sized bytecode"))
+	}
+
 	compiled := &qruntime.Func{
-		Code:            cl.code,
-		Codeptr:         &cl.code[0],
+		Code:            code,
+		Codeptr:         &code[0],
 		StrConstants:    cl.strConstants,
 		ScalarConstants: cl.scalarConstants,
 		Name:            cl.fnKey.String(),
-		FrameSize:       int(qruntime.SizeofSlot) * numFrameSlots,
-		FrameSlots:      byte(numFrameSlots),
+		FrameSize:       int(qruntime.SizeofSlot) * irFunc.NumFrameSlots,
+		FrameSlots:      byte(irFunc.NumFrameSlots),
 	}
 	cl.ctx.Env.Debug.Funcs[compiled] = dbg
-	cl.linkJumps()
 
 	// Now that we know the frame size, we need to fix the arguments passing offsets.
-	bytecode.Walk(cl.code, func(pc int, op bytecode.Op) {
+	// TODO: do this on IR level?
+	bytecode.Walk(code, func(pc int, op bytecode.Op) {
 		if !op.HasDst() {
 			return
 		}
-		dstslot := int8(cl.code[pc+1])
+		dstslot := int8(code[pc+1])
 		if dstslot < 0 {
 			actualIndex := -dstslot - 1
-			cl.code[pc+1] = byte(numFrameSlots + int(actualIndex))
+			code[pc+1] = byte(irFunc.NumFrameSlots + int(actualIndex))
 		}
 	})
 
@@ -187,80 +181,74 @@ func (cl *compiler) collectLocals(dbg *qruntime.FuncDebugInfo, body *ast.BlockSt
 	})
 }
 
-func (cl *compiler) linkJumps() {
-	for _, l := range cl.labels {
-		for _, jumpPos := range l.sources {
-			offset := l.targetPos - jumpPos
-			patchPos := jumpPos + 1
-			put16(cl.code, patchPos, offset)
-		}
+func (cl *compiler) newLabel() label {
+	if cl.numLabels >= 255 {
+		panic(cl.errorf(cl.fnName, "too many labels"))
 	}
-}
-
-func (cl *compiler) newLabel() *label {
-	l := &label{}
-	cl.labels = append(cl.labels, l)
+	l := label{id: cl.numLabels}
+	cl.numLabels++
 	return l
 }
 
-func (cl *compiler) bindLabel(l *label) {
-	l.targetPos = len(cl.code)
+func (cl *compiler) bindLabel(l label) {
+	cl.emit(ir.Inst{
+		Pseudo: ir.OpLabel,
+		Arg0:   uint8(l.id),
+	})
 }
 
-func (cl *compiler) emit(op bytecode.Op) {
-	cl.lastOp = op
-	cl.code = append(cl.code, byte(op))
+func (cl *compiler) emit(inst ir.Inst) {
+	cl.code = append(cl.code, inst)
 }
 
-func (cl *compiler) emitJump(op bytecode.Op, l *label) {
-	l.sources = append(l.sources, len(cl.code))
-	cl.emit(op)
-	cl.code = append(cl.code, 0, 0)
+func (cl *compiler) emitOp(op bytecode.Op) {
+	cl.code = append(cl.code, ir.Inst{Op: op})
 }
 
-func (cl *compiler) emitCondJump(slot int, op bytecode.Op, l *label) {
-	l.sources = append(l.sources, len(cl.code))
-	cl.emit(op)
-	cl.code = append(cl.code, 0, 0, byte(slot))
+func (cl *compiler) emitJump(op bytecode.Op, l label) {
+	cl.emit(ir.Inst{Op: op, Arg0: uint8(l.id)})
 }
 
-func (cl *compiler) emit8(op bytecode.Op, arg8 int) {
-	cl.emit(op)
-	cl.code = append(cl.code, byte(arg8))
+func (cl *compiler) emitCondJump(slot int, op bytecode.Op, l label) {
+	cl.emit(ir.Inst{
+		Op:   op,
+		Arg0: uint8(l.id),
+		Arg1: uint8(slot),
+	})
 }
 
-func (cl *compiler) emit8x2(op bytecode.Op, arg8a, arg8b int) {
-	cl.emit(op)
-	cl.code = append(cl.code, byte(arg8a), byte(arg8b))
+func (cl *compiler) emit1(op bytecode.Op, arg8 int) {
+	cl.emit(ir.Inst{Op: op, Arg0: uint8(arg8)})
 }
 
-func (cl *compiler) emit8x3(op bytecode.Op, arg8a, arg8b, arg8c int) {
-	cl.emit(op)
-	cl.code = append(cl.code, byte(arg8a), byte(arg8b), byte(arg8c))
+func (cl *compiler) emit2(op bytecode.Op, arg8a, arg8b int) {
+	cl.emit(ir.Inst{Op: op, Arg0: uint8(arg8a), Arg1: uint8(arg8b)})
 }
 
-func (cl *compiler) emit8x4(op bytecode.Op, arg8a, arg8b, arg8c, arg8d int) {
-	cl.emit(op)
-	cl.code = append(cl.code, byte(arg8a), byte(arg8b), byte(arg8c), byte(arg8d))
+func (cl *compiler) emit3(op bytecode.Op, arg8a, arg8b, arg8c int) {
+	cl.emit(ir.Inst{Op: op, Arg0: uint8(arg8a), Arg1: uint8(arg8b), Arg2: uint8(arg8c), Arg3: uint8(arg8c)})
+}
+
+func (cl *compiler) emit4(op bytecode.Op, arg8a, arg8b, arg8c, arg8d int) {
+	cl.emit(ir.Inst{
+		Op:   op,
+		Arg0: uint8(arg8a),
+		Arg1: uint8(arg8b),
+		Arg2: uint8(arg8c),
+		Arg3: uint8(arg8d),
+	})
 }
 
 func (cl *compiler) emitCall(op bytecode.Op, dst int, funcid int) {
 	if dst == voidSlot && op == bytecode.OpCallNative {
-		cl.emit16(bytecode.OpCallVoidNative, funcid)
+		cl.emit(ir.Inst{Op: bytecode.OpCallVoidNative, Value: uint16(funcid)})
 		return
 	}
-	cl.emit(op)
-	buf := make([]byte, 3)
-	buf[0] = byte(dst)
-	put16(buf, 1, funcid)
-	cl.code = append(cl.code, buf...)
-}
-
-func (cl *compiler) emit16(op bytecode.Op, arg16 int) {
-	cl.emit(op)
-	buf := make([]byte, 2)
-	put16(buf, 0, arg16)
-	cl.code = append(cl.code, buf...)
+	cl.emit(ir.Inst{
+		Op:    op,
+		Value: uint16(funcid),
+		Arg0:  uint8(dst),
+	})
 }
 
 func (cl *compiler) errorUnsupportedType(e ast.Node, typ types.Type, where string) compileError {
@@ -271,6 +259,13 @@ func (cl *compiler) errorf(n ast.Node, format string, args ...interface{}) compi
 	loc := cl.ctx.Fset.Position(n.Pos())
 	message := fmt.Sprintf("%s:%d: %s", loc.Filename, loc.Line, fmt.Sprintf(format, args...))
 	return compileError(message)
+}
+
+func (cl *compiler) lastOp() bytecode.Op {
+	if len(cl.code) != 0 {
+		return cl.code[len(cl.code)-1].Op
+	}
+	return bytecode.OpInvalid
 }
 
 func (cl *compiler) isUncondJump(op bytecode.Op) bool {

@@ -42,7 +42,15 @@ func ParseGoFile(pkgPath, src string) (*ParsedTestFile, error) {
 	return result, err
 }
 
+func CompileOptTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *ParsedTestFile) (quasigo.Func, error) {
+	return compileTestFile(env, targetFunc, pkgPath, parsed, true)
+}
+
 func CompileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *ParsedTestFile) (quasigo.Func, error) {
+	return compileTestFile(env, targetFunc, pkgPath, parsed, false)
+}
+
+func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *ParsedTestFile, opt bool) (quasigo.Func, error) {
 	var resultFunc quasigo.Func
 	for _, decl := range parsed.Ast.Decls {
 		decl, ok := decl.(*ast.FuncDecl)
@@ -53,10 +61,11 @@ func CompileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *Parse
 			continue
 		}
 		ctx := &quasigo.CompileContext{
-			Env:     env,
-			Package: parsed.Pkg,
-			Types:   parsed.Types,
-			Fset:    parsed.Fset,
+			Env:      env,
+			Package:  parsed.Pkg,
+			Types:    parsed.Types,
+			Fset:     parsed.Fset,
+			Optimize: opt,
 		}
 		fn, err := quasigo.Compile(ctx, decl)
 		if err != nil {

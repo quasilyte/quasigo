@@ -82,7 +82,7 @@ func (cl *compiler) compileUnaryExpr(dst int, e *ast.UnaryExpr) {
 
 func (cl *compiler) compileUnaryOp(dst int, op bytecode.Op, arg ast.Expr) {
 	xslot := cl.compileTempExpr(arg)
-	cl.emit8x2(op, dst, xslot)
+	cl.emit2(op, dst, xslot)
 }
 
 func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
@@ -166,7 +166,7 @@ func (cl *compiler) compileIntBinaryOp(dst int, e *ast.BinaryExpr, op bytecode.O
 func (cl *compiler) compileBinaryOp(dst int, op bytecode.Op, e *ast.BinaryExpr) {
 	xslot := cl.compileTempExpr(e.X)
 	yslot := cl.compileTempExpr(e.Y)
-	cl.emit8x3(op, dst, xslot, yslot)
+	cl.emit3(op, dst, xslot, yslot)
 }
 
 func (cl *compiler) compileSliceExpr(dst int, slice *ast.SliceExpr) {
@@ -188,16 +188,16 @@ func (cl *compiler) compileSliceExpr(dst int, slice *ast.SliceExpr) {
 	case slice.Low == nil && slice.High != nil:
 		strslot := cl.compileTempExpr(slice.X)
 		toslot := cl.compileTempExpr(slice.High)
-		cl.emit8x3(bytecode.OpStrSliceTo, dst, strslot, toslot)
+		cl.emit3(bytecode.OpStrSliceTo, dst, strslot, toslot)
 	case slice.Low != nil && slice.High == nil:
 		strslot := cl.compileTempExpr(slice.X)
 		fromslot := cl.compileTempExpr(slice.Low)
-		cl.emit8x3(bytecode.OpStrSliceFrom, dst, strslot, fromslot)
+		cl.emit3(bytecode.OpStrSliceFrom, dst, strslot, fromslot)
 	default:
 		strslot := cl.compileTempExpr(slice.X)
 		fromslot := cl.compileTempExpr(slice.Low)
 		toslot := cl.compileTempExpr(slice.High)
-		cl.emit8x4(bytecode.OpStrSlice, dst, strslot, fromslot, toslot)
+		cl.emit4(bytecode.OpStrSlice, dst, strslot, fromslot, toslot)
 	}
 }
 
@@ -284,7 +284,7 @@ func (cl *compiler) compileBuiltinCall(dst int, fn *ast.Ident, call *ast.CallExp
 		if !typeIsString(cl.ctx.Types.TypeOf(s)) {
 			panic(cl.errorf(s, "can't compile len() with non-string argument yet"))
 		}
-		cl.emit8x2(bytecode.OpStrLen, dst, srcslot)
+		cl.emit2(bytecode.OpStrLen, dst, srcslot)
 
 	case `println`:
 		if len(call.Args) != 1 {
@@ -314,20 +314,20 @@ func (cl *compiler) compileBuiltinCall(dst int, fn *ast.Ident, call *ast.CallExp
 }
 
 func (cl *compiler) compileCallVariadicArgs(args []ast.Expr) {
-	cl.emit(bytecode.OpVariadicReset)
+	cl.emitOp(bytecode.OpVariadicReset)
 	tmpslot := cl.allocTmp()
 	for _, arg := range args {
 		cl.compileExpr(tmpslot, arg)
 		argType := cl.ctx.Types.TypeOf(arg)
 		switch {
 		case typeIsBool(argType):
-			cl.emit8(bytecode.OpPushVariadicBoolArg, tmpslot)
+			cl.emit1(bytecode.OpPushVariadicBoolArg, tmpslot)
 		case typeIsScalar(argType):
-			cl.emit8(bytecode.OpPushVariadicScalarArg, tmpslot)
+			cl.emit1(bytecode.OpPushVariadicScalarArg, tmpslot)
 		case typeIsString(argType):
-			cl.emit8(bytecode.OpPushVariadicStrArg, tmpslot)
+			cl.emit1(bytecode.OpPushVariadicStrArg, tmpslot)
 		case typeIsInterface(argType):
-			cl.emit8(bytecode.OpPushVariadicInterfaceArg, tmpslot)
+			cl.emit1(bytecode.OpPushVariadicInterfaceArg, tmpslot)
 		default:
 			panic(cl.errorf(arg, "can't pass %s typed variadic arg", argType.String()))
 		}
@@ -387,7 +387,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 			argslot := -(i + 1)
 			arg := args[i]
 			moveOp := cl.opMoveByType(arg, cl.ctx.Types.TypeOf(arg))
-			cl.emit8x2(moveOp, argslot, slot)
+			cl.emit2(moveOp, argslot, slot)
 		}
 	} else {
 		// Can move args directly to their slots.
@@ -412,7 +412,7 @@ func (cl *compiler) compileNativeCall(dst int, key qruntime.FuncKey) bool {
 }
 
 func (cl *compiler) compileRecurCall(dst int) bool {
-	cl.emit8(bytecode.OpCallRecur, dst)
+	cl.emit1(bytecode.OpCallRecur, dst)
 	return true
 }
 
@@ -435,11 +435,11 @@ func (cl *compiler) compileIdent(dst int, ident *ast.Ident) {
 	}
 
 	if p, ok := cl.params[ident.String()]; ok {
-		cl.emit8x2(cl.opMoveByType(ident, p.v.Type()), dst, p.i)
+		cl.emit2(cl.opMoveByType(ident, p.v.Type()), dst, p.i)
 		return
 	}
 	if l, ok := cl.locals[ident.String()]; ok {
-		cl.emit8x2(cl.opMoveByType(ident, l.v.Type()), dst, l.i)
+		cl.emit2(cl.opMoveByType(ident, l.v.Type()), dst, l.i)
 		return
 	}
 
@@ -451,12 +451,12 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 	case constant.Bool:
 		v := constant.BoolVal(cv)
 		id := cl.internBoolConstant(v)
-		cl.emit8x2(bytecode.OpLoadScalarConst, dst, id)
+		cl.emit2(bytecode.OpLoadScalarConst, dst, id)
 
 	case constant.String:
 		v := constant.StringVal(cv)
 		id := cl.internStrConstant(v)
-		cl.emit8x2(bytecode.OpLoadStrConst, dst, id)
+		cl.emit2(bytecode.OpLoadStrConst, dst, id)
 
 	case constant.Int:
 		v, exact := constant.Int64Val(cv)
@@ -464,7 +464,7 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 			panic(cl.errorf(source, "non-exact int value"))
 		}
 		id := cl.internIntConstant(int(v))
-		cl.emit8x2(bytecode.OpLoadScalarConst, dst, id)
+		cl.emit2(bytecode.OpLoadScalarConst, dst, id)
 
 	case constant.Complex:
 		panic(cl.errorf(source, "can't compile complex number constants yet"))

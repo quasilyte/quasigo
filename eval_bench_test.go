@@ -76,6 +76,11 @@ var benchmarksNoAlloc = []*benchTestCase{
 	},
 
 	{
+		name: `CallNative2`,
+		src:  `return imul(imul(imul(1, 2), 3), 4)`,
+	},
+
+	{
 		name: `CounterLoop`,
 		src:  `j := 0; for j < 10000 { j++ }; return j`,
 	},

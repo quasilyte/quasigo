@@ -259,7 +259,7 @@ func TestEvalFile(t *testing.T) {
 		return string(out), nil
 	}
 
-	runQuasigo := func(main string) (string, error) {
+	runQuasigo := func(main string, opt bool) (string, error) {
 		src, err := os.ReadFile(main)
 		if err != nil {
 			return "", err
@@ -291,7 +291,12 @@ func TestEvalFile(t *testing.T) {
 		qfmt.ImportAll(env)
 		registerEvaltestPackage(env)
 
-		mainFunc, err := testutil.CompileTestFile(env, "main", "main", parsed)
+		compileFunc := testutil.CompileTestFile
+		if opt {
+			compileFunc = testutil.CompileOptTestFile
+		}
+
+		mainFunc, err := compileFunc(env, "main", "main", parsed)
 		if err != nil {
 			return "", err
 		}
@@ -309,12 +314,19 @@ func TestEvalFile(t *testing.T) {
 		if err != nil {
 			t.Fatalf("run go: %v", err)
 		}
-		quasigoResult, err := runQuasigo(mainFile)
+		quasigoResult, err := runQuasigo(mainFile, false)
 		if err != nil {
 			t.Fatalf("run quasigo: %v", err)
 		}
+		quasigoOptResult, err := runQuasigo(mainFile, false)
+		if err != nil {
+			t.Fatalf("run quasigo with optimization: %v", err)
+		}
 		if diff := cmp.Diff(quasigoResult, goResult); diff != "" {
-			t.Errorf("output mismatch:\nhave (+): `%s`\nwant (-): `%s`\ndiff: %s", quasigoResult, goResult, diff)
+			t.Fatalf("output mismatch:\nhave (+): `%s`\nwant (-): `%s`\ndiff: %s", quasigoResult, goResult, diff)
+		}
+		if diff := cmp.Diff(quasigoResult, quasigoOptResult); diff != "" {
+			t.Fatalf("output mismatch:\nno opt (+): `%s`\nwith opt (-): `%s`\ndiff: %s", quasigoResult, quasigoOptResult, diff)
 		}
 	}
 

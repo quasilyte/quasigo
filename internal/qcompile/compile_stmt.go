@@ -43,7 +43,7 @@ func (cl *compiler) compileStmt(stmt ast.Stmt) {
 
 func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 	if cl.retType == voidType {
-		cl.emit(bytecode.OpReturnVoid)
+		cl.emitOp(bytecode.OpReturnVoid)
 		return
 	}
 
@@ -53,9 +53,9 @@ func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 
 	switch {
 	case identName(ret.Results[0]) == "true":
-		cl.emit(bytecode.OpReturnTrue)
+		cl.emitOp(bytecode.OpReturnTrue)
 	case identName(ret.Results[0]) == "false":
-		cl.emit(bytecode.OpReturnFalse)
+		cl.emitOp(bytecode.OpReturnFalse)
 	default:
 		typ := cl.ctx.Types.TypeOf(ret.Results[0])
 		var op bytecode.Op
@@ -70,7 +70,7 @@ func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 			panic(cl.errorf(ret, "can't return %s typed value yet", typ.String()))
 		}
 		slot := cl.compileRootTempExpr(ret.Results[0])
-		cl.emit8(op, slot)
+		cl.emit1(op, slot)
 	}
 }
 
@@ -89,7 +89,7 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	condslot := cl.compileRootTempExpr(stmt.Cond)
 	cl.emitCondJump(condslot, bytecode.OpJumpFalse, labelElse)
 	cl.compileStmt(stmt.Body)
-	if !cl.isUncondJump(cl.lastOp) {
+	if !cl.isUncondJump(cl.lastOp()) {
 		cl.emitJump(bytecode.OpJump, labelEnd)
 	}
 	cl.bindLabel(labelElse)
@@ -118,7 +118,7 @@ func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 	if len(assign.Lhs) == 2 {
 		dst2 := assign.Lhs[1].(*ast.Ident)
 		lhs2slot := cl.getLocal(dst2, dst2.Name)
-		cl.emit8(bytecode.OpMoveResult2, lhs2slot)
+		cl.emit1(bytecode.OpMoveResult2, lhs2slot)
 	}
 }
 
@@ -129,9 +129,9 @@ func (cl *compiler) compileIncDecStmt(stmt *ast.IncDecStmt) {
 	}
 	dst := cl.getLocal(varname, varname.String())
 	if stmt.Tok == token.INC {
-		cl.emit8(bytecode.OpIntInc, dst)
+		cl.emit1(bytecode.OpIntInc, dst)
 	} else {
-		cl.emit8(bytecode.OpIntDec, dst)
+		cl.emit1(bytecode.OpIntDec, dst)
 	}
 }
 
