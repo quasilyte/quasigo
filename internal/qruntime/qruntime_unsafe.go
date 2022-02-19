@@ -128,11 +128,6 @@ func getslot(slotptr *Slot, index byte) *Slot {
 }
 
 //go:nosplit
-func slotoffset(base, current *Slot) int {
-	return int((uintptr(unsafe.Pointer(current)) - uintptr(unsafe.Pointer(base))) / SizeofSlot)
-}
-
-//go:nosplit
 func canAllocFrame(current, end *Slot, frameSize int) bool {
 	return uintptr(unsafe.Pointer(current))+uintptr(frameSize) < uintptr(unsafe.Pointer(end))
 }

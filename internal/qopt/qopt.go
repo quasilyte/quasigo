@@ -69,13 +69,11 @@ func (opt *optimizer) Optimize() {
 	}
 
 	maxTempID := 0
-	changed = false
 	usedSlots := idSet{make([]uint8, 0, 8)}
 	for i := len(opt.fn.Code) - 1; i >= 0; i-- {
 		inst := &opt.fn.Code[i]
 		if inst.Op.HasDst() && !opt.isCallArg(int(inst.Arg0)) && !usedSlots.Contains(int(inst.Arg0)) {
 			inst.Op = bytecode.OpInvalid
-			changed = true
 			continue
 		}
 		inst.WalkArgs(func(arg bytecode.Argument, value int) {

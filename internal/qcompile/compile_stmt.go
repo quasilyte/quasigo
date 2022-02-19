@@ -90,7 +90,7 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	cl.emitCondJump(condslot, bytecode.OpJumpFalse, labelElse)
 	cl.compileStmt(stmt.Body)
 	if !cl.isUncondJump(cl.lastOp()) {
-		cl.emitJump(bytecode.OpJump, labelEnd)
+		cl.emitJump(labelEnd)
 	}
 	cl.bindLabel(labelElse)
 	cl.compileStmt(stmt.Else)
@@ -142,7 +142,7 @@ func (cl *compiler) compileBranchStmt(branch *ast.BranchStmt) {
 
 	switch branch.Tok {
 	case token.BREAK:
-		cl.emitJump(bytecode.OpJump, cl.breakTarget)
+		cl.emitJump(cl.breakTarget)
 	default:
 		panic(cl.errorf(branch, "can't compile %s yet", branch.Tok))
 	}
@@ -164,7 +164,7 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 	case stmt.Cond != nil && stmt.Init == nil && stmt.Post == nil:
 		// `for <cond> { ... }`
 		labelBody := cl.newLabel()
-		cl.emitJump(bytecode.OpJump, labelContinue)
+		cl.emitJump(labelContinue)
 		cl.bindLabel(labelBody)
 		cl.compileStmt(stmt.Body)
 		cl.bindLabel(labelContinue)
@@ -176,7 +176,7 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 		// `for { ... }`
 		cl.bindLabel(labelContinue)
 		cl.compileStmt(stmt.Body)
-		cl.emitJump(bytecode.OpJump, labelContinue)
+		cl.emitJump(labelContinue)
 		cl.bindLabel(labelBreak)
 	}
 

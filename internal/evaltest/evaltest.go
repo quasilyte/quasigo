@@ -1,6 +1,8 @@
 package evaltest
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // This package is used for quasigo testing.
 
