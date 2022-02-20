@@ -22,16 +22,22 @@ func (opt *optimizer) Optimize() {
 		if inst.Pseudo == ir.OpLabel {
 			scalarTempStores.Reset()
 			strTempStores.Reset()
-			return
+			continue
 		}
 
+		storeHandled := false
 		switch inst.Op {
 		case bytecode.OpLoadScalarConst:
 			dst := int(inst.Arg0)
 			if !opt.isTemp(dst) {
-				return
+				continue
 			}
-			scalarTempStores.Add(dst, int(inst.Arg1))
+			if i := scalarTempStores.Find(dst); i != -1 {
+				scalarTempStores.UpdateValueAt(i, int(inst.Arg1))
+			} else {
+				scalarTempStores.Add(dst, int(inst.Arg1))
+			}
+			storeHandled = true
 		case bytecode.OpMoveScalar:
 			src := int(inst.Arg1)
 			if i := scalarTempStores.Find(src); i != -1 {
@@ -47,9 +53,14 @@ func (opt *optimizer) Optimize() {
 		case bytecode.OpLoadStrConst:
 			dst := int(inst.Arg0)
 			if !opt.isTemp(dst) {
-				return
+				continue
 			}
-			strTempStores.Add(dst, int(inst.Arg1))
+			if i := strTempStores.Find(dst); i != -1 {
+				strTempStores.UpdateValueAt(i, int(inst.Arg1))
+			} else {
+				strTempStores.Add(dst, int(inst.Arg1))
+			}
+			storeHandled = true
 		case bytecode.OpMoveStr:
 			src := int(inst.Arg1)
 			if i := strTempStores.Find(src); i != -1 {
@@ -60,6 +71,21 @@ func (opt *optimizer) Optimize() {
 					Arg0: inst.Arg0,
 					Arg1: constindex,
 				}
+			}
+		}
+
+		if !storeHandled && inst.Op.HasDst() {
+			dst := int(inst.Arg0)
+			if !opt.isTemp(dst) {
+				continue
+			}
+			if i := scalarTempStores.Find(dst); i != -1 {
+				scalarTempStores.RemoveAt(i)
+				continue
+			}
+			if i := strTempStores.Find(dst); i != -1 {
+				strTempStores.RemoveAt(i)
+				continue
 			}
 		}
 	}

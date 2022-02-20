@@ -26,4 +26,6 @@ func main() {
 	println(strings.ReplaceAll("foo", "o", "f"))
 	println(strings.ReplaceAll(s, "l", "12"))
 	println(strings.ReplaceAll(s, "ll", ""))
+
+	println(s)
 }
