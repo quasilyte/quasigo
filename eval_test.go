@@ -39,15 +39,6 @@ func TestEval(t *testing.T) {
 		{`b`, true},
 		{`i`, 10},
 
-		// Arith operators.
-		{`5 + i`, 15},
-		{`i + i`, 20},
-		{`i - 5`, 5},
-		{`5 - i`, -5},
-		{`i * 3`, 30},
-		{`i / 2`, 5},
-		{`(i * 3) / 10`, 3},
-
 		// String operators.
 		{`s + s`, "foofoo"},
 

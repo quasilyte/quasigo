@@ -130,19 +130,19 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 
 		case bytecode.OpIntAdd:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar + getslot(slotptr, yslot).Scalar
+			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() + getslot(slotptr, yslot).Int())
 			pc += 4
 		case bytecode.OpIntSub:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar - getslot(slotptr, yslot).Scalar
+			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() - getslot(slotptr, yslot).Int())
 			pc += 4
 		case bytecode.OpIntMul:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar * getslot(slotptr, yslot).Scalar
+			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() * getslot(slotptr, yslot).Int())
 			pc += 4
 		case bytecode.OpIntDiv:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar / getslot(slotptr, yslot).Scalar
+			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() / getslot(slotptr, yslot).Int())
 			pc += 4
 
 		case bytecode.OpIntInc:

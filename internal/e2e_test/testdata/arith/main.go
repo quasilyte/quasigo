@@ -31,6 +31,30 @@ func constexpr1() {
 	println(one + 1 + one)
 }
 
+func intexpr(x, y int) {
+	i := x + y
+	println(x + y + x)
+	println(y + x + y)
+	println(5 + i)
+	println(i + i)
+	println(i - 5)
+	println(5 - i)
+	println(i * 3)
+	println(x * 3 * y)
+	println(x * y)
+	println(x / y)
+	println(y / x)
+	println(i / 2)
+	println((i * 3) / 10)
+	i++
+	println(i)
+	i++
+	println(i)
+}
+
 func main() {
 	constexpr1()
+	intexpr(14, 5)
+	intexpr(-14, 5)
+	intexpr(14, -5)
 }
