@@ -45,11 +45,12 @@ func (s *idSet) Contains(id int) bool {
 }
 
 func (s *idSet) Remove(id int) {
-	s.ids = s.ids[:0]
+	ids := s.ids[:0]
 	for _, x := range s.ids {
 		if int(x) == id {
 			continue
 		}
-		s.ids = append(s.ids, x)
+		ids = append(ids, x)
 	}
+	s.ids = ids
 }

@@ -31,6 +31,10 @@ func (s *idMap) RemoveAt(index int) {
 	s.kv = s.kv[:len(s.kv)-1]
 }
 
+func (s *idMap) UpdateValueAt(index, val int) {
+	s.kv[index] = (s.kv[index] & 0xff00) | uint16(val)
+}
+
 func (s *idMap) Push(id, val int) {
 	s.kv = append(s.kv, uint16(((id<<8)&0xff00)|(val&0xff)))
 }
@@ -50,11 +54,12 @@ func (s *idMap) Contains(id int) bool {
 }
 
 func (s *idMap) Remove(id int) {
-	s.kv = s.kv[:0]
+	kv := s.kv[:0]
 	for _, x := range s.kv {
 		if int(x>>8) == id {
 			continue
 		}
-		s.kv = append(s.kv, x)
+		kv = append(kv, x)
 	}
+	s.kv = kv
 }
