@@ -42,7 +42,28 @@ func testFactorial() {
 	println(factorial(4) + factorial(8))
 }
 
-// TODO: make it possible to add codegen output tests here?
+//test:disasm
+// main.substringIndex code=54 frame=168 (7 slots: 2 args, 2 locals, 3 temps)
+//   MoveStr head = s
+//   LoadScalarConst i = 0
+//   Jump L0
+// L2:
+//   StrLen tmp2 = sub
+//   StrSliceTo tmp1 = head tmp2
+//   StrEq tmp0 = tmp1 sub
+//   JumpFalse L1 tmp0
+//   ReturnScalar i
+// L1:
+//   IntInc i
+//   LoadScalarConst tmp0 = 1
+//   StrSliceFrom head = head tmp0
+// L0:
+//   StrLen tmp1 = head
+//   StrLen tmp2 = sub
+//   IntGtEq tmp0 = tmp1 tmp2
+//   JumpTrue L2 tmp0
+//   LoadScalarConst tmp0 = -1
+//   ReturnScalar tmp0
 func substringIndex(s, sub string) int {
 	head := s
 	i := 0

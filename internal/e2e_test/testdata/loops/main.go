@@ -2,7 +2,7 @@ package main
 
 const one int = 1
 
-func main() {
+func testWhile() {
 	// While-style loops.
 	{
 		i := 0
@@ -15,7 +15,11 @@ func main() {
 		i2 := 2
 		for i2 < 2 {
 			println(i2)
-			i2++
+			i2 += one
 		}
 	}
+}
+
+func main() {
+	testWhile()
 }
