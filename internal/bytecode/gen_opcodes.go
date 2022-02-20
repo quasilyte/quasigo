@@ -38,6 +38,8 @@ var opcodePrototypes = []opcodeProto{
 	{"StrEq", "op dst:wslot s1:rslot s2:rslot"},
 	{"StrNotEq", "op dst:wslot s1:rslot s2:rslot"},
 
+	{"IntNeg", "op dst:wslot x:rslot"},
+
 	{"IntEq", "op dst:wslot x:rslot y:rslot"},
 	{"IntNotEq", "op dst:wslot x:rslot y:rslot"},
 	{"IntGt", "op dst:wslot x:rslot y:rslot"},
