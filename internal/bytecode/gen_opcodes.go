@@ -59,6 +59,7 @@ var opcodePrototypes = []opcodeProto{
 
 	{"Call", "op dst:wslot fn:funcid"},
 	{"CallRecur", "op dst:wslot"},
+	{"CallVoid", "op fn:funcid"},
 	{"CallNative", "op dst:wslot fn:nativefuncid"},
 	{"CallVoidNative", "op fn:nativefuncid"},
 

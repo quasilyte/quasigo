@@ -244,6 +244,10 @@ func (cl *compiler) emitCall(op bytecode.Op, dst int, funcid int) {
 		cl.emit(ir.Inst{Op: bytecode.OpCallVoidNative, Value: uint16(funcid)})
 		return
 	}
+	if dst == voidSlot && op == bytecode.OpCall {
+		cl.emit(ir.Inst{Op: bytecode.OpCallVoid, Value: uint16(funcid)})
+		return
+	}
 	cl.emit(ir.Inst{
 		Op:    op,
 		Value: uint16(funcid),
