@@ -193,6 +193,14 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			eval(env, fn, nextFrameSlot(slotptr, fn.FrameSize))
 			*getslot(slotptr, dstslot) = env.result
 			pc += 2
+		case bytecode.OpCallVoid:
+			funcid := unpack16(codeptr, pc+1)
+			callFunc := env.userFuncs[funcid]
+			if !canAllocFrame(slotptr, env.slotend, callFunc.FrameSize) {
+				panicStackOverflow(fn)
+			}
+			eval(env, callFunc, nextFrameSlot(slotptr, fn.FrameSize))
+			pc += 3
 
 		case bytecode.OpVariadicReset:
 			env.vararg = env.vararg[:0]

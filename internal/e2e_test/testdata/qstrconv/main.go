@@ -7,7 +7,7 @@ func main() {
 
 	i, err := strconv.Atoi(s)
 	println(i)
-	// println(err == nil)
+	println(err == nil)
 
 	i2, err2 := strconv.Atoi("bad")
 	println(i2)
@@ -23,7 +23,7 @@ func main() {
 
 	i, err2 = strconv.Atoi("-349")
 	println(i)
-	// if err2 == nil {
-	// 	println("err2 is nil")
-	// }
+	if err2 == nil {
+		println("err2 is nil")
+	}
 }
