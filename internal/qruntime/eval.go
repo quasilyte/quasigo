@@ -98,6 +98,11 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).String() != getslot(slotptr, yslot).String())
 			pc += 4
 
+		case bytecode.OpIntNeg:
+			dstslot, xslot := unpack8x2(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetInt(-getslot(slotptr, xslot).Int())
+			pc += 3
+
 		case bytecode.OpIntEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() == getslot(slotptr, yslot).Int())

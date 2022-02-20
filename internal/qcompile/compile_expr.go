@@ -75,6 +75,10 @@ func (cl *compiler) compileUnaryExpr(dst int, e *ast.UnaryExpr) {
 	switch e.Op {
 	case token.NOT:
 		cl.compileUnaryOp(dst, bytecode.OpNot, e.X)
+
+	case token.SUB:
+		cl.compileUnaryOp(dst, bytecode.OpIntNeg, e.X)
+
 	default:
 		panic(cl.errorf(e, "can't compile unary %s yet", e.Op))
 	}
