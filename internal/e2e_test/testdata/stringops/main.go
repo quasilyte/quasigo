@@ -5,9 +5,9 @@ func testindex() {
 	s := "hello"
 	println(s[0])
 	println(s[len(s)-1])
-	// for i := 0; i < len(s); i++ {
-	// 	println(s[i])
-	// }
+	for i := 0; i < len(s); i++ {
+		println(s[i])
+	}
 }
 
 func main() {
