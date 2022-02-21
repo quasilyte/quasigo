@@ -246,6 +246,9 @@ func (r *Runner) newTestEnv() *testEnv {
 		env.AddNativeFunc(`builtin`, `PrintString`, func(ctx qnative.CallContext) {
 			fmt.Fprintln(stdout, ctx.StringArg(0))
 		})
+		env.AddNativeFunc(`builtin`, `PrintByte`, func(ctx qnative.CallContext) {
+			fmt.Fprintln(stdout, ctx.ByteArg(0))
+		})
 		env.AddNativeFunc(`builtin`, `PrintInt`, func(ctx qnative.CallContext) {
 			fmt.Fprintln(stdout, ctx.IntArg(0))
 		})

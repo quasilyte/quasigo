@@ -25,7 +25,7 @@ func typeIsScalar(typ types.Type) bool {
 		return false
 	}
 	switch basic.Kind() {
-	case types.Int, types.UntypedInt, types.Bool, types.UntypedBool:
+	case types.Int, types.UntypedInt, types.Bool, types.UntypedBool, types.Uint8:
 		return true
 	default:
 		return false
@@ -38,6 +38,14 @@ func typeIsBool(typ types.Type) bool {
 		return false
 	}
 	return basic.Info()&types.IsBoolean != 0
+}
+
+func typeIsByte(typ types.Type) bool {
+	basic, ok := typ.Underlying().(*types.Basic)
+	if !ok {
+		return false
+	}
+	return basic.Kind() == types.Uint8
 }
 
 func typeIsInt(typ types.Type) bool {

@@ -294,9 +294,9 @@ func (cl *compiler) isSupportedType(typ types.Type) bool {
 
 	case *types.Basic:
 		// 2. Some of the basic types are supported.
-		// TODO: support byte/uint8 and maybe float64.
+		// TODO: float64.
 		switch typ.Kind() {
-		case types.Bool, types.Int, types.String:
+		case types.Bool, types.Int, types.String, types.Uint8:
 			return true
 		default:
 			return false

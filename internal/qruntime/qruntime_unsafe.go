@@ -77,7 +77,13 @@ func (slot *Slot) SetInt(v int) {
 	slot.Scalar = uint64(v)
 }
 
+func (slot *Slot) SetByte(v byte) {
+	slot.Scalar = uint64(v)
+}
+
 func (slot Slot) Int() int { return int(slot.Scalar) }
+
+func (slot Slot) Byte() byte { return byte(slot.Scalar) }
 
 // addb returns the byte pointer p+n.
 //go:nosplit

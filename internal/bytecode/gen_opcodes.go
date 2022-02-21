@@ -33,6 +33,8 @@ var opcodePrototypes = []opcodeProto{
 	{"StrSliceFrom", "op dst:wslot str:rslot from:rslot"},
 	{"StrSliceTo", "op dst:wslot str:rslot to:rslot"},
 
+	{"StrIndex", "op dst:wslot str:rslot index:rslot"},
+
 	{"Concat", "op dst:wslot s1:rslot s2:rslot"},
 
 	{"StrEq", "op dst:wslot s1:rslot s2:rslot"},
