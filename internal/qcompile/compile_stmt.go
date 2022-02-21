@@ -143,6 +143,8 @@ func (cl *compiler) compileBranchStmt(branch *ast.BranchStmt) {
 	switch branch.Tok {
 	case token.BREAK:
 		cl.emitJump(cl.breakTarget)
+	case token.CONTINUE:
+		cl.emitJump(cl.continueTarget)
 	default:
 		panic(cl.errorf(branch, "can't compile %s yet", branch.Tok))
 	}
@@ -157,10 +159,6 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 	cl.continueTarget = labelContinue
 
 	switch {
-	case stmt.Cond != nil && stmt.Init != nil && stmt.Post != nil:
-		// Will be implemented later.
-		panic(cl.errorf(stmt, "can't compile C-style for lobytecode.Ops yet"))
-
 	case stmt.Cond != nil && stmt.Init == nil && stmt.Post == nil:
 		// `for <cond> { ... }`
 		labelBody := cl.newLabel()
@@ -172,11 +170,36 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 		cl.emitCondJump(condslot, bytecode.OpJumpTrue, labelBody)
 		cl.bindLabel(labelBreak)
 
-	default:
+	case stmt.Cond == nil && stmt.Init == nil && stmt.Post == nil:
 		// `for { ... }`
 		cl.bindLabel(labelContinue)
 		cl.compileStmt(stmt.Body)
 		cl.emitJump(labelContinue)
+		cl.bindLabel(labelBreak)
+
+	default:
+		// `for <init>; <cond>; <post> { ... }`
+		labelStart := cl.newLabel()
+		labelBody := cl.newLabel()
+		if stmt.Init != nil {
+			cl.compileStmt(stmt.Init)
+		}
+		if stmt.Cond != nil {
+			cl.emitJump(labelStart)
+		}
+		cl.bindLabel(labelBody)
+		cl.compileStmt(stmt.Body)
+		cl.bindLabel(labelContinue)
+		if stmt.Post != nil {
+			cl.compileStmt(stmt.Post)
+		}
+		cl.bindLabel(labelStart)
+		if stmt.Cond != nil {
+			condslot := cl.compileRootTempExpr(stmt.Cond)
+			cl.emitCondJump(condslot, bytecode.OpJumpTrue, labelBody)
+		} else {
+			cl.emitJump(labelBody)
+		}
 		cl.bindLabel(labelBreak)
 	}
 
