@@ -47,6 +47,41 @@ func intnegconst() int {
 	return -50
 }
 
+func byteexpr(x, y byte) {
+	i := x + y
+	println(i)
+	i--
+	println(i)
+	println(x + y + x)
+	println(y + x + y)
+	println(5 + i)
+	println(i + i)
+	println(i - 5)
+	println(5 - i)
+	println(i * 3)
+	println(x * 3 * y)
+	println(x * y)
+	i++
+	println(i)
+	i++
+	println(i)
+	println(-i)
+
+	b := byte(210)
+	println(b)
+	println(b + b)
+	println(b + b*x)
+	println(b*b + x)
+	println(b > x)
+	println(b >= x)
+	println(b < x)
+	println(b <= x)
+	println(b > y)
+	println(b >= y)
+	println(b < y)
+	println(b <= y)
+}
+
 func intexpr(x, y int) {
 	i := x + y
 	println(x + y + x)
@@ -67,6 +102,20 @@ func intexpr(x, y int) {
 	i++
 	println(i)
 	println(-i)
+
+	i2 := 329
+	println(i2)
+	println(i2 + i2)
+	println(i2 + i2*x)
+	println(i2*i2 + x)
+	println(i2 > x)
+	println(i2 >= x)
+	println(i2 < x)
+	println(i2 <= x)
+	println(i2 > y)
+	println(i2 >= y)
+	println(i2 < y)
+	println(i2 <= y)
 }
 
 func main() {
@@ -74,4 +123,8 @@ func main() {
 	intexpr(14, 5)
 	intexpr(-14, 5)
 	intexpr(14, -5)
+	byteexpr(10, 30)
+	byteexpr(0, 0)
+	byteexpr(255, 0)
+	byteexpr(0, 255)
 }

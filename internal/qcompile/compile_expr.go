@@ -60,6 +60,9 @@ func (cl *compiler) compileExpr(dst int, e ast.Expr) {
 	case *ast.SliceExpr:
 		cl.compileSliceExpr(dst, e)
 
+	case *ast.IndexExpr:
+		cl.compileIndexExpr(dst, e)
+
 	case *ast.SelectorExpr:
 		cl.compileSelectorExpr(dst, e)
 
@@ -128,28 +131,28 @@ func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
 		}
 
 	case token.GTR:
-		cl.compileIntBinaryOp(dst, e, bytecode.OpIntGt, typ)
+		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntGt, typ)
 	case token.GEQ:
-		cl.compileIntBinaryOp(dst, e, bytecode.OpIntGtEq, typ)
+		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntGtEq, typ)
 	case token.LSS:
-		cl.compileIntBinaryOp(dst, e, bytecode.OpIntLt, typ)
+		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntLt, typ)
 	case token.LEQ:
-		cl.compileIntBinaryOp(dst, e, bytecode.OpIntLtEq, typ)
+		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntLtEq, typ)
 
 	case token.ADD:
 		switch {
 		case typeIsString(typ):
 			cl.compileBinaryOp(dst, bytecode.OpConcat, e)
-		case typeIsInt(typ):
+		case typeIsInt(typ), typeIsByte(typ):
 			cl.compileBinaryOp(dst, bytecode.OpIntAdd, e)
 		default:
 			panic(cl.errorf(e, "+ is not implemented for %s bytecode.Operands", typ))
 		}
 
 	case token.SUB:
-		cl.compileIntBinaryOp(dst, e, bytecode.OpIntSub, typ)
+		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntSub, typ)
 	case token.MUL:
-		cl.compileIntBinaryOp(dst, e, bytecode.OpIntMul, typ)
+		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntMul, typ)
 	case token.QUO:
 		cl.compileIntBinaryOp(dst, e, bytecode.OpIntDiv, typ)
 
@@ -158,11 +161,18 @@ func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
 	}
 }
 
-func (cl *compiler) compileIntBinaryOp(dst int, e *ast.BinaryExpr, op bytecode.Op, typ types.Type) {
-	switch {
-	case typeIsInt(typ):
+func (cl *compiler) compileScalarBinaryOp(dst int, e *ast.BinaryExpr, op bytecode.Op, typ types.Type) {
+	if typeIsInt(typ) || typeIsByte(typ) {
 		cl.compileBinaryOp(dst, op, e)
-	default:
+	} else {
+		panic(cl.errorf(e, "%s is not implemented for %s bytecode.Operands", e.Op, typ))
+	}
+}
+
+func (cl *compiler) compileIntBinaryOp(dst int, e *ast.BinaryExpr, op bytecode.Op, typ types.Type) {
+	if typeIsInt(typ) {
+		cl.compileBinaryOp(dst, op, e)
+	} else {
 		panic(cl.errorf(e, "%s is not implemented for %s bytecode.Operands", e.Op, typ))
 	}
 }
@@ -203,6 +213,15 @@ func (cl *compiler) compileSliceExpr(dst int, slice *ast.SliceExpr) {
 		toslot := cl.compileTempExpr(slice.High)
 		cl.emit4(bytecode.OpStrSlice, dst, strslot, fromslot, toslot)
 	}
+}
+
+func (cl *compiler) compileIndexExpr(dst int, e *ast.IndexExpr) {
+	if !typeIsString(cl.ctx.Types.TypeOf(e.X)) {
+		panic(cl.errorf(e.X, "can't compile indexing of something that is not a string"))
+	}
+	strslot := cl.compileTempExpr(e.X)
+	indexslot := cl.compileTempExpr(e.Index)
+	cl.emit3(bytecode.OpStrIndex, dst, strslot, indexslot)
 }
 
 func (cl *compiler) compileSelectorExpr(dst int, e *ast.SelectorExpr) {
@@ -297,6 +316,8 @@ func (cl *compiler) compileBuiltinCall(dst int, fn *ast.Ident, call *ast.CallExp
 		var funcName string
 		argType := cl.ctx.Types.TypeOf(call.Args[0])
 		switch {
+		case typeIsByte(argType):
+			funcName = "PrintByte"
 		case typeIsInt(argType):
 			funcName = "PrintInt"
 		case typeIsString(argType):

@@ -47,6 +47,12 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			getslot(slotptr, dstslot).Scalar = uint64(len(getslot(slotptr, srcslot).String()))
 			pc += 3
+		case bytecode.OpStrIndex:
+			dstslot, strslot, indexslot := unpack8x3(codeptr, pc+1)
+			str := getslot(slotptr, strslot).String()
+			index := getslot(slotptr, indexslot).Int()
+			getslot(slotptr, dstslot).SetByte(str[index])
+			pc += 4
 		case bytecode.OpStrSliceFrom:
 			dstslot, strslot, fromslot := unpack8x3(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()

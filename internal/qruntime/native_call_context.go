@@ -9,6 +9,10 @@ func (ncc NativeCallContext) BoolArg(index int) bool {
 	return getslot(ncc.slotptr, byte(index)).Bool()
 }
 
+func (ncc NativeCallContext) ByteArg(index int) byte {
+	return getslot(ncc.slotptr, byte(index)).Byte()
+}
+
 func (ncc NativeCallContext) IntArg(index int) int {
 	return getslot(ncc.slotptr, byte(index)).Int()
 }
