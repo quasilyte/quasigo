@@ -97,9 +97,17 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	cl.bindLabel(labelEnd)
 }
 
+func (cl *compiler) compileAssignOp(op bytecode.Op, assign *ast.AssignStmt) {
+	lhs := assign.Lhs[0].(*ast.Ident)
+	rhs := assign.Rhs[0]
+	dstslot := cl.getLocal(lhs, lhs.Name)
+	rhsslot := cl.compileRootTempExpr(rhs)
+	cl.emit3(op, dstslot, dstslot, rhsslot)
+}
+
 func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 	if len(assign.Rhs) != 1 {
-		panic(cl.errorf(assign, "only single right bytecode.Operand is allowed in assignments"))
+		panic(cl.errorf(assign, "only single right operand is allowed in assignments"))
 	}
 	for _, lhs := range assign.Lhs {
 		_, ok := lhs.(*ast.Ident)
@@ -109,6 +117,31 @@ func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 	}
 	if len(assign.Lhs) > 2 {
 		panic(cl.errorf(assign, "at most 2 value results are supported"))
+	}
+
+	if len(assign.Lhs) == 1 {
+		op := bytecode.OpInvalid
+		switch assign.Tok {
+		case token.MUL_ASSIGN:
+			op = bytecode.OpIntMul
+		case token.XOR_ASSIGN:
+			op = bytecode.OpIntXor
+		case token.ADD_ASSIGN:
+			op = bytecode.OpIntAdd
+		case token.SUB_ASSIGN:
+			op = bytecode.OpIntSub
+		}
+		if op != bytecode.OpInvalid {
+			cl.compileAssignOp(op, assign)
+			return
+		}
+	}
+
+	switch assign.Tok {
+	case token.ASSIGN, token.DEFINE:
+		// OK.
+	default:
+		panic(cl.errorf(assign, "can't compile %s assign op", assign.Tok))
 	}
 
 	dst1 := assign.Lhs[0].(*ast.Ident)

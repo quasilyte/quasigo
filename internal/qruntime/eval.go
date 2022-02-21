@@ -109,13 +109,13 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			getslot(slotptr, dstslot).SetInt(-getslot(slotptr, xslot).Int())
 			pc += 3
 
-		case bytecode.OpIntEq:
+		case bytecode.OpScalarEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() == getslot(slotptr, yslot).Int())
+			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Scalar == getslot(slotptr, yslot).Scalar)
 			pc += 4
-		case bytecode.OpIntNotEq:
+		case bytecode.OpScalarNotEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
-			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Int() != getslot(slotptr, yslot).Int())
+			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Scalar != getslot(slotptr, yslot).Scalar)
 			pc += 4
 		case bytecode.OpIntGt:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
@@ -139,6 +139,10 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			getslot(slotptr, dstslot).SetString(getslot(slotptr, xslot).String() + getslot(slotptr, yslot).String())
 			pc += 4
 
+		case bytecode.OpIntXor:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() ^ getslot(slotptr, yslot).Int())
+			pc += 4
 		case bytecode.OpIntAdd:
 			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
 			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() + getslot(slotptr, yslot).Int())

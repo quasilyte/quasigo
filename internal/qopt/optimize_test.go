@@ -114,7 +114,7 @@ func TestOptimize(t *testing.T) {
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst y = 20`,
 			`  LoadScalarConst tmp1 = 0`,
-			`  IntEq tmp0 = x tmp1`,
+			`  ScalarEq tmp0 = x tmp1`,
 			`  JumpTrue L0 tmp0`,
 			`  LoadScalarConst tmp2 = 0`,
 			`  IntGt tmp0 = x tmp2`,

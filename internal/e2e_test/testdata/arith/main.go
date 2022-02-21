@@ -118,6 +118,11 @@ func intexpr(x, y int) {
 	println(i2 <= y)
 }
 
+func boolexpr(x, y bool) {
+	println(x == y)
+	println(x != y)
+}
+
 func main() {
 	constexpr1()
 	intexpr(14, 5)
@@ -127,4 +132,8 @@ func main() {
 	byteexpr(0, 0)
 	byteexpr(255, 0)
 	byteexpr(0, 255)
+	boolexpr(false, false)
+	boolexpr(false, true)
+	boolexpr(true, false)
+	boolexpr(true, true)
 }

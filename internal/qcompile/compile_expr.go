@@ -110,8 +110,8 @@ func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
 
 		case typeIsString(typ):
 			cl.compileBinaryOp(dst, bytecode.OpStrNotEq, e)
-		case typeIsInt(typ):
-			cl.compileBinaryOp(dst, bytecode.OpIntNotEq, e)
+		case typeIsScalar(typ):
+			cl.compileBinaryOp(dst, bytecode.OpScalarNotEq, e)
 		default:
 			panic(cl.errorf(e, "!= is not implemented for %s bytecode.Operands", typ))
 		}
@@ -124,8 +124,8 @@ func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
 
 		case typeIsString(cl.ctx.Types.TypeOf(e.X)):
 			cl.compileBinaryOp(dst, bytecode.OpStrEq, e)
-		case typeIsInt(cl.ctx.Types.TypeOf(e.X)):
-			cl.compileBinaryOp(dst, bytecode.OpIntEq, e)
+		case typeIsScalar(cl.ctx.Types.TypeOf(e.X)):
+			cl.compileBinaryOp(dst, bytecode.OpScalarEq, e)
 		default:
 			panic(cl.errorf(e, "== is not implemented for %s bytecode.Operands", typ))
 		}
@@ -151,6 +151,8 @@ func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
 
 	case token.SUB:
 		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntSub, typ)
+	case token.XOR:
+		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntXor, typ)
 	case token.MUL:
 		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntMul, typ)
 	case token.QUO:
@@ -245,16 +247,34 @@ func (cl *compiler) compileCallExpr(dst int, call *ast.CallExpr) {
 	cl.insideVariadic = insideVariadic
 }
 
+func (cl *compiler) compileIntConv(dst int, call *ast.CallExpr) {
+	x := call.Args[0]
+	typ := cl.ctx.Types.TypeOf(x)
+	if typeIsInt(typ) || typeIsByte(typ) {
+		xslot := cl.compileTempExpr(x)
+		cl.emit2(cl.opMoveByType(x, typ), dst, xslot)
+		return
+	}
+	panic(cl.errorf(call.Args[0], "can't convert %s to int", typ))
+}
+
 func (cl *compiler) compileCallExprImpl(dst int, call *ast.CallExpr) {
-	if id, ok := goutil.Unparen(call.Fun).(*ast.Ident); ok {
+	calledExpr := goutil.Unparen(call.Fun)
+
+	if id, ok := calledExpr.(*ast.Ident); ok {
 		_, isBuiltin := cl.ctx.Types.ObjectOf(id).(*types.Builtin)
 		if isBuiltin {
 			cl.compileBuiltinCall(dst, id, call)
 			return
 		}
+		switch id.Name {
+		case "int":
+			cl.compileIntConv(dst, call)
+			return
+		}
 	}
 
-	expr, fn := goutil.ResolveFunc(cl.ctx.Types, call.Fun)
+	expr, fn := goutil.ResolveFunc(cl.ctx.Types, calledExpr)
 	if fn == nil {
 		panic(cl.errorf(call.Fun, "can't resolve the called function"))
 	}
