@@ -173,7 +173,7 @@ func cstyle6() {
 //   MoveScalar arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
-//   IntEq tmp0 = i tmp1
+//   ScalarEq tmp0 = i tmp1
 //   JumpFalse L0 tmp0
 //   Jump L1
 // L0:
@@ -203,7 +203,7 @@ func testWhile() {
 		}
 	}
 	{
-		i2 := 2
+		i2 := 0
 		for i2 < 2 {
 			println(i2)
 			i2 += one

@@ -42,8 +42,9 @@ var opcodePrototypes = []opcodeProto{
 
 	{"IntNeg", "op dst:wslot x:rslot"},
 
-	{"IntEq", "op dst:wslot x:rslot y:rslot"},
-	{"IntNotEq", "op dst:wslot x:rslot y:rslot"},
+	{"ScalarEq", "op dst:wslot x:rslot y:rslot"},
+	{"ScalarNotEq", "op dst:wslot x:rslot y:rslot"},
+
 	{"IntGt", "op dst:wslot x:rslot y:rslot"},
 	{"IntGtEq", "op dst:wslot x:rslot y:rslot"},
 	{"IntLt", "op dst:wslot x:rslot y:rslot"},
@@ -51,6 +52,7 @@ var opcodePrototypes = []opcodeProto{
 
 	{"IntAdd", "op dst:wslot x:rslot y:rslot"},
 	{"IntSub", "op dst:wslot x:rslot y:rslot"},
+	{"IntXor", "op dst:wslot x:rslot y:rslot"},
 	{"IntMul", "op dst:wslot x:rslot y:rslot"},
 	{"IntDiv", "op dst:wslot x:rslot y:rslot"},
 

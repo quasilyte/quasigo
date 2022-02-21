@@ -140,7 +140,7 @@ func TestCompile(t *testing.T) {
 		`if i != 2 { return "a" } else if b { return "b" }; return "c"`: {
 			`testpkg.f code=30 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
 			`  LoadScalarConst tmp1 = 2`,
-			`  IntNotEq tmp0 = i tmp1`,
+			`  ScalarNotEq tmp0 = i tmp1`,
 			`  JumpFalse L0 tmp0`,
 			`  LoadStrConst tmp0 = "a"`,
 			`  ReturnStr tmp0`,
@@ -221,10 +221,10 @@ func TestCompile(t *testing.T) {
 		`return i == 10 || i == 2`: {
 			`testpkg.f code=20 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
 			`  LoadScalarConst tmp1 = 10`,
-			`  IntEq tmp0 = i tmp1`,
+			`  ScalarEq tmp0 = i tmp1`,
 			`  JumpTrue L0 tmp0`,
 			`  LoadScalarConst tmp2 = 2`,
-			`  IntEq tmp0 = i tmp2`,
+			`  ScalarEq tmp0 = i tmp2`,
 			`L0:`,
 			`  ReturnScalar tmp0`,
 		},
@@ -232,7 +232,7 @@ func TestCompile(t *testing.T) {
 		`return i == 10 && s == "foo"`: {
 			`testpkg.f code=20 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
 			`  LoadScalarConst tmp1 = 10`,
-			`  IntEq tmp0 = i tmp1`,
+			`  ScalarEq tmp0 = i tmp1`,
 			`  JumpFalse L0 tmp0`,
 			`  LoadStrConst tmp2 = "foo"`,
 			`  StrEq tmp0 = s tmp2`,
@@ -245,7 +245,7 @@ func TestCompile(t *testing.T) {
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst y = 20`,
 			`  LoadScalarConst tmp1 = 0`,
-			`  IntEq tmp0 = x tmp1`,
+			`  ScalarEq tmp0 = x tmp1`,
 			`  JumpTrue L0 tmp0`,
 			`  LoadScalarConst tmp2 = 0`,
 			`  IntGt tmp0 = x tmp2`,
@@ -266,7 +266,7 @@ func TestCompile(t *testing.T) {
 			`  LoadScalarConst arg1 = 5`,
 			`  CallNative tmp1 = testpkg.imul()`,
 			`  LoadScalarConst tmp2 = 10`,
-			`  IntEq tmp0 = tmp1 tmp2`,
+			`  ScalarEq tmp0 = tmp1 tmp2`,
 			`  ReturnScalar tmp0`,
 		},
 
