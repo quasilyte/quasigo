@@ -188,12 +188,37 @@ func TestCompile(t *testing.T) {
 			`  ReturnStr tmp0`,
 		},
 
-		// TODO: compile to just s, like s[:].
-		`return s[0:]`: {
-			`testpkg.f code=9 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
-			`  LoadScalarConst tmp1 = 0`,
-			`  StrSliceFrom tmp0 = s tmp1`,
+		`return s[:][:][:]`: {
+			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`  MoveStr tmp0 = s`,
 			`  ReturnStr tmp0`,
+		},
+
+		`return s[0:]`: {
+			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`  MoveStr tmp0 = s`,
+			`  ReturnStr tmp0`,
+		},
+
+		`return s[0:len(s)]`: {
+			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`  MoveStr tmp0 = s`,
+			`  ReturnStr tmp0`,
+		},
+
+		`return s[:len(s)]`: {
+			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`  MoveStr tmp0 = s`,
+			`  ReturnStr tmp0`,
+		},
+
+		// TODO: optimize.
+		`return !(i == 0)`: {
+			`testpkg.f code=12 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
+			`  LoadScalarConst tmp2 = 0`,
+			`  ScalarEq tmp1 = i tmp2`,
+			`  Not tmp0 = tmp1`,
+			`  ReturnScalar tmp0`,
 		},
 
 		`return s[1:]`: {
@@ -216,6 +241,59 @@ func TestCompile(t *testing.T) {
 			`  LoadScalarConst tmp2 = 2`,
 			`  StrSlice tmp0 = s tmp1 tmp2`,
 			`  ReturnStr tmp0`,
+		},
+
+		// TODO: optimize.
+		`return i + 0`: {
+			`testpkg.f code=9 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
+			`  LoadScalarConst tmp1 = 0`,
+			`  IntAdd tmp0 = i tmp1`,
+			`  ReturnScalar tmp0`,
+		},
+
+		// TODO: emit inc for +1.
+		`x := 0; x += 1; return x`: {
+			`testpkg.f code=12 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
+			`  LoadScalarConst x = 0`,
+			`  LoadScalarConst tmp0 = 1`,
+			`  IntAdd x = x tmp0`,
+			`  ReturnScalar x`,
+		},
+
+		// TODO: optimize.
+		`if !b { return 10 }; return 20`: {
+			`testpkg.f code=17 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`  Not tmp0 = b`,
+			`  JumpFalse L0 tmp0`,
+			`  LoadScalarConst tmp0 = 10`,
+			`  ReturnScalar tmp0`,
+			`L0:`,
+			`  LoadScalarConst tmp0 = 20`,
+			`  ReturnScalar tmp0`,
+		},
+
+		// TODO: optimize.
+		`x := i; cond := x == 0; for !cond { cond = x == 0; x-- }; return 10`: {
+			`testpkg.f code=34 frame=168 (7 slots: 4 args, 2 locals, 1 temps)`,
+			`  MoveScalar x = i`,
+			`  LoadScalarConst tmp0 = 0`,
+			`  ScalarEq cond = x tmp0`,
+			`  Jump L0`,
+			`L1:`,
+			`  LoadScalarConst tmp0 = 0`,
+			`  ScalarEq cond = x tmp0`,
+			`  IntDec x`,
+			`L0:`,
+			`  Not tmp0 = cond`,
+			`  JumpTrue L1 tmp0`,
+			`  LoadScalarConst tmp0 = 10`,
+			`  ReturnScalar tmp0`,
+		},
+
+		`return len("x")`: {
+			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`  LoadScalarConst tmp0 = 1`,
+			`  ReturnScalar tmp0`,
 		},
 
 		`return i == 10 || i == 2`: {

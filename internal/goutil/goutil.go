@@ -16,6 +16,18 @@ func Unparen(e ast.Expr) ast.Expr {
 	}
 }
 
+func MatchBuiltin(info *types.Info, fn ast.Expr, name string) bool {
+	id, ok := fn.(*ast.Ident)
+	if !ok {
+		return false
+	}
+	obj, ok := info.ObjectOf(id).(*types.Builtin)
+	if !ok {
+		return false
+	}
+	return obj.Name() == name
+}
+
 func ResolveFunc(info *types.Info, callable ast.Expr) (ast.Expr, *types.Func) {
 	switch callable := Unparen(callable).(type) {
 	case *ast.Ident:
