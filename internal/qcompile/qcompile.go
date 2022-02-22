@@ -45,6 +45,7 @@ func (c *Compiler) CompileFunc(ctx *Context, fn *ast.FuncDecl) (compiled *qrunti
 		panic(rv) // not our panic
 	}()
 
+	p := patternCompiler{}
 	cl := compiler{
 		code: c.instPool[:0],
 		ctx:  ctx,
@@ -54,6 +55,9 @@ func (c *Compiler) CompileFunc(ctx *Context, fn *ast.FuncDecl) (compiled *qrunti
 		strConstantsPool:    make(map[string]int),
 		scalarConstantsPool: make(map[uint64]int),
 		locals:              make(map[string]frameSlotInfo),
+
+		patternCompiler: &p,
 	}
+	p.cl = &cl
 	return cl.compileFunc(fn), nil
 }

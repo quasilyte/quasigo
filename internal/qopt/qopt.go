@@ -5,6 +5,11 @@ import (
 	"github.com/quasilyte/quasigo/internal/ir"
 )
 
+// TODO:
+// * optimize expressions like `x + 0`
+// * optimize `x += 1` to `x++`
+// * optimize `Not x = y; JumpFalse x` to `JumpTrue x` if x is tmp value
+
 func Func(fn *ir.Func) {
 	opt := optimizer{fn: fn}
 	opt.Optimize()

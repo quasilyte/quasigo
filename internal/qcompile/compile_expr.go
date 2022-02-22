@@ -22,7 +22,7 @@ func (cl *compiler) compileTempExpr(e ast.Expr) int {
 		}
 	}
 	tmp := cl.allocTmp()
-	cl.compileExpr(tmp, e)
+	cl.CompileExpr(tmp, e)
 	return tmp
 }
 
@@ -33,11 +33,11 @@ func (cl *compiler) compileRootTempExpr(e ast.Expr) int {
 }
 
 func (cl *compiler) compileRootExpr(dst int, e ast.Expr) {
-	cl.compileExpr(dst, e)
+	cl.CompileExpr(dst, e)
 	cl.freeTmp()
 }
 
-func (cl *compiler) compileExpr(dst int, e ast.Expr) {
+func (cl *compiler) CompileExpr(dst int, e ast.Expr) {
 	cv := cl.ctx.Types.Types[e].Value
 	if cv != nil {
 		cl.compileConstantValue(dst, e, cv)
@@ -46,7 +46,7 @@ func (cl *compiler) compileExpr(dst int, e ast.Expr) {
 
 	switch e := e.(type) {
 	case *ast.ParenExpr:
-		cl.compileExpr(dst, e.X)
+		cl.CompileExpr(dst, e.X)
 
 	case *ast.Ident:
 		cl.compileIdent(dst, e)
@@ -185,36 +185,37 @@ func (cl *compiler) compileBinaryOp(dst int, op bytecode.Op, e *ast.BinaryExpr) 
 	cl.emit3(op, dst, xslot, yslot)
 }
 
+func (cl *compiler) CompileSliceExpr(dst int, x, low, high ast.Expr) {
+	switch {
+	case low == nil && high != nil:
+		strslot := cl.compileTempExpr(x)
+		toslot := cl.compileTempExpr(high)
+		cl.emit3(bytecode.OpStrSliceTo, dst, strslot, toslot)
+	case low != nil && high == nil:
+		strslot := cl.compileTempExpr(x)
+		fromslot := cl.compileTempExpr(low)
+		cl.emit3(bytecode.OpStrSliceFrom, dst, strslot, fromslot)
+	default:
+		strslot := cl.compileTempExpr(x)
+		fromslot := cl.compileTempExpr(low)
+		toslot := cl.compileTempExpr(high)
+		cl.emit4(bytecode.OpStrSlice, dst, strslot, fromslot, toslot)
+	}
+}
+
 func (cl *compiler) compileSliceExpr(dst int, slice *ast.SliceExpr) {
 	if slice.Slice3 {
 		panic(cl.errorf(slice, "can't compile 3-index slicing"))
-	}
-
-	// No need to do slicing, its no-op `s[:]`.
-	if slice.Low == nil && slice.High == nil {
-		cl.compileExpr(dst, slice.X)
-		return
 	}
 
 	if !typeIsString(cl.ctx.Types.TypeOf(slice.X)) {
 		panic(cl.errorf(slice.X, "can't compile slicing of something that is not a string"))
 	}
 
-	switch {
-	case slice.Low == nil && slice.High != nil:
-		strslot := cl.compileTempExpr(slice.X)
-		toslot := cl.compileTempExpr(slice.High)
-		cl.emit3(bytecode.OpStrSliceTo, dst, strslot, toslot)
-	case slice.Low != nil && slice.High == nil:
-		strslot := cl.compileTempExpr(slice.X)
-		fromslot := cl.compileTempExpr(slice.Low)
-		cl.emit3(bytecode.OpStrSliceFrom, dst, strslot, fromslot)
-	default:
-		strslot := cl.compileTempExpr(slice.X)
-		fromslot := cl.compileTempExpr(slice.Low)
-		toslot := cl.compileTempExpr(slice.High)
-		cl.emit4(bytecode.OpStrSlice, dst, strslot, fromslot, toslot)
+	if cl.patternCompiler.CompileSliceExpr(dst, slice) {
+		return
 	}
+	cl.CompileSliceExpr(dst, slice.X, slice.Low, slice.High)
 }
 
 func (cl *compiler) compileIndexExpr(dst int, e *ast.IndexExpr) {
@@ -362,7 +363,7 @@ func (cl *compiler) compileCallVariadicArgs(args []ast.Expr) {
 	cl.emitOp(bytecode.OpVariadicReset)
 	tmpslot := cl.allocTmp()
 	for _, arg := range args {
-		cl.compileExpr(tmpslot, arg)
+		cl.CompileExpr(tmpslot, arg)
 		argType := cl.ctx.Types.TypeOf(arg)
 		switch {
 		case typeIsBool(argType):
@@ -421,7 +422,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 		tempSlots := make([]int, 0, 8)
 		for _, arg := range args {
 			tmpslot := cl.allocTmp()
-			cl.compileExpr(tmpslot, arg)
+			cl.CompileExpr(tmpslot, arg)
 			tempSlots = append(tempSlots, tmpslot)
 		}
 		if variadic != nil {
@@ -438,7 +439,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 		// Can move args directly to their slots.
 		for i, arg := range args {
 			argslot := -(i + 1)
-			cl.compileExpr(argslot, arg)
+			cl.CompileExpr(argslot, arg)
 		}
 		if variadic != nil {
 			cl.compileCallVariadicArgs(variadic)
@@ -524,16 +525,16 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 
 func (cl *compiler) compileOr(dst int, e *ast.BinaryExpr) {
 	labelEnd := cl.newLabel()
-	cl.compileExpr(dst, e.X)
+	cl.CompileExpr(dst, e.X)
 	cl.emitCondJump(dst, bytecode.OpJumpTrue, labelEnd)
-	cl.compileExpr(dst, e.Y)
+	cl.CompileExpr(dst, e.Y)
 	cl.bindLabel(labelEnd)
 }
 
 func (cl *compiler) compileAnd(dst int, e *ast.BinaryExpr) {
 	labelEnd := cl.newLabel()
-	cl.compileExpr(dst, e.X)
+	cl.CompileExpr(dst, e.X)
 	cl.emitCondJump(dst, bytecode.OpJumpFalse, labelEnd)
-	cl.compileExpr(dst, e.Y)
+	cl.CompileExpr(dst, e.Y)
 	cl.bindLabel(labelEnd)
 }

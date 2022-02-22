@@ -48,6 +48,8 @@ type compiler struct {
 	continueTarget label
 
 	numLabels int
+
+	patternCompiler *patternCompiler
 }
 
 type frameSlotInfo struct {
