@@ -173,17 +173,17 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			offset := unpack16(codeptr, pc+1)
 			pc += offset
 
-		case bytecode.OpJumpFalse:
+		case bytecode.OpJumpZero:
 			srcslot := unpack8(codeptr, pc+3)
-			if !getslot(slotptr, srcslot).Bool() {
+			if getslot(slotptr, srcslot).Scalar == 0 {
 				offset := unpack16(codeptr, pc+1)
 				pc += offset
 			} else {
 				pc += 4
 			}
-		case bytecode.OpJumpTrue:
+		case bytecode.OpJumpNotZero:
 			srcslot := unpack8(codeptr, pc+3)
-			if getslot(slotptr, srcslot).Bool() {
+			if getslot(slotptr, srcslot).Scalar != 0 {
 				offset := unpack16(codeptr, pc+1)
 				pc += offset
 			} else {

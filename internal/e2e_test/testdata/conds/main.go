@@ -4,7 +4,7 @@ package main
 // main.cond0 code=17 frame=96 (4 slots: 2 args, 0 locals, 2 temps)
 //   LoadScalarConst tmp1 = 0
 //   ScalarEq tmp0 = x tmp1
-//   JumpTrue L0 tmp0
+//   JumpNotZero L0 tmp0
 //   ScalarEq tmp0 = y x
 // L0:
 //   ReturnScalar tmp0

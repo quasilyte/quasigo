@@ -526,7 +526,7 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 func (cl *compiler) compileOr(dst int, e *ast.BinaryExpr) {
 	labelEnd := cl.newLabel()
 	cl.CompileExpr(dst, e.X)
-	cl.emitCondJump(dst, bytecode.OpJumpTrue, labelEnd)
+	cl.emitCondJump(dst, bytecode.OpJumpNotZero, labelEnd)
 	cl.CompileExpr(dst, e.Y)
 	cl.bindLabel(labelEnd)
 }
@@ -534,7 +534,7 @@ func (cl *compiler) compileOr(dst int, e *ast.BinaryExpr) {
 func (cl *compiler) compileAnd(dst int, e *ast.BinaryExpr) {
 	labelEnd := cl.newLabel()
 	cl.CompileExpr(dst, e.X)
-	cl.emitCondJump(dst, bytecode.OpJumpFalse, labelEnd)
+	cl.emitCondJump(dst, bytecode.OpJumpZero, labelEnd)
 	cl.CompileExpr(dst, e.Y)
 	cl.bindLabel(labelEnd)
 }

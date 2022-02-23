@@ -108,10 +108,10 @@ const (
 	OpJump Op = 34
 
 	// Encoding: 0x23 offset:i16 cond:u8 (width=4)
-	OpJumpFalse Op = 35
+	OpJumpZero Op = 35
 
 	// Encoding: 0x24 offset:i16 cond:u8 (width=4)
-	OpJumpTrue Op = 36
+	OpJumpNotZero Op = 36
 
 	// Encoding: 0x25 dst:u8 fn:u16 (width=4)
 	OpCall Op = 37
@@ -418,14 +418,14 @@ var opcodeInfoTable = [256]OpcodeInfo{
 		Args: []Argument{
 			{Name: "offset", Kind: ArgOffset, Offset: 1, Flags: 0}},
 	},
-	OpJumpFalse: {
+	OpJumpZero: {
 		Width: 4,
 		Flags: 0,
 		Args: []Argument{
 			{Name: "offset", Kind: ArgOffset, Offset: 1, Flags: 0},
 			{Name: "cond", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
-	OpJumpTrue: {
+	OpJumpNotZero: {
 		Width: 4,
 		Flags: 0,
 		Args: []Argument{
