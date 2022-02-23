@@ -27,7 +27,7 @@ func concat3(s1, s2, s3 string) string {
 //   StrLen tmp1 = s1
 //   StrLen tmp2 = s2
 //   ScalarNotEq tmp0 = tmp1 tmp2
-//   JumpFalse L0 tmp0
+//   JumpZero L0 tmp0
 //   ReturnFalse
 // L0:
 //   LoadScalarConst i = 0
@@ -36,14 +36,14 @@ func concat3(s1, s2, s3 string) string {
 //   StrIndex tmp1 = s1 i
 //   StrIndex tmp2 = s2 i
 //   ScalarNotEq tmp0 = tmp1 tmp2
-//   JumpFalse L2 tmp0
+//   JumpZero L2 tmp0
 //   ReturnFalse
 // L2:
 //   IntInc i
 // L1:
 //   StrLen tmp1 = s1
 //   IntLt tmp0 = i tmp1
-//   JumpTrue L3 tmp0
+//   JumpNotZero L3 tmp0
 //   ReturnTrue
 func streq(s1, s2 string) bool {
 	if len(s1) != len(s2) {
@@ -72,7 +72,7 @@ func streq(s1, s2 string) bool {
 // L0:
 //   StrLen tmp1 = s
 //   IntLt tmp0 = i tmp1
-//   JumpTrue L1 tmp0
+//   JumpNotZero L1 tmp0
 //   ReturnScalar v
 func fnv1(s string) int {
 	v := 0x811c9dc5
@@ -88,7 +88,7 @@ func fnv1(s string) int {
 //   StrLen tmp1 = s
 //   LoadScalarConst tmp2 = 0
 //   ScalarEq tmp0 = tmp1 tmp2
-//   JumpFalse L0 tmp0
+//   JumpZero L0 tmp0
 //   LoadScalarConst tmp0 = 0
 //   ReturnScalar tmp0
 // L0:
@@ -99,7 +99,7 @@ func fnv1(s string) int {
 //   StrIndex tmp1 = s tmp2
 //   LoadScalarConst tmp3 = 45
 //   ScalarEq tmp0 = tmp1 tmp3
-//   JumpFalse L1 tmp0
+//   JumpZero L1 tmp0
 //   LoadScalarConst sign = 1
 //   LoadScalarConst i = 1
 // L1:
@@ -116,8 +116,8 @@ func fnv1(s string) int {
 // L2:
 //   StrLen tmp1 = s
 //   IntLt tmp0 = i tmp1
-//   JumpTrue L3 tmp0
-//   JumpFalse L4 sign
+//   JumpNotZero L3 tmp0
+//   JumpZero L4 sign
 //   IntNeg tmp0 = result
 //   ReturnScalar tmp0
 // L4:
@@ -151,14 +151,14 @@ func atoi(s string) int {
 // L2:
 //   StrIndex tmp1 = s i
 //   ScalarEq tmp0 = tmp1 b
-//   JumpFalse L1 tmp0
+//   JumpZero L1 tmp0
 //   IntInc n
 // L1:
 //   IntInc i
 // L0:
 //   StrLen tmp1 = s
 //   IntLt tmp0 = i tmp1
-//   JumpTrue L2 tmp0
+//   JumpNotZero L2 tmp0
 //   ReturnScalar n
 func countByte(s string, b byte) int {
 	n := 0
@@ -175,7 +175,7 @@ func countByte(s string, b byte) int {
 //   StrLen tmp1 = s
 //   StrLen tmp2 = prefix
 //   IntGtEq tmp0 = tmp1 tmp2
-//   JumpFalse L0 tmp0
+//   JumpZero L0 tmp0
 //   StrLen tmp4 = prefix
 //   StrSliceTo tmp3 = s tmp4
 //   StrEq tmp0 = tmp3 prefix
@@ -189,7 +189,7 @@ func hasPrefix(s, prefix string) bool {
 // main.factorial code=34 frame=120 (5 slots: 1 args, 0 locals, 4 temps)
 //   LoadScalarConst tmp1 = 0
 //   IntLtEq tmp0 = x tmp1
-//   JumpFalse L0 tmp0
+//   JumpZero L0 tmp0
 //   LoadScalarConst tmp0 = 1
 //   ReturnScalar tmp0
 // L0:
@@ -231,7 +231,7 @@ func testFactorial() {
 // L0:
 //   StrLen tmp1 = s
 //   IntLt tmp0 = i tmp1
-//   JumpTrue L1 tmp0
+//   JumpNotZero L1 tmp0
 //   ReturnScalar sum
 func charsum(s string) int {
 	sum := 0
@@ -250,7 +250,7 @@ func charsum(s string) int {
 //   StrLen tmp2 = sub
 //   StrSliceTo tmp1 = head tmp2
 //   StrEq tmp0 = tmp1 sub
-//   JumpFalse L1 tmp0
+//   JumpZero L1 tmp0
 //   ReturnScalar i
 // L1:
 //   IntInc i
@@ -260,7 +260,7 @@ func charsum(s string) int {
 //   StrLen tmp1 = head
 //   StrLen tmp2 = sub
 //   IntGtEq tmp0 = tmp1 tmp2
-//   JumpTrue L2 tmp0
+//   JumpNotZero L2 tmp0
 //   LoadScalarConst tmp0 = -1
 //   ReturnScalar tmp0
 func substringIndex(s, sub string) int {

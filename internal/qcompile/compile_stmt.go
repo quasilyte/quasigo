@@ -78,7 +78,7 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	if stmt.Else == nil {
 		labelEnd := cl.newLabel()
 		condslot := cl.compileRootTempExpr(stmt.Cond)
-		cl.emitCondJump(condslot, bytecode.OpJumpFalse, labelEnd)
+		cl.emitCondJump(condslot, bytecode.OpJumpZero, labelEnd)
 		cl.compileStmt(stmt.Body)
 		cl.bindLabel(labelEnd)
 		return
@@ -87,7 +87,7 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	labelEnd := cl.newLabel()
 	labelElse := cl.newLabel()
 	condslot := cl.compileRootTempExpr(stmt.Cond)
-	cl.emitCondJump(condslot, bytecode.OpJumpFalse, labelElse)
+	cl.emitCondJump(condslot, bytecode.OpJumpZero, labelElse)
 	cl.compileStmt(stmt.Body)
 	if !cl.isUncondJump(cl.lastOp()) {
 		cl.emitJump(labelEnd)
@@ -200,7 +200,7 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 		cl.compileStmt(stmt.Body)
 		cl.bindLabel(labelContinue)
 		condslot := cl.compileRootTempExpr(stmt.Cond)
-		cl.emitCondJump(condslot, bytecode.OpJumpTrue, labelBody)
+		cl.emitCondJump(condslot, bytecode.OpJumpNotZero, labelBody)
 		cl.bindLabel(labelBreak)
 
 	case stmt.Cond == nil && stmt.Init == nil && stmt.Post == nil:
@@ -229,7 +229,7 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 		cl.bindLabel(labelStart)
 		if stmt.Cond != nil {
 			condslot := cl.compileRootTempExpr(stmt.Cond)
-			cl.emitCondJump(condslot, bytecode.OpJumpTrue, labelBody)
+			cl.emitCondJump(condslot, bytecode.OpJumpNotZero, labelBody)
 		} else {
 			cl.emitJump(labelBody)
 		}

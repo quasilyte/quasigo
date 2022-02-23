@@ -13,7 +13,7 @@ const one int = 1
 // L0:
 //   LoadScalarConst tmp1 = 3
 //   IntLt tmp0 = i tmp1
-//   JumpTrue L1 tmp0
+//   JumpNotZero L1 tmp0
 //   ReturnVoid
 func cstyle1() {
 	for i := 0; i < 3; i++ {
@@ -35,7 +35,7 @@ func cstyle1() {
 // L0:
 //   LoadScalarConst tmp1 = 3
 //   IntLt tmp0 = i tmp1
-//   JumpTrue L1 tmp0
+//   JumpNotZero L1 tmp0
 //   MoveScalar arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
@@ -56,7 +56,7 @@ func cstyle2() {
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   IntGt tmp0 = i tmp1
-//   JumpFalse L1 tmp0
+//   JumpZero L1 tmp0
 //   Jump L2
 // L1:
 //   LoadStrConst arg0 = "after continue"
@@ -66,7 +66,7 @@ func cstyle2() {
 // L0:
 //   LoadScalarConst tmp1 = 10
 //   IntLt tmp0 = i tmp1
-//   JumpTrue L3 tmp0
+//   JumpNotZero L3 tmp0
 //   ReturnVoid
 func cstyle3() {
 	for i := 0; i < 10; i++ {
@@ -87,7 +87,7 @@ func cstyle3() {
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   IntLtEq tmp0 = i tmp1
-//   JumpFalse L1 tmp0
+//   JumpZero L1 tmp0
 //   Jump L2
 // L1:
 //   LoadStrConst arg0 = "after break"
@@ -96,7 +96,7 @@ func cstyle3() {
 // L0:
 //   LoadScalarConst tmp1 = 0
 //   IntGtEq tmp0 = i tmp1
-//   JumpTrue L3 tmp0
+//   JumpNotZero L3 tmp0
 // L2:
 //   ReturnVoid
 func cstyle4() {
@@ -118,7 +118,7 @@ func cstyle4() {
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   IntLtEq tmp0 = i tmp1
-//   JumpFalse L0 tmp0
+//   JumpZero L0 tmp0
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"
@@ -146,7 +146,7 @@ func cstyle5() {
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   IntLtEq tmp0 = i tmp1
-//   JumpFalse L0 tmp0
+//   JumpZero L0 tmp0
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"
@@ -174,7 +174,7 @@ func cstyle6() {
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   ScalarEq tmp0 = i tmp1
-//   JumpFalse L0 tmp0
+//   JumpZero L0 tmp0
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"
