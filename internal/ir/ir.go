@@ -4,6 +4,7 @@ import (
 	"github.com/quasilyte/quasigo/internal/bytecode"
 )
 
+//go:generate stringer -type=PseudoOp -trimprefix=Op
 type PseudoOp byte
 
 const (
