@@ -15,6 +15,116 @@ const testPackage = `testpkg`
 
 func TestOptimize(t *testing.T) {
 	tests := map[string][]string{
+		// TODO: compile `s == ""` as `len(s) == 0`
+		`if s == "" { return 1 }; return 2`: {
+			`testpkg.f code=21 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
+			`  LoadStrConst tmp1 = ""`,
+			`  StrEq tmp0 = s tmp1`,
+			`  JumpZero L0 tmp0`,
+			`  LoadScalarConst tmp0 = 1`,
+			`  ReturnScalar tmp0`,
+			`L0:`,
+			`  LoadScalarConst tmp0 = 2`,
+			`  ReturnScalar tmp0`,
+		},
+
+		// TODO: optimize this to `ReturnScalar b`
+		`if b { return true }; return false`: {
+			`testpkg.f code=6 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
+			`  JumpZero L0 b`,
+			`  ReturnTrue`,
+			`L0:`,
+			`  ReturnFalse`,
+		},
+
+		// TODO: x+0 -> x
+		`return i + 0`: {
+			`testpkg.f code=9 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
+			`  LoadScalarConst tmp1 = 0`,
+			`  IntAdd tmp0 = i tmp1`,
+			`  ReturnScalar tmp0`,
+		},
+
+		// TODO: x+=1 -> x++
+		`x := 10; x += 1; return x`: {
+			`testpkg.f code=12 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
+			`  LoadScalarConst x = 10`,
+			`  LoadScalarConst tmp0 = 1`,
+			`  IntAdd x = x tmp0`,
+			`  ReturnScalar x`,
+		},
+
+		// Optimized comparisons with 0.
+		`x := 10; if x != 0 { return "a" }; return "b"`: {
+			`testpkg.f code=17 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
+			`  LoadScalarConst x = 10`,
+			`  JumpZero L0 x`,
+			`  LoadStrConst tmp0 = "a"`,
+			`  ReturnStr tmp0`,
+			`L0:`,
+			`  LoadStrConst tmp0 = "b"`,
+			`  ReturnStr tmp0`,
+		},
+		`if len(s) != 0 { return "nonzero" }; return "zero"`: {
+			`testpkg.f code=17 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
+			`  StrLen tmp1 = s`,
+			`  JumpZero L0 tmp1`,
+			`  LoadStrConst tmp0 = "nonzero"`,
+			`  ReturnStr tmp0`,
+			`L0:`,
+			`  LoadStrConst tmp0 = "zero"`,
+			`  ReturnStr tmp0`,
+		},
+		`if len(s) == 0 { return "zero" }; return "nonzero"`: {
+			`testpkg.f code=17 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
+			`  StrLen tmp1 = s`,
+			`  JumpNotZero L0 tmp1`,
+			`  LoadStrConst tmp0 = "zero"`,
+			`  ReturnStr tmp0`,
+			`L0:`,
+			`  LoadStrConst tmp0 = "nonzero"`,
+			`  ReturnStr tmp0`,
+		},
+		`if !(len(s) == 0) { return "nonzero" }; return "zero"`: {
+			`testpkg.f code=17 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
+			`  StrLen tmp2 = s`,
+			`  JumpZero L0 tmp2`,
+			`  LoadStrConst tmp0 = "nonzero"`,
+			`  ReturnStr tmp0`,
+			`L0:`,
+			`  LoadStrConst tmp0 = "zero"`,
+			`  ReturnStr tmp0`,
+		},
+		`if !(len(s) != 0) { return "nonzero" }; return "zero"`: {
+			`testpkg.f code=17 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
+			`  StrLen tmp2 = s`,
+			`  JumpNotZero L0 tmp2`,
+			`  LoadStrConst tmp0 = "nonzero"`,
+			`  ReturnStr tmp0`,
+			`L0:`,
+			`  LoadStrConst tmp0 = "zero"`,
+			`  ReturnStr tmp0`,
+		},
+
+		// TODO: optimize redundant jumps.
+		`x := 1; y := 2; if x == 0 || y == 0 { return "a" }; return "b"`: {
+			`testpkg.f code=38 frame=216 (9 slots: 4 args, 2 locals, 3 temps)`,
+			`  LoadScalarConst x = 1`,
+			`  LoadScalarConst y = 2`,
+			`  LoadScalarConst tmp1 = 0`,
+			`  ScalarEq tmp0 = x tmp1`,
+			`  JumpNotZero L0 tmp0`,
+			`  LoadScalarConst tmp2 = 0`,
+			`  ScalarEq tmp0 = y tmp2`,
+			`L0:`,
+			`  JumpZero L1 tmp0`,
+			`  LoadStrConst tmp0 = "a"`,
+			`  ReturnStr tmp0`,
+			`L1:`,
+			`  LoadStrConst tmp0 = "b"`,
+			`  ReturnStr tmp0`,
+		},
+
 		// TODO: use only 1 temp here.
 		`x := 10; return x + 1`: {
 			`testpkg.f code=12 frame=168 (7 slots: 4 args, 1 locals, 2 temps)`,
@@ -38,6 +148,33 @@ func TestOptimize(t *testing.T) {
 			`  LoadScalarConst x = 1`,
 			`  MoveScalar y = x`,
 			`  ReturnScalar y`,
+		},
+
+		// TODO: fuse into <= 0.
+		`return bool2int(i == 0 || i < 0)`: {
+			`testpkg.f code=27 frame=192 (8 slots: 4 args, 0 locals, 4 temps)`,
+			`  LoadScalarConst tmp2 = 0`,
+			`  ScalarEq tmp1 = i tmp2`,
+			`  JumpNotZero L0 tmp1`,
+			`  LoadScalarConst tmp3 = 0`,
+			`  IntLt tmp1 = i tmp3`,
+			`L0:`,
+			`  MoveScalar arg0 = tmp1`,
+			`  CallNative tmp0 = testpkg.bool2int()`,
+			`  ReturnScalar tmp0`,
+		},
+
+		`return bool2int(i == 0 || i == 20)`: {
+			`testpkg.f code=27 frame=192 (8 slots: 4 args, 0 locals, 4 temps)`,
+			`  LoadScalarConst tmp2 = 0`,
+			`  ScalarEq tmp1 = i tmp2`,
+			`  JumpNotZero L0 tmp1`,
+			`  LoadScalarConst tmp3 = 20`,
+			`  ScalarEq tmp1 = i tmp3`,
+			`L0:`,
+			`  MoveScalar arg0 = tmp1`,
+			`  CallNative tmp0 = testpkg.bool2int()`,
+			`  ReturnScalar tmp0`,
 		},
 
 		// TODO: remove redundant local->tmp->local stores.
@@ -136,6 +273,7 @@ func TestOptimize(t *testing.T) {
 		  func f(i int, s string, b bool, err error) interface{} {
 			` + body + `
 		  }
+		  func bool2int(x bool) int
 		  func concat(x, y string) string
 		  func imul(x, y int) int
 		  func sprintf(format string, args ...interface{}) string
@@ -144,6 +282,9 @@ func TestOptimize(t *testing.T) {
 
 	for testSrc, disasmLines := range tests {
 		env := quasigo.NewEnv()
+		env.AddNativeFunc(testPackage, "bool2int", func(ctx qnative.CallContext) {
+			panic("should not be called")
+		})
 		env.AddNativeFunc(testPackage, "concat", func(ctx qnative.CallContext) {
 			panic("should not be called")
 		})

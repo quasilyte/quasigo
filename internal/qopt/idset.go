@@ -8,9 +8,9 @@ func (s *idSet) Reset() {
 	s.ids = s.ids[:0]
 }
 
-func (s *idSet) Find(id int) int {
+func (s *idSet) Find(id uint8) int {
 	for i, x := range s.ids {
-		if int(x) == id {
+		if x == id {
 			return i
 		}
 	}
@@ -26,28 +26,28 @@ func (s *idSet) RemoveAt(index int) {
 //
 // This method should only be used if Find/Contains reported
 // that there are no such ID inside this set before.
-func (s *idSet) Push(id int) {
-	s.ids = append(s.ids, uint8(id))
+func (s *idSet) Push(id uint8) {
+	s.ids = append(s.ids, id)
 }
 
-func (s *idSet) Add(id int) bool {
+func (s *idSet) Add(id uint8) bool {
 	for _, x := range s.ids {
-		if int(x) == id {
+		if x == id {
 			return false
 		}
 	}
-	s.ids = append(s.ids, uint8(id))
+	s.ids = append(s.ids, id)
 	return true
 }
 
-func (s *idSet) Contains(id int) bool {
+func (s *idSet) Contains(id uint8) bool {
 	return s.Find(id) != -1
 }
 
-func (s *idSet) Remove(id int) {
+func (s *idSet) Remove(id uint8) {
 	ids := s.ids[:0]
 	for _, x := range s.ids {
-		if int(x) == id {
+		if x == id {
 			continue
 		}
 		ids = append(ids, x)

@@ -12,35 +12,25 @@ const (
 	OpLabel
 )
 
-type Inst struct {
-	Op     bytecode.Op
-	Pseudo PseudoOp
-	Value  uint16
-	Arg0   uint8
-	Arg1   uint8
-	Arg2   uint8
-	Arg3   uint8
-}
+type InstArg uint16
 
-func (inst Inst) WalkArgs(fn func(arg bytecode.Argument, value int)) {
-	argIndex := 0
-	for _, argInfo := range inst.Op.Args() {
-		var v int
-		switch argInfo.Kind {
-		case bytecode.ArgSlot, bytecode.ArgScalarConst, bytecode.ArgStrConst:
-			v = int(inst.ArgByIndex(argIndex))
-			argIndex++
-		case bytecode.ArgOffset:
-			v = int(inst.Arg0)
-			argIndex++
-		default:
-			v = int(inst.Value)
-		}
-		fn(argInfo, v)
+func (a InstArg) ToSlot() Slot {
+	return Slot{
+		ID:   uint8(a >> 8),
+		Kind: SlotKind(a),
 	}
 }
 
-func (inst Inst) ArgByIndex(i int) uint8 {
+type Inst struct {
+	Op     bytecode.Op
+	Pseudo PseudoOp
+	Arg0   InstArg
+	Arg1   InstArg
+	Arg2   InstArg
+	Arg3   InstArg
+}
+
+func (inst Inst) GetArg(i int) InstArg {
 	switch i {
 	case 0:
 		return inst.Arg0
@@ -62,4 +52,20 @@ type Func struct {
 	NumParams     int
 	NumLocals     int
 	NumFrameSlots int
+
+	StrConstants    []string
+	ScalarConstants []uint64
+}
+
+func (fn *Func) SlotIndex(slot Slot) uint8 {
+	switch slot.Kind {
+	case SlotCallArg:
+		return uint8(fn.NumFrameSlots) + slot.ID
+	case SlotLocal:
+		return uint8(fn.NumParams) + slot.ID
+	case SlotTemp, SlotUniq:
+		return uint8(fn.NumParams) + uint8(fn.NumLocals) + slot.ID
+	default:
+		return slot.ID
+	}
 }
