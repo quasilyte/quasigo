@@ -31,18 +31,25 @@ func (asm *assembler) Assemble(fn *ir.Func) ([]byte, error) {
 
 		encBuf = encBuf[:0]
 		encBuf = append(encBuf, byte(inst.Op))
-		inst.WalkArgs(func(arg bytecode.Argument, value int) {
-			switch arg.Kind {
-			case bytecode.ArgSlot, bytecode.ArgScalarConst, bytecode.ArgStrConst:
-				encBuf = append(encBuf, byte(value))
+		for i, argInfo := range inst.Op.Args() {
+			arg := inst.GetArg(i)
+			switch argInfo.Kind {
+			case bytecode.ArgSlot:
+				slot := arg.ToSlot()
+				index := fn.SlotIndex(slot)
+				encBuf = append(encBuf, index)
+			case bytecode.ArgScalarConst, bytecode.ArgStrConst:
+				encBuf = append(encBuf, byte(arg))
 			case bytecode.ArgOffset:
 				// The actual jump targets are linked later.
-				encBuf = append(encBuf, byte(value), 0)
-			default:
+				encBuf = append(encBuf, byte(arg), 0)
+			case bytecode.ArgFuncID, bytecode.ArgNativeFuncID:
 				encBuf = append(encBuf, 0, 0)
-				put16(encBuf, len(encBuf)-2, int(inst.Value))
+				put16(encBuf, len(encBuf)-2, int(arg))
+			default:
+				panic("unexpected arg kind")
 			}
-		})
+		}
 		asm.code = append(asm.code, encBuf...)
 	}
 

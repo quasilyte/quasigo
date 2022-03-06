@@ -127,7 +127,8 @@ func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 		case token.XOR_ASSIGN:
 			op = bytecode.OpIntXor
 		case token.ADD_ASSIGN:
-			op = bytecode.OpIntAdd
+			typ := cl.ctx.Types.TypeOf(assign.Rhs[0])
+			op = pickOp(typeIsString(typ), bytecode.OpConcat, bytecode.OpIntAdd)
 		case token.SUB_ASSIGN:
 			op = bytecode.OpIntSub
 		}

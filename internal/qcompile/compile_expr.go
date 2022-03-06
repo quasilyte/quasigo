@@ -7,12 +7,13 @@ import (
 	"go/types"
 
 	"github.com/quasilyte/quasigo/internal/goutil"
+	"github.com/quasilyte/quasigo/internal/ir"
 	"github.com/quasilyte/quasigo/internal/qruntime"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
 )
 
-func (cl *compiler) compileTempExpr(e ast.Expr) int {
+func (cl *compiler) compileTempExpr(e ast.Expr) ir.Slot {
 	if v, ok := e.(*ast.Ident); ok {
 		if p, ok := cl.params[v.Name]; ok {
 			return p.i
@@ -26,18 +27,18 @@ func (cl *compiler) compileTempExpr(e ast.Expr) int {
 	return tmp
 }
 
-func (cl *compiler) compileRootTempExpr(e ast.Expr) int {
+func (cl *compiler) compileRootTempExpr(e ast.Expr) ir.Slot {
 	slot := cl.compileTempExpr(e)
 	cl.freeTmp()
 	return slot
 }
 
-func (cl *compiler) compileRootExpr(dst int, e ast.Expr) {
+func (cl *compiler) compileRootExpr(dst ir.Slot, e ast.Expr) {
 	cl.CompileExpr(dst, e)
 	cl.freeTmp()
 }
 
-func (cl *compiler) CompileExpr(dst int, e ast.Expr) {
+func (cl *compiler) CompileExpr(dst ir.Slot, e ast.Expr) {
 	cv := cl.ctx.Types.Types[e].Value
 	if cv != nil {
 		cl.compileConstantValue(dst, e, cv)
@@ -74,7 +75,7 @@ func (cl *compiler) CompileExpr(dst int, e ast.Expr) {
 	}
 }
 
-func (cl *compiler) compileUnaryExpr(dst int, e *ast.UnaryExpr) {
+func (cl *compiler) compileUnaryExpr(dst ir.Slot, e *ast.UnaryExpr) {
 	switch e.Op {
 	case token.NOT:
 		cl.compileUnaryOp(dst, bytecode.OpNot, e.X)
@@ -87,12 +88,12 @@ func (cl *compiler) compileUnaryExpr(dst int, e *ast.UnaryExpr) {
 	}
 }
 
-func (cl *compiler) compileUnaryOp(dst int, op bytecode.Op, arg ast.Expr) {
+func (cl *compiler) compileUnaryOp(dst ir.Slot, op bytecode.Op, arg ast.Expr) {
 	xslot := cl.compileTempExpr(arg)
 	cl.emit2(op, dst, xslot)
 }
 
-func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
+func (cl *compiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 	typ := cl.ctx.Types.TypeOf(e.X)
 
 	switch e.Op {
@@ -163,7 +164,7 @@ func (cl *compiler) compileBinaryExpr(dst int, e *ast.BinaryExpr) {
 	}
 }
 
-func (cl *compiler) compileScalarBinaryOp(dst int, e *ast.BinaryExpr, op bytecode.Op, typ types.Type) {
+func (cl *compiler) compileScalarBinaryOp(dst ir.Slot, e *ast.BinaryExpr, op bytecode.Op, typ types.Type) {
 	if typeIsInt(typ) || typeIsByte(typ) {
 		cl.compileBinaryOp(dst, op, e)
 	} else {
@@ -171,7 +172,7 @@ func (cl *compiler) compileScalarBinaryOp(dst int, e *ast.BinaryExpr, op bytecod
 	}
 }
 
-func (cl *compiler) compileIntBinaryOp(dst int, e *ast.BinaryExpr, op bytecode.Op, typ types.Type) {
+func (cl *compiler) compileIntBinaryOp(dst ir.Slot, e *ast.BinaryExpr, op bytecode.Op, typ types.Type) {
 	if typeIsInt(typ) {
 		cl.compileBinaryOp(dst, op, e)
 	} else {
@@ -179,13 +180,13 @@ func (cl *compiler) compileIntBinaryOp(dst int, e *ast.BinaryExpr, op bytecode.O
 	}
 }
 
-func (cl *compiler) compileBinaryOp(dst int, op bytecode.Op, e *ast.BinaryExpr) {
+func (cl *compiler) compileBinaryOp(dst ir.Slot, op bytecode.Op, e *ast.BinaryExpr) {
 	xslot := cl.compileTempExpr(e.X)
 	yslot := cl.compileTempExpr(e.Y)
 	cl.emit3(op, dst, xslot, yslot)
 }
 
-func (cl *compiler) CompileSliceExpr(dst int, x, low, high ast.Expr) {
+func (cl *compiler) CompileSliceExpr(dst ir.Slot, x, low, high ast.Expr) {
 	switch {
 	case low == nil && high != nil:
 		strslot := cl.compileTempExpr(x)
@@ -203,7 +204,7 @@ func (cl *compiler) CompileSliceExpr(dst int, x, low, high ast.Expr) {
 	}
 }
 
-func (cl *compiler) compileSliceExpr(dst int, slice *ast.SliceExpr) {
+func (cl *compiler) compileSliceExpr(dst ir.Slot, slice *ast.SliceExpr) {
 	if slice.Slice3 {
 		panic(cl.errorf(slice, "can't compile 3-index slicing"))
 	}
@@ -218,7 +219,7 @@ func (cl *compiler) compileSliceExpr(dst int, slice *ast.SliceExpr) {
 	cl.CompileSliceExpr(dst, slice.X, slice.Low, slice.High)
 }
 
-func (cl *compiler) compileIndexExpr(dst int, e *ast.IndexExpr) {
+func (cl *compiler) compileIndexExpr(dst ir.Slot, e *ast.IndexExpr) {
 	if !typeIsString(cl.ctx.Types.TypeOf(e.X)) {
 		panic(cl.errorf(e.X, "can't compile indexing of something that is not a string"))
 	}
@@ -227,7 +228,7 @@ func (cl *compiler) compileIndexExpr(dst int, e *ast.IndexExpr) {
 	cl.emit3(bytecode.OpStrIndex, dst, strslot, indexslot)
 }
 
-func (cl *compiler) compileSelectorExpr(dst int, e *ast.SelectorExpr) {
+func (cl *compiler) compileSelectorExpr(dst ir.Slot, e *ast.SelectorExpr) {
 	typ := cl.ctx.Types.TypeOf(e.X)
 	key := qruntime.FuncKey{
 		Name:      e.Sel.String(),
@@ -242,13 +243,13 @@ func (cl *compiler) compileSelectorExpr(dst int, e *ast.SelectorExpr) {
 	panic(cl.errorf(e, "can't compile %s field access", e.Sel))
 }
 
-func (cl *compiler) compileCallExpr(dst int, call *ast.CallExpr) {
+func (cl *compiler) compileCallExpr(dst ir.Slot, call *ast.CallExpr) {
 	insideVariadic := cl.insideVariadic
 	cl.compileCallExprImpl(dst, call)
 	cl.insideVariadic = insideVariadic
 }
 
-func (cl *compiler) compileIntConv(dst int, call *ast.CallExpr) {
+func (cl *compiler) compileIntConv(dst ir.Slot, call *ast.CallExpr) {
 	x := call.Args[0]
 	typ := cl.ctx.Types.TypeOf(x)
 	if typeIsInt(typ) || typeIsByte(typ) {
@@ -259,7 +260,7 @@ func (cl *compiler) compileIntConv(dst int, call *ast.CallExpr) {
 	panic(cl.errorf(call.Args[0], "can't convert %s to int", typ))
 }
 
-func (cl *compiler) compileCallExprImpl(dst int, call *ast.CallExpr) {
+func (cl *compiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
 	calledExpr := goutil.Unparen(call.Fun)
 
 	if id, ok := calledExpr.(*ast.Ident); ok {
@@ -320,7 +321,7 @@ func (cl *compiler) compileCallExprImpl(dst int, call *ast.CallExpr) {
 	panic(cl.errorf(call.Fun, "can't compile a call to %s func", key))
 }
 
-func (cl *compiler) compileBuiltinCall(dst int, fn *ast.Ident, call *ast.CallExpr) {
+func (cl *compiler) compileBuiltinCall(dst ir.Slot, fn *ast.Ident, call *ast.CallExpr) {
 	switch fn.Name {
 	case `len`:
 		s := call.Args[0]
@@ -419,7 +420,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 	}
 
 	if needTemporaries {
-		tempSlots := make([]int, 0, 8)
+		tempSlots := make([]ir.Slot, 0, 8)
 		for _, arg := range args {
 			tmpslot := cl.allocTmp()
 			cl.CompileExpr(tmpslot, arg)
@@ -430,7 +431,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 		}
 		// Move temporaries to args.
 		for i, slot := range tempSlots {
-			argslot := -(i + 1)
+			argslot := ir.NewCallArgSlot(uint8(i))
 			arg := args[i]
 			moveOp := cl.opMoveByType(arg, cl.ctx.Types.TypeOf(arg))
 			cl.emit2(moveOp, argslot, slot)
@@ -438,7 +439,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 	} else {
 		// Can move args directly to their slots.
 		for i, arg := range args {
-			argslot := -(i + 1)
+			argslot := ir.NewCallArgSlot(uint8(i))
 			cl.CompileExpr(argslot, arg)
 		}
 		if variadic != nil {
@@ -447,7 +448,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 	}
 }
 
-func (cl *compiler) compileNativeCall(dst int, key qruntime.FuncKey) bool {
+func (cl *compiler) compileNativeCall(dst ir.Slot, key qruntime.FuncKey) bool {
 	funcID, ok := cl.ctx.Env.NameToNativeFuncID[key]
 	if !ok {
 		return false
@@ -457,12 +458,12 @@ func (cl *compiler) compileNativeCall(dst int, key qruntime.FuncKey) bool {
 	return true
 }
 
-func (cl *compiler) compileRecurCall(dst int) bool {
+func (cl *compiler) compileRecurCall(dst ir.Slot) bool {
 	cl.emit1(bytecode.OpCallRecur, dst)
 	return true
 }
 
-func (cl *compiler) compileCall(dst int, key qruntime.FuncKey) bool {
+func (cl *compiler) compileCall(dst ir.Slot, key qruntime.FuncKey) bool {
 	funcID, ok := cl.ctx.Env.NameToFuncID[key]
 	if !ok {
 		return false
@@ -472,7 +473,7 @@ func (cl *compiler) compileCall(dst int, key qruntime.FuncKey) bool {
 	return true
 }
 
-func (cl *compiler) compileIdent(dst int, ident *ast.Ident) {
+func (cl *compiler) compileIdent(dst ir.Slot, ident *ast.Ident) {
 	tv := cl.ctx.Types.Types[ident]
 	cv := tv.Value
 	if cv != nil {
@@ -492,17 +493,16 @@ func (cl *compiler) compileIdent(dst int, ident *ast.Ident) {
 	panic(cl.errorf(ident, "can't compile a %s (type %s) variable read", ident.String(), tv.Type))
 }
 
-func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.Value) {
+func (cl *compiler) compileConstantValue(dst ir.Slot, source ast.Expr, cv constant.Value) {
 	switch cv.Kind() {
 	case constant.Bool:
 		v := constant.BoolVal(cv)
 		id := cl.internBoolConstant(v)
-		cl.emit2(bytecode.OpLoadScalarConst, dst, id)
-
-	case constant.String:
-		v := constant.StringVal(cv)
-		id := cl.internStrConstant(v)
-		cl.emit2(bytecode.OpLoadStrConst, dst, id)
+		cl.emit(ir.Inst{
+			Op:   bytecode.OpLoadScalarConst,
+			Arg0: dst.ToInstArg(),
+			Arg1: ir.InstArg(id),
+		})
 
 	case constant.Int:
 		v, exact := constant.Int64Val(cv)
@@ -510,7 +510,20 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 			panic(cl.errorf(source, "non-exact int value"))
 		}
 		id := cl.internIntConstant(int(v))
-		cl.emit2(bytecode.OpLoadScalarConst, dst, id)
+		cl.emit(ir.Inst{
+			Op:   bytecode.OpLoadScalarConst,
+			Arg0: dst.ToInstArg(),
+			Arg1: ir.InstArg(id),
+		})
+
+	case constant.String:
+		v := constant.StringVal(cv)
+		id := cl.internStrConstant(v)
+		cl.emit(ir.Inst{
+			Op:   bytecode.OpLoadStrConst,
+			Arg0: dst.ToInstArg(),
+			Arg1: ir.InstArg(id),
+		})
 
 	case constant.Complex:
 		panic(cl.errorf(source, "can't compile complex number constants yet"))
@@ -523,7 +536,10 @@ func (cl *compiler) compileConstantValue(dst int, source ast.Expr, cv constant.V
 	}
 }
 
-func (cl *compiler) compileOr(dst int, e *ast.BinaryExpr) {
+func (cl *compiler) compileOr(dst ir.Slot, e *ast.BinaryExpr) {
+	if dst.Kind == ir.SlotUniq {
+		dst.Kind = ir.SlotTemp
+	}
 	labelEnd := cl.newLabel()
 	cl.CompileExpr(dst, e.X)
 	cl.emitCondJump(dst, bytecode.OpJumpNotZero, labelEnd)
@@ -531,7 +547,10 @@ func (cl *compiler) compileOr(dst int, e *ast.BinaryExpr) {
 	cl.bindLabel(labelEnd)
 }
 
-func (cl *compiler) compileAnd(dst int, e *ast.BinaryExpr) {
+func (cl *compiler) compileAnd(dst ir.Slot, e *ast.BinaryExpr) {
+	if dst.Kind == ir.SlotUniq {
+		dst.Kind = ir.SlotTemp
+	}
 	labelEnd := cl.newLabel()
 	cl.CompileExpr(dst, e.X)
 	cl.emitCondJump(dst, bytecode.OpJumpZero, labelEnd)

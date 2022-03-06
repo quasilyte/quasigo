@@ -84,11 +84,80 @@ func fnv1(s string) int {
 }
 
 //test:disasm_both
+// main.isNumericString code=51 frame=168 (7 slots: 1 args, 1 locals, 5 temps)
+//   LoadScalarConst i = 0
+//   Jump L0
+// L3:
+//   StrIndex tmp1 = s i
+//   LoadScalarConst tmp2 = 48
+//   IntLt tmp0 = tmp1 tmp2
+//   JumpNotZero L1 tmp0
+//   StrIndex tmp3 = s i
+//   LoadScalarConst tmp4 = 57
+//   IntGt tmp0 = tmp3 tmp4
+// L1:
+//   JumpZero L2 tmp0
+//   ReturnFalse
+// L2:
+//   IntInc i
+// L0:
+//   StrLen tmp1 = s
+//   IntLt tmp0 = i tmp1
+//   JumpNotZero L3 tmp0
+//   ReturnTrue
+func isNumericString(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+//test:disasm
 // main.atoi code=104 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
 //   StrLen tmp1 = s
 //   LoadScalarConst tmp2 = 0
 //   ScalarEq tmp0 = tmp1 tmp2
 //   JumpZero L0 tmp0
+//   LoadScalarConst tmp0 = 0
+//   ReturnScalar tmp0
+// L0:
+//   LoadScalarConst result = 0
+//   LoadScalarConst sign = 0
+//   LoadScalarConst i = 0
+//   LoadScalarConst tmp2 = 0
+//   StrIndex tmp1 = s tmp2
+//   LoadScalarConst tmp3 = 45
+//   ScalarEq tmp0 = tmp1 tmp3
+//   JumpZero L1 tmp0
+//   LoadScalarConst sign = 1
+//   LoadScalarConst i = 1
+// L1:
+//   Jump L2
+// L3:
+//   LoadScalarConst tmp1 = 10
+//   IntMul tmp0 = result tmp1
+//   StrIndex tmp4 = s i
+//   LoadScalarConst tmp5 = 48
+//   IntSub tmp3 = tmp4 tmp5
+//   MoveScalar tmp2 = tmp3
+//   IntAdd result = tmp0 tmp2
+//   IntInc i
+// L2:
+//   StrLen tmp1 = s
+//   IntLt tmp0 = i tmp1
+//   JumpNotZero L3 tmp0
+//   JumpZero L4 sign
+//   IntNeg tmp0 = result
+//   ReturnScalar tmp0
+// L4:
+//   ReturnScalar result
+//
+//test:disasm_opt
+// main.atoi code=97 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
+//   StrLen tmp1 = s
+//   JumpNotZero L0 tmp1
 //   LoadScalarConst tmp0 = 0
 //   ReturnScalar tmp0
 // L0:
@@ -321,8 +390,12 @@ func testFnv1() {
 	println(fnv1("2834"))
 	println(fnv1("dsiua9uqw"))
 	println(fnv1("Hello, world!"))
+	println(fnv1("aaaaaaaaaaaaaaaa"))
+	println(fnv1("aaaaaaaaaaaaaaaaaaaa"))
 	println(fnv1("examp9wqu8 rwy7ayd7s8yd S&CY&W"))
 	println(fnv1("some text that will definitely cause the overflow"))
+	println(fnv1("Lorem ipsum dolor sit amet, consectetur adipiscing elit"))
+	println(fnv1("1, 2, Fizz, 4, Buzz, Fizz, 7, 8, Fizz, Buzz, 11, Fizz, 13, 14, Fizz Buzz, 16, 17, Fizz, 19, Buzz, Fizz, 22, 23, Fizz, Buzz, 26, Fizz, 28, 29, Fizz Buzz"))
 }
 
 func testCountByte() {
@@ -344,6 +417,16 @@ func testCharsum() {
 	println(charsum("some longer string for the test purposes"))
 	println(charsum("329i4i24923"))
 	println(charsum("1-010329 8*$#&Q YW&FWQ&Dsahdsyds "))
+}
+
+func testNumericString() {
+	println(isNumericString(""))
+	println(isNumericString("0"))
+	println(isNumericString("1392"))
+	println(isNumericString("13922183"))
+	println(isNumericString("a"))
+	println(isNumericString("xasid9"))
+	println(isNumericString("28382x"))
 }
 
 func main() {
@@ -370,4 +453,5 @@ func main() {
 	testFnv1()
 	testCountByte()
 	testCharsum()
+	testNumericString()
 }

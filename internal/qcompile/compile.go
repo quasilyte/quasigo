@@ -5,7 +5,6 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
-	"math"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
 	"github.com/quasilyte/quasigo/internal/ir"
@@ -19,7 +18,7 @@ import (
 
 var voidType = &types.Tuple{}
 
-const voidSlot = math.MaxInt
+var voidSlot = ir.Slot{Kind: ir.SlotDiscard}
 
 type compiler struct {
 	ctx *Context
@@ -53,7 +52,7 @@ type compiler struct {
 }
 
 type frameSlotInfo struct {
-	i int
+	i ir.Slot
 	v *types.Var
 }
 
@@ -92,7 +91,10 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		if !cl.isSupportedType(paramType) {
 			panic(cl.errorUnsupportedType(fn.Name, paramType, paramName+" param"))
 		}
-		cl.params[paramName] = frameSlotInfo{i: i, v: p}
+		cl.params[paramName] = frameSlotInfo{
+			i: ir.NewParamSlot(uint8(i)),
+			v: p,
+		}
 		dbg.SlotNames = append(dbg.SlotNames, paramName)
 	}
 
@@ -105,10 +107,12 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	}
 
 	irFunc := ir.Func{
-		Code:          cl.code,
-		NumParams:     len(cl.params),
-		NumLocals:     len(cl.locals),
-		NumFrameSlots: len(cl.params) + len(cl.locals) + cl.numTmp,
+		Code:            cl.code,
+		NumParams:       len(cl.params),
+		NumLocals:       len(cl.locals),
+		NumFrameSlots:   len(cl.params) + len(cl.locals) + cl.numTmp,
+		StrConstants:    cl.strConstants,
+		ScalarConstants: cl.scalarConstants,
 	}
 
 	if cl.ctx.Optimize {
@@ -127,27 +131,13 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	compiled := &qruntime.Func{
 		Code:            code,
 		Codeptr:         &code[0],
-		StrConstants:    cl.strConstants,
-		ScalarConstants: cl.scalarConstants,
+		StrConstants:    irFunc.StrConstants,
+		ScalarConstants: irFunc.ScalarConstants,
 		Name:            cl.fnKey.String(),
 		FrameSize:       int(qruntime.SizeofSlot) * irFunc.NumFrameSlots,
 		FrameSlots:      byte(irFunc.NumFrameSlots),
 	}
 	cl.ctx.Env.Debug.Funcs[compiled] = dbg
-
-	// Now that we know the frame size, we need to fix the arguments passing offsets.
-	// TODO: do this on IR level?
-	bytecode.Walk(code, func(pc int, op bytecode.Op) {
-		if !op.HasDst() {
-			return
-		}
-		dstslot := int8(code[pc+1])
-		if dstslot < 0 {
-			actualIndex := -dstslot - 1
-			code[pc+1] = byte(irFunc.NumFrameSlots + int(actualIndex))
-		}
-	})
-
 	return compiled
 }
 
@@ -173,8 +163,9 @@ func (cl *compiler) collectLocals(dbg *qruntime.FuncDebugInfo, body *ast.BlockSt
 			if !cl.isSupportedType(typ) {
 				panic(cl.errorUnsupportedType(lhs, typ, lhs.String()+" local variable"))
 			}
+			id := len(cl.locals)
 			cl.locals[lhs.Name] = frameSlotInfo{
-				i: len(cl.params) + len(cl.locals),
+				i: ir.NewLocalSlot(uint8(id)),
 				v: def,
 			}
 			dbg.SlotNames = append(dbg.SlotNames, lhs.Name)
@@ -195,7 +186,7 @@ func (cl *compiler) newLabel() label {
 func (cl *compiler) bindLabel(l label) {
 	cl.emit(ir.Inst{
 		Pseudo: ir.OpLabel,
-		Arg0:   uint8(l.id),
+		Arg0:   ir.InstArg(l.id),
 	})
 }
 
@@ -208,52 +199,57 @@ func (cl *compiler) emitOp(op bytecode.Op) {
 }
 
 func (cl *compiler) emitJump(l label) {
-	cl.emit(ir.Inst{Op: bytecode.OpJump, Arg0: uint8(l.id)})
+	cl.emit(ir.Inst{Op: bytecode.OpJump, Arg0: ir.InstArg(l.id)})
 }
 
-func (cl *compiler) emitCondJump(slot int, op bytecode.Op, l label) {
+func (cl *compiler) emitCondJump(slot ir.Slot, op bytecode.Op, l label) {
 	cl.emit(ir.Inst{
 		Op:   op,
-		Arg0: uint8(l.id),
-		Arg1: uint8(slot),
+		Arg0: ir.InstArg(l.id),
+		Arg1: slot.ToInstArg(),
 	})
 }
 
-func (cl *compiler) emit1(op bytecode.Op, arg8 int) {
-	cl.emit(ir.Inst{Op: op, Arg0: uint8(arg8)})
+func (cl *compiler) emit1(op bytecode.Op, a0 ir.Slot) {
+	cl.emit(ir.Inst{Op: op, Arg0: a0.ToInstArg()})
 }
 
-func (cl *compiler) emit2(op bytecode.Op, arg8a, arg8b int) {
-	cl.emit(ir.Inst{Op: op, Arg0: uint8(arg8a), Arg1: uint8(arg8b)})
+func (cl *compiler) emit2(op bytecode.Op, a0, a1 ir.Slot) {
+	cl.emit(ir.Inst{Op: op, Arg0: a0.ToInstArg(), Arg1: a1.ToInstArg()})
 }
 
-func (cl *compiler) emit3(op bytecode.Op, arg8a, arg8b, arg8c int) {
-	cl.emit(ir.Inst{Op: op, Arg0: uint8(arg8a), Arg1: uint8(arg8b), Arg2: uint8(arg8c), Arg3: uint8(arg8c)})
-}
-
-func (cl *compiler) emit4(op bytecode.Op, arg8a, arg8b, arg8c, arg8d int) {
+func (cl *compiler) emit3(op bytecode.Op, a0, a1, a2 ir.Slot) {
 	cl.emit(ir.Inst{
 		Op:   op,
-		Arg0: uint8(arg8a),
-		Arg1: uint8(arg8b),
-		Arg2: uint8(arg8c),
-		Arg3: uint8(arg8d),
+		Arg0: a0.ToInstArg(),
+		Arg1: a1.ToInstArg(),
+		Arg2: a2.ToInstArg(),
 	})
 }
 
-func (cl *compiler) emitCall(op bytecode.Op, dst int, funcid int) {
+func (cl *compiler) emit4(op bytecode.Op, a0, a1, a2, a3 ir.Slot) {
+	cl.emit(ir.Inst{
+		Op:   op,
+		Arg0: a0.ToInstArg(),
+		Arg1: a1.ToInstArg(),
+		Arg2: a2.ToInstArg(),
+		Arg3: a3.ToInstArg(),
+	})
+}
+
+func (cl *compiler) emitCall(op bytecode.Op, dst ir.Slot, funcid int) {
 	if dst == voidSlot && op == bytecode.OpCallNative {
-		cl.emit(ir.Inst{Op: bytecode.OpCallVoidNative, Value: uint16(funcid)})
+		cl.emit(ir.Inst{Op: bytecode.OpCallVoidNative, Arg0: ir.InstArg(funcid)})
 		return
 	}
 	if dst == voidSlot && op == bytecode.OpCall {
-		cl.emit(ir.Inst{Op: bytecode.OpCallVoid, Value: uint16(funcid)})
+		cl.emit(ir.Inst{Op: bytecode.OpCallVoid, Arg0: ir.InstArg(funcid)})
 		return
 	}
 	cl.emit(ir.Inst{
-		Op:    op,
-		Value: uint16(funcid),
-		Arg0:  uint8(dst),
+		Op:   op,
+		Arg0: dst.ToInstArg(),
+		Arg1: ir.InstArg(funcid),
 	})
 }
 
@@ -362,7 +358,7 @@ func (cl *compiler) isParamName(varname string) bool {
 	return ok
 }
 
-func (cl *compiler) getLocal(v ast.Expr, varname string) int {
+func (cl *compiler) getLocal(v ast.Expr, varname string) ir.Slot {
 	slot, ok := cl.locals[varname]
 	if !ok {
 		if cl.isParamName(varname) {
@@ -377,13 +373,13 @@ func (cl *compiler) freeTmp() {
 	cl.tmpSeq = 0
 }
 
-func (cl *compiler) allocTmp() int {
-	index := cl.tmpSeq
+func (cl *compiler) allocTmp() ir.Slot {
+	id := cl.tmpSeq
 	cl.tmpSeq++
 	if cl.numTmp < cl.tmpSeq {
 		cl.numTmp = cl.tmpSeq
 	}
-	return index + len(cl.params) + len(cl.locals)
+	return ir.NewUniqSlot(uint8(id))
 }
 
 func (cl *compiler) isSimpleExpr(e ast.Expr) bool {

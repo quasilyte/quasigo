@@ -4,6 +4,7 @@ import (
 	"go/ast"
 
 	"github.com/quasilyte/quasigo/internal/goutil"
+	"github.com/quasilyte/quasigo/internal/ir"
 )
 
 // TODO:
@@ -16,7 +17,7 @@ type patternCompiler struct {
 	cl *compiler
 }
 
-func (p *patternCompiler) CompileSliceExpr(dst int, slice *ast.SliceExpr) bool {
+func (p *patternCompiler) CompileSliceExpr(dst ir.Slot, slice *ast.SliceExpr) bool {
 	// Try to recognize the no-op slicing.
 	// Examples: s[:], s[0:], s[:len(s)], s[0:len(s)].
 	// All of these can be simplified to just s.

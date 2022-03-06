@@ -5,11 +5,6 @@ import (
 	"github.com/quasilyte/quasigo/internal/ir"
 )
 
-// TODO:
-// * optimize expressions like `x + 0`
-// * optimize `x += 1` to `x++`
-// * optimize `Not x = y; JumpZero x` to `JumpNotZero x` if x is tmp value
-
 func Func(fn *ir.Func) {
 	opt := optimizer{fn: fn}
 	opt.Optimize()
@@ -17,128 +12,300 @@ func Func(fn *ir.Func) {
 
 type optimizer struct {
 	fn *ir.Func
+
+	idMap idMap
+	idSet idSet
 }
 
 func (opt *optimizer) Optimize() {
-	scalarTempStores := idMap{make([]uint16, 0, 4)}
-	strTempStores := idMap{make([]uint16, 0, 4)}
 	changed := false
-	for instIndex, inst := range opt.fn.Code {
-		if inst.Pseudo == ir.OpLabel {
-			scalarTempStores.Reset()
-			strTempStores.Reset()
-			continue
+	opt.walkBlocks(func(block []ir.Inst) {
+		if opt.injectConstants(block) {
+			block = opt.filterBlock(block)
+			changed = true
 		}
-
-		storeHandled := false
-		switch inst.Op {
-		case bytecode.OpLoadScalarConst:
-			dst := int(inst.Arg0)
-			if !opt.isTemp(dst) {
-				continue
-			}
-			if i := scalarTempStores.Find(dst); i != -1 {
-				scalarTempStores.UpdateValueAt(i, int(inst.Arg1))
-			} else {
-				scalarTempStores.Add(dst, int(inst.Arg1))
-			}
-			storeHandled = true
-		case bytecode.OpMoveScalar:
-			src := int(inst.Arg1)
-			if i := scalarTempStores.Find(src); i != -1 {
-				changed = true
-				constindex := scalarTempStores.GetValue(i)
-				opt.fn.Code[instIndex] = ir.Inst{
-					Op:   bytecode.OpLoadScalarConst,
-					Arg0: inst.Arg0,
-					Arg1: constindex,
-				}
-			}
-
-		case bytecode.OpLoadStrConst:
-			dst := int(inst.Arg0)
-			if !opt.isTemp(dst) {
-				continue
-			}
-			if i := strTempStores.Find(dst); i != -1 {
-				strTempStores.UpdateValueAt(i, int(inst.Arg1))
-			} else {
-				strTempStores.Add(dst, int(inst.Arg1))
-			}
-			storeHandled = true
-		case bytecode.OpMoveStr:
-			src := int(inst.Arg1)
-			if i := strTempStores.Find(src); i != -1 {
-				changed = true
-				constindex := strTempStores.GetValue(i)
-				opt.fn.Code[instIndex] = ir.Inst{
-					Op:   bytecode.OpLoadStrConst,
-					Arg0: inst.Arg0,
-					Arg1: constindex,
-				}
-			}
+		if opt.condInvert(block) {
+			block = opt.filterBlock(block)
+			changed = true
 		}
-
-		if !storeHandled && inst.Op.HasDst() {
-			dst := int(inst.Arg0)
-			if !opt.isTemp(dst) {
-				continue
-			}
-			if i := scalarTempStores.Find(dst); i != -1 {
-				scalarTempStores.RemoveAt(i)
-				continue
-			}
-			if i := strTempStores.Find(dst); i != -1 {
-				strTempStores.RemoveAt(i)
-				continue
-			}
+		if opt.zeroComparisons(block) {
+			changed = true
 		}
-	}
+	})
 
 	if !changed {
 		return
 	}
 
-	maxTempID := 0
-	usedSlots := idSet{make([]uint8, 0, 8)}
-	for i := len(opt.fn.Code) - 1; i >= 0; i-- {
-		inst := &opt.fn.Code[i]
-		if inst.Op.HasDst() && !opt.isCallArg(int(inst.Arg0)) && !usedSlots.Contains(int(inst.Arg0)) {
-			inst.Op = bytecode.OpInvalid
-			continue
-		}
-		inst.WalkArgs(func(arg bytecode.Argument, value int) {
-			if arg.Kind != bytecode.ArgSlot {
-				return
-			}
-			if opt.isCallArg(value) {
-				return
-			}
-			if opt.isTemp(value) {
-				if value > maxTempID {
-					maxTempID = value
+	maxTempID := -1
+	opt.walkBlocks(func(block []ir.Inst) {
+		usedSlots := opt.idSet
+		usedSlots.Reset()
+		for i := len(block) - 1; i >= 0; i-- {
+			inst := &block[i]
+			if inst.Op.HasDst() && inst.Arg0.ToSlot().IsUniq() {
+				if !usedSlots.Contains(opt.fn.SlotIndex(inst.Arg0.ToSlot())) {
+					inst.Op = bytecode.OpInvalid
+					continue
 				}
 			}
-			if arg.IsWriteSlot() {
-				usedSlots.Remove(value)
-			} else {
-				usedSlots.Add(value)
+			for i, argInfo := range inst.Op.Args() {
+				if argInfo.Kind != bytecode.ArgSlot {
+					continue
+				}
+				slot := inst.GetArg(i).ToSlot()
+				if slot.IsCallArg() {
+					continue
+				}
+				if slot.IsTemp() || slot.IsUniq() {
+					if int(slot.ID) > maxTempID {
+						maxTempID = int(slot.ID)
+					}
+				}
+				if argInfo.IsWriteSlot() {
+					usedSlots.Remove(opt.fn.SlotIndex(slot))
+				} else {
+					usedSlots.Add(opt.fn.SlotIndex(slot))
+				}
 			}
-		})
-	}
-
-	if maxTempID != 0 {
-		opt.fn.NumFrameSlots = maxTempID + 1
+		}
+	})
+	if maxTempID != -1 {
+		opt.fn.NumFrameSlots = opt.fn.NumParams + opt.fn.NumLocals + maxTempID + 1
 	} else {
 		opt.fn.NumFrameSlots = opt.fn.NumParams + opt.fn.NumLocals
 	}
 }
 
-func (opt *optimizer) isCallArg(id int) bool {
-	// TODO: something better?
-	return id > 200
+func (opt *optimizer) filterBlock(block []ir.Inst) []ir.Inst {
+	filtered := block[:0]
+	for _, inst := range block {
+		if inst.IsPseudo() || inst.Op != bytecode.OpInvalid {
+			filtered = append(filtered, inst)
+		}
+	}
+	tail := block[len(filtered):]
+	for i := range tail {
+		tail[i].Op = bytecode.OpInvalid
+	}
+	for i := len(filtered); i < len(block); i++ {
+		block[i].Op = bytecode.OpInvalid
+	}
+	return filtered
 }
 
-func (opt *optimizer) isTemp(id int) bool {
-	return id >= (opt.fn.NumParams + opt.fn.NumLocals)
+func (opt *optimizer) walkBlocks(visit func([]ir.Inst)) {
+	code := opt.fn.Code
+	blockStart := 0
+	for i, inst := range code {
+		if inst.Pseudo == ir.OpLabel {
+			block := code[blockStart:i]
+			if len(block) != 0 {
+				visit(block)
+			}
+			blockStart = i + 1
+			continue
+		}
+
+		switch inst.Op {
+		case bytecode.OpJump, bytecode.OpJumpZero, bytecode.OpJumpNotZero:
+			fallthrough
+		case bytecode.OpReturnFalse, bytecode.OpReturnTrue, bytecode.OpReturnVoid:
+			fallthrough
+		case bytecode.OpReturnScalar, bytecode.OpReturnStr:
+			block := code[blockStart : i+1]
+			if len(block) != 0 {
+				visit(block)
+			}
+			blockStart = i + 1
+		}
+	}
+}
+
+func (opt *optimizer) condInvert(block []ir.Inst) bool {
+	// Not tmp0 = tmp1
+	// JumpZero L0 tmp0
+	// =>
+	// JumpNotZero L0 tmp1
+
+	if len(block) < 2 {
+		return false
+	}
+	switch block[len(block)-1].Op {
+	case bytecode.OpJumpZero, bytecode.OpJumpNotZero:
+		// OK.
+	default:
+		return false
+	}
+	jump := block[len(block)-1]
+	jumpSlot := jump.Arg1.ToSlot()
+	if !jumpSlot.IsUniq() {
+		return false
+	}
+	if block[len(block)-2].Op != bytecode.OpNot {
+		return false
+	}
+	not := block[len(block)-2]
+	if not.Arg0.ToSlot() != jumpSlot {
+		return false
+	}
+
+	block[len(block)-1].Arg1 = not.Arg1
+	switch jump.Op {
+	case bytecode.OpJumpZero:
+		block[len(block)-1].Op = bytecode.OpJumpNotZero
+	case bytecode.OpJumpNotZero:
+		block[len(block)-1].Op = bytecode.OpJumpZero
+	}
+	block[len(block)-2].Op = bytecode.OpInvalid
+
+	return true
+}
+
+func (opt *optimizer) zeroComparisons(block []ir.Inst) bool {
+	if len(block) < 3 {
+		return false
+	}
+
+	// x != 0
+	//
+	// LoadScalarConst tmp1 = 0
+	// ScalarNotEq tmp0 = x tmp1
+	// JumpZero L0 tmp0
+	// =>
+	// JumpZero L0 x
+	//
+	// tmp0 must be uniq
+
+	switch block[len(block)-1].Op {
+	case bytecode.OpJumpZero, bytecode.OpJumpNotZero:
+		// OK.
+	default:
+		return false
+	}
+	jump := block[len(block)-1]
+	jumpSlot := jump.Arg1.ToSlot()
+	if !jumpSlot.IsUniq() {
+		return false
+	}
+	switch block[len(block)-2].Op {
+	case bytecode.OpScalarEq, bytecode.OpScalarNotEq:
+		// OK.
+	default:
+		return false
+	}
+
+	cmp := block[len(block)-2]
+	if block[len(block)-3].Op != bytecode.OpLoadScalarConst {
+		return false
+	}
+	cmpDst := cmp.Arg0.ToSlot()
+	if !cmpDst.IsUniq() || cmpDst.ID != jumpSlot.ID {
+		return false
+	}
+	load := block[len(block)-3]
+	if opt.fn.ScalarConstants[load.Arg1] != 0 {
+		return false
+	}
+	if cmp.Arg2 != load.Arg0 {
+		return false
+	}
+
+	combinedOp := bytecode.OpInvalid
+	switch {
+	case cmp.Op == bytecode.OpScalarEq && jump.Op == bytecode.OpJumpZero:
+		combinedOp = bytecode.OpJumpNotZero
+	case cmp.Op == bytecode.OpScalarNotEq && jump.Op == bytecode.OpJumpZero:
+		combinedOp = bytecode.OpJumpZero
+	case cmp.Op == bytecode.OpScalarEq && jump.Op == bytecode.OpJumpNotZero:
+		combinedOp = bytecode.OpJumpZero
+	case cmp.Op == bytecode.OpScalarNotEq && jump.Op == bytecode.OpJumpNotZero:
+		combinedOp = bytecode.OpJumpNotZero
+	}
+
+	if combinedOp != bytecode.OpInvalid {
+		block[len(block)-1].Op = combinedOp
+		block[len(block)-1].Arg1 = cmp.Arg1
+		block[len(block)-2].Op = bytecode.OpInvalid
+		block[len(block)-3].Op = bytecode.OpInvalid
+		return true
+	}
+
+	return false
+}
+
+func (opt *optimizer) injectConstants(block []ir.Inst) bool {
+	if len(block) > 255 {
+		return false
+	}
+
+	changed := false
+	tracked := opt.idMap
+	tracked.Reset()
+	for i := len(block) - 1; i > 0; i-- {
+		inst := block[i]
+		storeHandled := false
+		switch inst.Op {
+		case bytecode.OpLoadStrConst:
+			dstslot := inst.Arg0.ToSlot()
+			if !dstslot.IsUniq() {
+				continue
+			}
+			key := tracked.FindIndex(dstslot.ID)
+			if key == -1 {
+				continue
+			}
+			j := tracked.GetValue(key)
+			if block[j].Op == bytecode.OpMoveStr {
+				block[j].Op = bytecode.OpLoadStrConst
+				block[j].Arg1 = inst.Arg1
+				block[i].Op = bytecode.OpInvalid
+				changed = true
+			}
+			tracked.RemoveAt(key)
+			storeHandled = true
+
+		case bytecode.OpLoadScalarConst:
+			dstslot := inst.Arg0.ToSlot()
+			if !dstslot.IsUniq() {
+				continue
+			}
+			key := tracked.FindIndex(dstslot.ID)
+			if key == -1 {
+				continue
+			}
+			j := tracked.GetValue(key)
+			if block[j].Op == bytecode.OpMoveScalar {
+				block[j].Op = bytecode.OpLoadScalarConst
+				block[j].Arg1 = inst.Arg1
+				block[i].Op = bytecode.OpInvalid
+				changed = true
+			}
+			tracked.RemoveAt(key)
+			storeHandled = true
+
+		case bytecode.OpMoveScalar, bytecode.OpMoveStr:
+			dstslot := inst.Arg0.ToSlot()
+			if dstslot.IsUniq() {
+				break // handled below
+			}
+			if !dstslot.IsCallArg() {
+				continue
+			}
+			srcslot := inst.Arg1.ToSlot()
+			if !srcslot.IsUniq() {
+				continue
+			}
+			tracked.Add(srcslot.ID, uint8(i))
+		}
+
+		if inst.Op.HasDst() && !storeHandled {
+			dstslot := inst.Arg0.ToSlot()
+			if dstslot.IsUniq() {
+				tracked.Remove(dstslot.ID)
+			}
+		}
+	}
+
+	return changed
 }
