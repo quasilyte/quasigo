@@ -57,14 +57,14 @@ func TestCompile(t *testing.T) {
 			`testpkg.f code=12 frame=168 (7 slots: 4 args, 1 locals, 2 temps)`,
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst tmp1 = 1`,
-			`  IntAdd tmp0 = x tmp1`,
+			`  IntAdd64 tmp0 = x tmp1`,
 			`  ReturnScalar tmp0`,
 		},
 		`x := 10; return x - 1`: {
 			`testpkg.f code=12 frame=168 (7 slots: 4 args, 1 locals, 2 temps)`,
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst tmp1 = 1`,
-			`  IntSub tmp0 = x tmp1`,
+			`  IntSub64 tmp0 = x tmp1`,
 			`  ReturnScalar tmp0`,
 		},
 
@@ -99,9 +99,9 @@ func TestCompile(t *testing.T) {
 			`testpkg.f code=20 frame=216 (9 slots: 4 args, 4 locals, 1 temps)`,
 			`  LoadScalarConst x = 1`,
 			`  LoadScalarConst y = 2`,
-			`  IntAdd v1 = x y`,
-			`  IntAdd v2 = v1 v1`,
-			`  IntAdd tmp0 = v1 v2`,
+			`  IntAdd64 v1 = x y`,
+			`  IntAdd64 v2 = v1 v1`,
+			`  IntAdd64 tmp0 = v1 v2`,
 			`  ReturnScalar tmp0`,
 		},
 
@@ -247,7 +247,7 @@ func TestCompile(t *testing.T) {
 		`return i + 0`: {
 			`testpkg.f code=9 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
 			`  LoadScalarConst tmp1 = 0`,
-			`  IntAdd tmp0 = i tmp1`,
+			`  IntAdd64 tmp0 = i tmp1`,
 			`  ReturnScalar tmp0`,
 		},
 
@@ -256,7 +256,7 @@ func TestCompile(t *testing.T) {
 			`testpkg.f code=12 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
 			`  LoadScalarConst x = 0`,
 			`  LoadScalarConst tmp0 = 1`,
-			`  IntAdd x = x tmp0`,
+			`  IntAdd64 x = x tmp0`,
 			`  ReturnScalar x`,
 		},
 
@@ -354,7 +354,7 @@ func TestCompile(t *testing.T) {
 			`  LoadScalarConst arg1 = 4`,
 			`  CallNative x = testpkg.idiv2()`,
 			`  MoveResult2 y`,
-			`  IntAdd tmp0 = x y`,
+			`  IntAdd64 tmp0 = x y`,
 			`  ReturnScalar tmp0`,
 		},
 
@@ -384,15 +384,15 @@ func TestCompile(t *testing.T) {
 		`x := 1; return x + x + x`: {
 			`testpkg.f code=13 frame=168 (7 slots: 4 args, 1 locals, 2 temps)`,
 			`  LoadScalarConst x = 1`,
-			`  IntAdd tmp1 = x x`,
-			`  IntAdd tmp0 = tmp1 x`,
+			`  IntAdd64 tmp1 = x x`,
+			`  IntAdd64 tmp0 = tmp1 x`,
 			`  ReturnScalar tmp0`,
 		},
 
 		`x := 1; return x + x`: {
 			`testpkg.f code=9 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
 			`  LoadScalarConst x = 1`,
-			`  IntAdd tmp0 = x x`,
+			`  IntAdd64 tmp0 = x x`,
 			`  ReturnScalar tmp0`,
 		},
 

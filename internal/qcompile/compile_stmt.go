@@ -148,16 +148,23 @@ func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 
 	if len(assign.Lhs) == 1 {
 		op := bytecode.OpInvalid
+		typ := cl.ctx.Types.TypeOf(assign.Rhs[0])
 		switch assign.Tok {
 		case token.MUL_ASSIGN:
-			op = bytecode.OpIntMul
+			op = pickOp(typeIsByte(typ), bytecode.OpIntMul8, bytecode.OpIntMul64)
 		case token.XOR_ASSIGN:
 			op = bytecode.OpIntXor
 		case token.ADD_ASSIGN:
-			typ := cl.ctx.Types.TypeOf(assign.Rhs[0])
-			op = pickOp(typeIsString(typ), bytecode.OpConcat, bytecode.OpIntAdd)
+			switch {
+			case typeIsString(typ):
+				op = bytecode.OpConcat
+			case typeIsByte(typ):
+				op = bytecode.OpIntAdd8
+			default:
+				op = bytecode.OpIntAdd64
+			}
 		case token.SUB_ASSIGN:
-			op = bytecode.OpIntSub
+			op = pickOp(typeIsByte(typ), bytecode.OpIntSub8, bytecode.OpIntSub64)
 		}
 		if op != bytecode.OpInvalid {
 			cl.compileAssignOp(op, assign)

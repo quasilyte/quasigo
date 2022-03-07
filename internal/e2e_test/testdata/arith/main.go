@@ -80,6 +80,18 @@ func byteexpr(x, y byte) {
 	println(b >= y)
 	println(b < y)
 	println(b <= y)
+
+	minusTenInt := -10
+	minusTen := byte(minusTenInt)
+	println(minusTen > 10)
+	println(minusTen == 10)
+
+	b2 := byte(190)
+	println(int(b + b2))
+	println(int(b ^ b2))
+	println(int(b - b2))
+	println(int(b2 - b))
+	println(int(b2 * b))
 }
 
 func intexpr(x, y int) {
@@ -116,6 +128,13 @@ func intexpr(x, y int) {
 	println(i2 >= y)
 	println(i2 < y)
 	println(i2 <= y)
+
+	i3 := 43848234
+	println(i3 - i2)
+	println(i3 - i2 - i3)
+	println(i2 - i3 - i3)
+	println(i2 + i3 - i3)
+	println(i2 + i3 + i3)
 }
 
 func boolexpr(x, y bool) {
