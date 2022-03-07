@@ -41,7 +41,7 @@ func TestOptimize(t *testing.T) {
 		`return i + 0`: {
 			`testpkg.f code=9 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
 			`  LoadScalarConst tmp1 = 0`,
-			`  IntAdd tmp0 = i tmp1`,
+			`  IntAdd64 tmp0 = i tmp1`,
 			`  ReturnScalar tmp0`,
 		},
 
@@ -50,7 +50,7 @@ func TestOptimize(t *testing.T) {
 			`testpkg.f code=12 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst tmp0 = 1`,
-			`  IntAdd x = x tmp0`,
+			`  IntAdd64 x = x tmp0`,
 			`  ReturnScalar x`,
 		},
 
@@ -130,14 +130,14 @@ func TestOptimize(t *testing.T) {
 			`testpkg.f code=12 frame=168 (7 slots: 4 args, 1 locals, 2 temps)`,
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst tmp1 = 1`,
-			`  IntAdd tmp0 = x tmp1`,
+			`  IntAdd64 tmp0 = x tmp1`,
 			`  ReturnScalar tmp0`,
 		},
 		`x := 10; return x - 1`: {
 			`testpkg.f code=12 frame=168 (7 slots: 4 args, 1 locals, 2 temps)`,
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst tmp1 = 1`,
-			`  IntSub tmp0 = x tmp1`,
+			`  IntSub64 tmp0 = x tmp1`,
 			`  ReturnScalar tmp0`,
 		},
 

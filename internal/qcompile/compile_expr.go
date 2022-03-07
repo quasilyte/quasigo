@@ -148,18 +148,37 @@ func (cl *compiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 		switch {
 		case typeIsString(typ):
 			cl.compileBinaryOp(dst, bytecode.OpConcat, e)
-		case typeIsInt(typ), typeIsByte(typ):
-			cl.compileBinaryOp(dst, bytecode.OpIntAdd, e)
+		case typeIsByte(typ):
+			cl.compileBinaryOp(dst, bytecode.OpIntAdd8, e)
+		case typeIsInt(typ):
+			cl.compileBinaryOp(dst, bytecode.OpIntAdd64, e)
 		default:
 			panic(cl.errorf(e, "+ is not implemented for %s bytecode.Operands", typ))
 		}
 
 	case token.SUB:
-		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntSub, typ)
+		switch {
+		case typeIsByte(typ):
+			cl.compileBinaryOp(dst, bytecode.OpIntSub8, e)
+		case typeIsInt(typ):
+			cl.compileBinaryOp(dst, bytecode.OpIntSub64, e)
+		default:
+			panic(cl.errorf(e, "- is not implemented for %s bytecode.Operands", typ))
+		}
+
 	case token.XOR:
 		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntXor, typ)
+
 	case token.MUL:
-		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntMul, typ)
+		switch {
+		case typeIsByte(typ):
+			cl.compileBinaryOp(dst, bytecode.OpIntMul8, e)
+		case typeIsInt(typ):
+			cl.compileBinaryOp(dst, bytecode.OpIntMul64, e)
+		default:
+			panic(cl.errorf(e, "* is not implemented for %s bytecode.Operands", typ))
+		}
+
 	case token.QUO:
 		cl.compileIntBinaryOp(dst, e, bytecode.OpIntDiv, typ)
 
@@ -482,8 +501,8 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 		// Check that it's not a f(g()) call, where g() returns
 		// a multi-value result; we can't compile that yet.
 		if call, ok := args[0].(*ast.CallExpr); ok {
-			results := cl.ctx.Types.TypeOf(call.Fun).(*types.Signature).Results()
-			if results != nil && results.Len() > 1 {
+			sig, ok := cl.ctx.Types.TypeOf(call.Fun).(*types.Signature)
+			if ok && sig.Results() != nil && sig.Results().Len() > 1 {
 				panic(cl.errorf(args[0], "can't pass tuple as a func argument"))
 			}
 		}

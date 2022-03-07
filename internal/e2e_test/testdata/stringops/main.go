@@ -5,11 +5,11 @@ package main
 //   LoadStrConst out = ""
 //   Len tmp0 = s
 //   LoadScalarConst tmp1 = 1
-//   IntSub i = tmp0 tmp1
+//   IntSub64 i = tmp0 tmp1
 //   Jump L0
 // L1:
 //   LoadScalarConst tmp2 = 1
-//   IntAdd tmp1 = i tmp2
+//   IntAdd64 tmp1 = i tmp2
 //   StrSlice tmp0 = s i tmp1
 //   Concat out = out tmp0
 //   IntDec i

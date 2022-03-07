@@ -64,7 +64,7 @@ func streq(s1, s2 string) bool {
 //   Jump L0
 // L1:
 //   LoadScalarConst tmp0 = 16777619
-//   IntMul v = v tmp0
+//   IntMul64 v = v tmp0
 //   StrIndex tmp1 = s i
 //   Move tmp0 = tmp1
 //   IntXor v = v tmp0
@@ -137,12 +137,12 @@ func isNumericString(s string) bool {
 //   Jump L2
 // L3:
 //   LoadScalarConst tmp1 = 10
-//   IntMul tmp0 = result tmp1
+//   IntMul64 tmp0 = result tmp1
 //   StrIndex tmp4 = s i
 //   LoadScalarConst tmp5 = 48
-//   IntSub tmp3 = tmp4 tmp5
+//   IntSub8 tmp3 = tmp4 tmp5
 //   Move tmp2 = tmp3
-//   IntAdd result = tmp0 tmp2
+//   IntAdd64 result = tmp0 tmp2
 //   IntInc i
 // L2:
 //   Len tmp1 = s
@@ -175,12 +175,12 @@ func isNumericString(s string) bool {
 //   Jump L2
 // L3:
 //   LoadScalarConst tmp1 = 10
-//   IntMul tmp0 = result tmp1
+//   IntMul64 tmp0 = result tmp1
 //   StrIndex tmp4 = s i
 //   LoadScalarConst tmp5 = 48
-//   IntSub tmp3 = tmp4 tmp5
+//   IntSub8 tmp3 = tmp4 tmp5
 //   Move tmp2 = tmp3
-//   IntAdd result = tmp0 tmp2
+//   IntAdd64 result = tmp0 tmp2
 //   IntInc i
 // L2:
 //   Len tmp1 = s
@@ -263,10 +263,10 @@ func hasPrefix(s, prefix string) bool {
 //   ReturnScalar tmp0
 // L0:
 //   LoadScalarConst tmp3 = 1
-//   IntSub tmp2 = x tmp3
+//   IntSub64 tmp2 = x tmp3
 //   Move arg0 = tmp2
 //   CallRecur tmp1
-//   IntMul tmp0 = x tmp1
+//   IntMul64 tmp0 = x tmp1
 //   ReturnScalar tmp0
 func factorial(x int) int {
 	if x <= 0 {
@@ -293,9 +293,9 @@ func testFactorial() {
 //   LoadScalarConst tmp3 = 0
 //   StrIndex tmp2 = s tmp3
 //   LoadScalarConst tmp4 = 48
-//   IntSub tmp1 = tmp2 tmp4
+//   IntSub8 tmp1 = tmp2 tmp4
 //   Move tmp0 = tmp1
-//   IntAdd sum = sum tmp0
+//   IntAdd64 sum = sum tmp0
 //   IntInc i
 // L0:
 //   Len tmp1 = s
