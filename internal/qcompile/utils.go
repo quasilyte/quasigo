@@ -90,13 +90,13 @@ func typeIsInt(typ types.Type) bool {
 	}
 }
 
-func typeIsPointer(typ types.Type) bool {
-	_, ok := typ.Underlying().(*types.Pointer)
+func typeIsInterface(typ types.Type) bool {
+	_, ok := typ.Underlying().(*types.Interface)
 	return ok
 }
 
-func typeIsInterface(typ types.Type) bool {
-	_, ok := typ.Underlying().(*types.Interface)
+func typeIsSlice(typ types.Type) bool {
+	_, ok := typ.Underlying().(*types.Slice)
 	return ok
 }
 

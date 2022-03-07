@@ -7,6 +7,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"runtime"
 
 	"github.com/quasilyte/quasigo"
 )
@@ -64,6 +65,7 @@ func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *Parse
 			Env:      env,
 			Package:  parsed.Pkg,
 			Types:    parsed.Types,
+			Sizes:    types.SizesFor("gc", runtime.GOARCH),
 			Fset:     parsed.Fset,
 			Optimize: opt,
 		}
@@ -100,6 +102,7 @@ func CompileTestFunc(env *quasigo.Env, fn string, parsed *ParsedTestFile) (quasi
 		Env:     env,
 		Package: parsed.Pkg,
 		Types:   parsed.Types,
+		Sizes:   types.SizesFor("gc", runtime.GOOS),
 		Fset:    parsed.Fset,
 	}
 	return quasigo.Compile(ctx, target)

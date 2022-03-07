@@ -304,21 +304,12 @@ func (cl *compiler) isSupportedType(typ types.Type) bool {
 		// 3. Interfaces are supported.
 		return true
 
+	case *types.Slice:
+		// 4. Slices are supported as long as their elem type is supported.
+		return cl.isSupportedType(typ.Elem())
+
 	default:
 		return false
-	}
-}
-
-func (cl *compiler) opMoveByType(e ast.Expr, typ types.Type) bytecode.Op {
-	switch {
-	case typeIsScalar(typ):
-		return bytecode.OpMoveScalar
-	case typeIsString(typ):
-		return bytecode.OpMoveStr
-	case typeIsInterface(typ) || typeIsPointer(typ):
-		return bytecode.OpMoveInterface
-	default:
-		panic(cl.errorf(e, "can't move %s typed value yet", typ.String()))
 	}
 }
 

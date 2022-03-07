@@ -64,10 +64,8 @@ func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 			op = bytecode.OpReturnScalar
 		case typeIsString(typ):
 			op = bytecode.OpReturnStr
-		case typeIsInterface(typ) || typeIsPointer(typ):
-			op = bytecode.OpReturnInterface
 		default:
-			panic(cl.errorf(ret, "can't return %s typed value yet", typ.String()))
+			op = bytecode.OpReturn
 		}
 		slot := cl.compileRootTempExpr(ret.Results[0])
 		cl.emit1(op, slot)
@@ -105,9 +103,38 @@ func (cl *compiler) compileAssignOp(op bytecode.Op, assign *ast.AssignStmt) {
 	cl.emit3(op, dstslot, dstslot, rhsslot)
 }
 
+func (cl *compiler) compileAssignIndex(e *ast.IndexExpr, assign *ast.AssignStmt) {
+	if len(assign.Lhs) != 1 {
+		panic(cl.errorf(assign, "only single lhs operand is allowed in index assignments"))
+	}
+	if assign.Tok != token.ASSIGN {
+		panic(cl.errorf(assign, "only = index assignments are supported"))
+	}
+	typ := cl.ctx.Types.TypeOf(e.X)
+	if !typeIsSlice(typ) {
+		panic(cl.errorf(assign, "only slices support index assignments"))
+	}
+	elemType := typ.Underlying().(*types.Slice).Elem()
+	var op bytecode.Op
+	switch {
+	case typeIsInt(elemType):
+		op = bytecode.OpSliceSetScalar64
+	case typeIsBool(elemType), typeIsByte(elemType):
+		op = bytecode.OpSliceSetScalar8
+	}
+	valueslot := cl.compileTempExpr(assign.Rhs[0])
+	xslot := cl.compileTempExpr(e.X)
+	indexslot := cl.compileTempExpr(e.Index)
+	cl.emit3(op, xslot, indexslot, valueslot)
+}
+
 func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 	if len(assign.Rhs) != 1 {
 		panic(cl.errorf(assign, "only single right operand is allowed in assignments"))
+	}
+	if indexing, ok := assign.Lhs[0].(*ast.IndexExpr); ok {
+		cl.compileAssignIndex(indexing, assign)
+		return
 	}
 	for _, lhs := range assign.Lhs {
 		_, ok := lhs.(*ast.Ident)

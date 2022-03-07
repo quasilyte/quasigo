@@ -16,6 +16,7 @@ type Context struct {
 
 	Package *types.Package
 	Types   *types.Info
+	Sizes   types.Sizes
 	Fset    *token.FileSet
 }
 

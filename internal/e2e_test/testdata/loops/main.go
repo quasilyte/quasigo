@@ -7,7 +7,7 @@ const one int = 1
 //   LoadScalarConst i = 0
 //   Jump L0
 // L1:
-//   MoveScalar arg0 = i
+//   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   IntInc i
 // L0:
@@ -29,14 +29,14 @@ func cstyle1() {
 //   LoadScalarConst i = 0
 //   Jump L0
 // L1:
-//   MoveScalar arg0 = i
+//   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   IntInc i
 // L0:
 //   LoadScalarConst tmp1 = 3
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L1 tmp0
-//   MoveScalar arg0 = i
+//   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
 func cstyle2() {
@@ -52,7 +52,7 @@ func cstyle2() {
 //   LoadScalarConst i = 0
 //   Jump L0
 // L3:
-//   MoveScalar arg0 = i
+//   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   IntGt tmp0 = i tmp1
@@ -83,7 +83,7 @@ func cstyle3() {
 //   LoadScalarConst i = 10
 //   Jump L0
 // L3:
-//   MoveScalar arg0 = i
+//   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   IntLtEq tmp0 = i tmp1
@@ -114,7 +114,7 @@ func cstyle4() {
 // main.cstyle5 code=35 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
 //   LoadScalarConst i = 10
 // L2:
-//   MoveScalar arg0 = i
+//   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   IntLtEq tmp0 = i tmp1
@@ -142,7 +142,7 @@ func cstyle5() {
 // main.cstyle6 code=35 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
 //   LoadScalarConst i = 10
 // L2:
-//   MoveScalar arg0 = i
+//   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   IntLtEq tmp0 = i tmp1
@@ -170,7 +170,7 @@ func cstyle6() {
 //   LoadScalarConst i = 0
 // L2:
 //   IntInc i
-//   MoveScalar arg0 = i
+//   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst tmp1 = 5
 //   ScalarEq tmp0 = i tmp1

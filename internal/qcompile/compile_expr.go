@@ -5,6 +5,7 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
+	"strconv"
 
 	"github.com/quasilyte/quasigo/internal/goutil"
 	"github.com/quasilyte/quasigo/internal/ir"
@@ -48,6 +49,9 @@ func (cl *compiler) CompileExpr(dst ir.Slot, e ast.Expr) {
 	switch e := e.(type) {
 	case *ast.ParenExpr:
 		cl.CompileExpr(dst, e.X)
+
+	case *ast.BasicLit:
+		cl.compileBasicLit(dst, e)
 
 	case *ast.Ident:
 		cl.compileIdent(dst, e)
@@ -220,12 +224,26 @@ func (cl *compiler) compileSliceExpr(dst ir.Slot, slice *ast.SliceExpr) {
 }
 
 func (cl *compiler) compileIndexExpr(dst ir.Slot, e *ast.IndexExpr) {
-	if !typeIsString(cl.ctx.Types.TypeOf(e.X)) {
-		panic(cl.errorf(e.X, "can't compile indexing of something that is not a string"))
-	}
-	strslot := cl.compileTempExpr(e.X)
+	typ := cl.ctx.Types.TypeOf(e.X)
+	xslot := cl.compileTempExpr(e.X)
 	indexslot := cl.compileTempExpr(e.Index)
-	cl.emit3(bytecode.OpStrIndex, dst, strslot, indexslot)
+	var op bytecode.Op
+	switch {
+	case typeIsString(typ):
+		op = bytecode.OpStrIndex
+	case typeIsSlice(typ):
+		elemType := typ.Underlying().(*types.Slice).Elem()
+		switch {
+		case typeIsInt(elemType):
+			op = bytecode.OpSliceIndexScalar64
+		case typeIsBool(elemType), typeIsByte(elemType):
+			op = bytecode.OpSliceIndexScalar8
+		}
+	}
+	if op == bytecode.OpInvalid {
+		panic(cl.errorf(e.X, "can't compile indexing of %s", typ))
+	}
+	cl.emit3(op, dst, xslot, indexslot)
 }
 
 func (cl *compiler) compileSelectorExpr(dst ir.Slot, e *ast.SelectorExpr) {
@@ -254,10 +272,25 @@ func (cl *compiler) compileIntConv(dst ir.Slot, call *ast.CallExpr) {
 	typ := cl.ctx.Types.TypeOf(x)
 	if typeIsInt(typ) || typeIsByte(typ) {
 		xslot := cl.compileTempExpr(x)
-		cl.emit2(cl.opMoveByType(x, typ), dst, xslot)
+		cl.emit2(bytecode.OpMove, dst, xslot)
 		return
 	}
 	panic(cl.errorf(call.Args[0], "can't convert %s to int", typ))
+}
+
+func (cl *compiler) compileByteConv(dst ir.Slot, call *ast.CallExpr) {
+	x := call.Args[0]
+	typ := cl.ctx.Types.TypeOf(x)
+	switch {
+	case typeIsByte(typ):
+		xslot := cl.compileTempExpr(x)
+		cl.emit2(bytecode.OpMove, dst, xslot)
+	case typeIsInt(typ):
+		xslot := cl.compileTempExpr(x)
+		cl.emit2(bytecode.OpMove8, dst, xslot)
+	default:
+		panic(cl.errorf(call.Args[0], "can't convert %s to byte", typ))
+	}
 }
 
 func (cl *compiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
@@ -272,6 +305,9 @@ func (cl *compiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
 		switch id.Name {
 		case "int":
 			cl.compileIntConv(dst, call)
+			return
+		case "byte":
+			cl.compileByteConv(dst, call)
 			return
 		}
 	}
@@ -323,13 +359,17 @@ func (cl *compiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
 
 func (cl *compiler) compileBuiltinCall(dst ir.Slot, fn *ast.Ident, call *ast.CallExpr) {
 	switch fn.Name {
+	case `make`:
+		cl.compileMakeCall(dst, call)
+	case `append`:
+		cl.compileAppendCall(dst, call)
+
 	case `len`:
-		s := call.Args[0]
-		srcslot := cl.compileTempExpr(s)
-		if !typeIsString(cl.ctx.Types.TypeOf(s)) {
-			panic(cl.errorf(s, "can't compile len() with non-string argument yet"))
-		}
-		cl.emit2(bytecode.OpStrLen, dst, srcslot)
+		srcslot := cl.compileTempExpr(call.Args[0])
+		cl.emit2(bytecode.OpLen, dst, srcslot)
+	case `cap`:
+		srcslot := cl.compileTempExpr(call.Args[0])
+		cl.emit2(bytecode.OpCap, dst, srcslot)
 
 	case `println`:
 		if len(call.Args) != 1 {
@@ -357,6 +397,62 @@ func (cl *compiler) compileBuiltinCall(dst ir.Slot, fn *ast.Ident, call *ast.Cal
 
 	default:
 		panic(cl.errorf(fn, "can't compile %s() builtin function call yet", fn))
+	}
+}
+
+func (cl *compiler) compileAppendCall(dst ir.Slot, call *ast.CallExpr) {
+	sliceType := cl.ctx.Types.TypeOf(call).Underlying().(*types.Slice)
+	if !typeIsScalar(sliceType.Elem()) {
+		panic(cl.errorf(call.Args[0], "can't append() to a slice with non-scalar elems yet"))
+	}
+	if len(call.Args) != 2 {
+		panic(cl.errorf(call.Args[0], "can only compile the 2-arguments form of append()"))
+	}
+	var funcName string
+	switch cl.ctx.Sizes.Sizeof(sliceType.Elem()) {
+	case 1:
+		funcName = "append8"
+	case 8:
+		funcName = "append64"
+	default:
+		panic(cl.errorf(call.Args[0], "can't append to a slice with elem type %s", sliceType.Elem()))
+	}
+	cl.compileCallArgs(nil, call.Args, nil)
+	key := qruntime.FuncKey{Qualifier: "builtin", Name: funcName}
+	if !cl.compileNativeCall(dst, key) {
+		panic(cl.errorf(call.Fun, "builtin.%s native func is not registered", funcName))
+	}
+}
+
+func (cl *compiler) compileMakeCall(dst ir.Slot, call *ast.CallExpr) {
+	sliceType, ok := cl.ctx.Types.TypeOf(call).Underlying().(*types.Slice)
+	if !ok {
+		panic(cl.errorf(call.Args[0], "can't make() a non-slice type yet"))
+	}
+	var funcName string
+	if !typeIsScalar(sliceType.Elem()) {
+		panic(cl.errorf(call.Args[0], "can't make() a slice with non-scalar elems yet"))
+	}
+	funcName = "makeSlice"
+
+	elemSize := cl.ctx.Sizes.Sizeof(sliceType.Elem())
+
+	var args []ast.Expr
+	elemSizeArg := &ast.BasicLit{
+		Kind:     token.INT,
+		Value:    strconv.FormatInt(elemSize, 10),
+		ValuePos: call.Args[1].Pos(),
+	}
+	if len(call.Args) == 2 {
+		args = []ast.Expr{elemSizeArg, call.Args[1], call.Args[1]}
+	} else {
+		args = []ast.Expr{elemSizeArg, call.Args[1], call.Args[2]}
+
+	}
+	cl.compileCallArgs(nil, args, nil)
+	key := qruntime.FuncKey{Qualifier: "builtin", Name: funcName}
+	if !cl.compileNativeCall(dst, key) {
+		panic(cl.errorf(call.Fun, "builtin.%s native func is not registered", funcName))
 	}
 }
 
@@ -432,9 +528,7 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 		// Move temporaries to args.
 		for i, slot := range tempSlots {
 			argslot := ir.NewCallArgSlot(uint8(i))
-			arg := args[i]
-			moveOp := cl.opMoveByType(arg, cl.ctx.Types.TypeOf(arg))
-			cl.emit2(moveOp, argslot, slot)
+			cl.emit2(bytecode.OpMove, argslot, slot)
 		}
 	} else {
 		// Can move args directly to their slots.
@@ -473,6 +567,21 @@ func (cl *compiler) compileCall(dst ir.Slot, key qruntime.FuncKey) bool {
 	return true
 }
 
+func (cl *compiler) compileBasicLit(dst ir.Slot, lit *ast.BasicLit) {
+	switch lit.Kind {
+	case token.INT:
+		v, err := strconv.ParseInt(lit.Value, 0, 64)
+		if err != nil {
+			panic(cl.errorf(lit, "invalid int value literal"))
+		}
+		cl.compileConstantValue(dst, lit, constant.MakeInt64(v))
+
+	default:
+		panic(cl.errorf(lit, "unexpected basic lit %v", lit.Kind))
+	}
+
+}
+
 func (cl *compiler) compileIdent(dst ir.Slot, ident *ast.Ident) {
 	tv := cl.ctx.Types.Types[ident]
 	cv := tv.Value
@@ -482,11 +591,11 @@ func (cl *compiler) compileIdent(dst ir.Slot, ident *ast.Ident) {
 	}
 
 	if p, ok := cl.params[ident.String()]; ok {
-		cl.emit2(cl.opMoveByType(ident, p.v.Type()), dst, p.i)
+		cl.emit2(bytecode.OpMove, dst, p.i)
 		return
 	}
 	if l, ok := cl.locals[ident.String()]; ok {
-		cl.emit2(cl.opMoveByType(ident, l.v.Type()), dst, l.i)
+		cl.emit2(bytecode.OpMove, dst, l.i)
 		return
 	}
 

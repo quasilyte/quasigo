@@ -3,7 +3,7 @@ package main
 //test:disasm_both
 // main.reverse code=47 frame=144 (6 slots: 1 args, 2 locals, 3 temps)
 //   LoadStrConst out = ""
-//   StrLen tmp0 = s
+//   Len tmp0 = s
 //   LoadScalarConst tmp1 = 1
 //   IntSub i = tmp0 tmp1
 //   Jump L0
