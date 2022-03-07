@@ -98,7 +98,7 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 func (cl *compiler) compileAssignOp(op bytecode.Op, assign *ast.AssignStmt) {
 	lhs := assign.Lhs[0].(*ast.Ident)
 	rhs := assign.Rhs[0]
-	dstslot := cl.getLocal(lhs, lhs.Name)
+	dstslot := cl.getNamedSlot(lhs, lhs.Name)
 	rhsslot := cl.compileRootTempExpr(rhs)
 	cl.emit3(op, dstslot, dstslot, rhsslot)
 }
@@ -181,11 +181,11 @@ func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 
 	dst1 := assign.Lhs[0].(*ast.Ident)
 	rhs := assign.Rhs[0]
-	lhs1slot := cl.getLocal(dst1, dst1.Name)
+	lhs1slot := cl.getNamedSlot(dst1, dst1.Name)
 	cl.compileRootExpr(lhs1slot, rhs)
 	if len(assign.Lhs) == 2 {
 		dst2 := assign.Lhs[1].(*ast.Ident)
-		lhs2slot := cl.getLocal(dst2, dst2.Name)
+		lhs2slot := cl.getNamedSlot(dst2, dst2.Name)
 		cl.emit1(bytecode.OpMoveResult2, lhs2slot)
 	}
 }
@@ -195,7 +195,7 @@ func (cl *compiler) compileIncDecStmt(stmt *ast.IncDecStmt) {
 	if !ok {
 		panic(cl.errorf(stmt.X, "can assign only to simple variables"))
 	}
-	dst := cl.getLocal(varname, varname.String())
+	dst := cl.getNamedSlot(varname, varname.String())
 	if stmt.Tok == token.INC {
 		cl.emit1(bytecode.OpIntInc, dst)
 	} else {

@@ -171,25 +171,24 @@ func intSliceAppend(xs []int, value int) []int {
 }
 
 //test:disasm_both
-// main.byteSliceAppend code=12 frame=72 (3 slots: 2 args, 1 locals, 0 temps)
+// main.byteSliceAppend code=12 frame=48 (2 slots: 2 args, 0 locals, 0 temps)
 //   Move arg0 = xs
 //   Move arg1 = value
-//   CallNative out = builtin.append8()
-//   Return out
+//   CallNative xs = builtin.append8()
+//   Return xs
 func byteSliceAppend(xs []byte, value byte) []byte {
-	out := append(xs, value)
-	return out
+	xs = append(xs, value)
+	return xs
 }
 
 //test:disasm_both
-// main.boolSliceAppend code=12 frame=72 (3 slots: 2 args, 1 locals, 0 temps)
+// main.boolSliceAppend code=12 frame=72 (3 slots: 2 args, 0 locals, 1 temps)
 //   Move arg0 = xs
 //   Move arg1 = value
-//   CallNative out = builtin.append8()
-//   Return out
+//   CallNative tmp0 = builtin.append8()
+//   Return tmp0
 func boolSliceAppend(xs []bool, value bool) []bool {
-	out := append(xs, value)
-	return out
+	return append(xs, value)
 }
 
 func testIntSlice() {

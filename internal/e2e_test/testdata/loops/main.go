@@ -139,7 +139,8 @@ func cstyle5() {
 }
 
 //test:disasm_both
-// main.cstyle6 code=35 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
+// main.cstyle6 code=37 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
+//   IntDec n
 //   LoadScalarConst i = 10
 // L2:
 //   Move arg0 = i
@@ -155,7 +156,8 @@ func cstyle5() {
 //   Jump L2
 // L1:
 //   ReturnVoid
-func cstyle6() {
+func cstyle6(n int) {
+	n--
 	for i := 10; ; i-- {
 		println(i)
 		if i <= 5 {
@@ -218,6 +220,6 @@ func main() {
 	cstyle3()
 	cstyle4()
 	cstyle5()
-	cstyle6()
+	cstyle6(15)
 	cstyle7()
 }
