@@ -344,20 +344,14 @@ func (cl *compiler) internStrConstant(s string) int {
 	return id
 }
 
-func (cl *compiler) isParamName(varname string) bool {
-	_, ok := cl.params[varname]
-	return ok
-}
-
-func (cl *compiler) getLocal(v ast.Expr, varname string) ir.Slot {
-	slot, ok := cl.locals[varname]
-	if !ok {
-		if cl.isParamName(varname) {
-			panic(cl.errorf(v, "can't assign to %s, params are readonly", varname))
-		}
-		panic(cl.errorf(v, "%s is not a writeable local variable", varname))
+func (cl *compiler) getNamedSlot(v ast.Expr, varname string) ir.Slot {
+	if p, ok := cl.params[varname]; ok {
+		return p.i
 	}
-	return slot.i
+	if l, ok := cl.locals[varname]; ok {
+		return l.i
+	}
+	panic(cl.errorf(v, "%s is not a writeable local variable", varname))
 }
 
 func (cl *compiler) freeTmp() {
