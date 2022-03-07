@@ -5,6 +5,12 @@ import (
 	"github.com/quasilyte/quasigo/internal/ir"
 )
 
+// TODO:
+//   Len tmp0 = xs
+//   Move arg0 = tmp0
+// =>
+//   Len arg0 = xs
+
 func Func(fn *ir.Func) {
 	opt := optimizer{fn: fn}
 	opt.Optimize()
@@ -256,7 +262,7 @@ func (opt *optimizer) injectConstants(block []ir.Inst) bool {
 				continue
 			}
 			j := tracked.GetValue(key)
-			if block[j].Op == bytecode.OpMoveStr {
+			if block[j].Op == bytecode.OpMove {
 				block[j].Op = bytecode.OpLoadStrConst
 				block[j].Arg1 = inst.Arg1
 				block[i].Op = bytecode.OpInvalid
@@ -275,7 +281,7 @@ func (opt *optimizer) injectConstants(block []ir.Inst) bool {
 				continue
 			}
 			j := tracked.GetValue(key)
-			if block[j].Op == bytecode.OpMoveScalar {
+			if block[j].Op == bytecode.OpMove {
 				block[j].Op = bytecode.OpLoadScalarConst
 				block[j].Arg1 = inst.Arg1
 				block[i].Op = bytecode.OpInvalid
@@ -284,7 +290,7 @@ func (opt *optimizer) injectConstants(block []ir.Inst) bool {
 			tracked.RemoveAt(key)
 			storeHandled = true
 
-		case bytecode.OpMoveScalar, bytecode.OpMoveStr:
+		case bytecode.OpMove:
 			dstslot := inst.Arg0.ToSlot()
 			if dstslot.IsUniq() {
 				break // handled below

@@ -46,6 +46,13 @@ var benchmarksNoAlloc = []*benchTestCase{
 	},
 
 	{
+		name:   `IntSliceIndex`,
+		src:    `xs[0] = 10; return xs[0]`,
+		params: `xs []int`,
+		args:   []interface{}{[]int{0}},
+	},
+
+	{
 		name: `LocalVars`,
 		src:  `x := 1; y := x; return y`,
 	},

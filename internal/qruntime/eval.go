@@ -26,33 +26,60 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			getslot(slotptr, dstslot).Scalar = fn.ScalarConstants[constindex]
 			pc += 3
 
-		case bytecode.OpMoveStr:
+		case bytecode.OpMove:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).SetString(getslot(slotptr, srcslot).String())
+			*getslot(slotptr, dstslot) = *getslot(slotptr, srcslot)
 			pc += 3
-		case bytecode.OpMoveScalar:
+		case bytecode.OpMove8:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).Scalar = getslot(slotptr, srcslot).Scalar
-			pc += 3
-		case bytecode.OpMoveInterface:
-			dstslot, srcslot := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).MoveInterface(getslot(slotptr, srcslot))
+			getslot(slotptr, dstslot).SetByte(getslot(slotptr, srcslot).Byte())
 			pc += 3
 		case bytecode.OpMoveResult2:
 			dstslot := unpack8(codeptr, pc+1)
 			*getslot(slotptr, dstslot) = env.result2
 			pc += 2
 
-		case bytecode.OpStrLen:
+		case bytecode.OpLen:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
-			getslot(slotptr, dstslot).Scalar = uint64(len(getslot(slotptr, srcslot).String()))
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, srcslot).Scalar
 			pc += 3
+		case bytecode.OpCap:
+			dstslot, srcslot := unpack8x2(codeptr, pc+1)
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, srcslot).Scalar2
+			pc += 3
+
 		case bytecode.OpStrIndex:
 			dstslot, strslot, indexslot := unpack8x3(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()
 			index := getslot(slotptr, indexslot).Int()
 			getslot(slotptr, dstslot).SetByte(str[index])
 			pc += 4
+		case bytecode.OpSliceIndexScalar8:
+			dstslot, sliceslot, indexslot := unpack8x3(codeptr, pc+1)
+			slice := getslot(slotptr, sliceslot).ByteSlice()
+			index := getslot(slotptr, indexslot).Int()
+			getslot(slotptr, dstslot).SetByte(slice[index])
+			pc += 4
+		case bytecode.OpSliceIndexScalar64:
+			dstslot, sliceslot, indexslot := unpack8x3(codeptr, pc+1)
+			slice := getslot(slotptr, sliceslot).slice64()
+			index := getslot(slotptr, indexslot).Int()
+			getslot(slotptr, dstslot).Scalar = slice[index]
+			pc += 4
+
+		case bytecode.OpSliceSetScalar8:
+			sliceslot, indexslot, valueslot := unpack8x3(codeptr, pc+1)
+			slice := getslot(slotptr, sliceslot).ByteSlice()
+			index := getslot(slotptr, indexslot).Int()
+			slice[index] = byte(getslot(slotptr, valueslot).Scalar)
+			pc += 4
+		case bytecode.OpSliceSetScalar64:
+			sliceslot, indexslot, valueslot := unpack8x3(codeptr, pc+1)
+			slice := getslot(slotptr, sliceslot).slice64()
+			index := getslot(slotptr, indexslot).Int()
+			slice[index] = getslot(slotptr, valueslot).Scalar
+			pc += 4
+
 		case bytecode.OpStrSliceFrom:
 			dstslot, strslot, fromslot := unpack8x3(codeptr, pc+1)
 			str := getslot(slotptr, strslot).String()
@@ -277,7 +304,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			srcslot := unpack8(codeptr, pc+1)
 			env.result.Scalar = getslot(slotptr, srcslot).Scalar
 			return
-		case bytecode.OpReturnInterface:
+		case bytecode.OpReturn:
 			srcslot := unpack8(codeptr, pc+1)
 			env.result = *getslot(slotptr, srcslot)
 			return

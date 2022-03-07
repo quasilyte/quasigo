@@ -37,6 +37,10 @@ func InitEnv(env *Env) {
 	env.NameToNativeFuncID = make(map[FuncKey]uint16)
 	env.NameToFuncID = make(map[FuncKey]uint16)
 	env.Debug = NewDebugInfo()
+
+	env.AddNativeFunc("builtin", "makeSlice", nativeMakeSlice)
+	env.AddNativeFunc("builtin", "append8", nativeAppend8)
+	env.AddNativeFunc("builtin", "append64", nativeAppend64)
 }
 
 func InitEvalEnv(env *Env, ee *EvalEnv, stackSize int) {

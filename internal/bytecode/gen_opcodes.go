@@ -17,9 +17,8 @@ var opcodePrototypes = []opcodeProto{
 	{"LoadScalarConst", "op dst:wslot value:scalarindex"},
 	{"LoadStrConst", "op dst:wslot value:strindex"},
 
-	{"MoveScalar", "op dst:wslot src:rslot"},
-	{"MoveStr", "op dst:wslot src:rslot"},
-	{"MoveInterface", "op dst:wslot src:rslot"},
+	{"Move", "op dst:wslot src:rslot"},
+	{"Move8", "op dst:wslot src:rslot"},
 	{"MoveResult2", "op dst:wslot"},
 
 	{"Not", "op dst:wslot x:rslot"},
@@ -28,12 +27,19 @@ var opcodePrototypes = []opcodeProto{
 	{"IsNilInterface", "op dst:wslot x:rslot"},
 	{"IsNotNilInterface", "op dst:wslot x:rslot"},
 
-	{"StrLen", "op dst:wslot str:rslot"},
+	{"Len", "op dst:wslot str:rslot"},
+	{"Cap", "op dst:wslot str:rslot"},
+
 	{"StrSlice", "op dst:wslot str:rslot from:rslot to:rslot"},
 	{"StrSliceFrom", "op dst:wslot str:rslot from:rslot"},
 	{"StrSliceTo", "op dst:wslot str:rslot to:rslot"},
 
 	{"StrIndex", "op dst:wslot str:rslot index:rslot"},
+	{"SliceIndexScalar8", "op dst:wslot slice:rslot index:rslot"},
+	{"SliceIndexScalar64", "op dst:wslot slice:rslot index:rslot"},
+
+	{"SliceSetScalar8", "op slice:rslot index:rslot value:rslot"},
+	{"SliceSetScalar64", "op slice:rslot index:rslot value:rslot"},
 
 	{"Concat", "op dst:wslot s1:rslot s2:rslot"},
 
@@ -80,7 +86,7 @@ var opcodePrototypes = []opcodeProto{
 	{"ReturnTrue", "op"},
 	{"ReturnStr", "op x:rslot"},
 	{"ReturnScalar", "op x:rslot"},
-	{"ReturnInterface", "op x:rslot"},
+	{"Return", "op x:rslot"},
 }
 
 type opcodeProto struct {

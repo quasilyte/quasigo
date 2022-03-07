@@ -38,5 +38,8 @@ func (ncc NativeCallContext) SetBoolResult2(v bool) { ncc.env.result2.SetBool(v)
 func (ncc NativeCallContext) SetStringResult(v string)  { ncc.env.result.SetString(v) }
 func (ncc NativeCallContext) SetStringResult2(v string) { ncc.env.result2.SetString(v) }
 
+func (ncc NativeCallContext) SetByteSliceResult(v []byte)  { ncc.env.result.SetByteSlice(v) }
+func (ncc NativeCallContext) SetByteSliceResult2(v []byte) { ncc.env.result2.SetByteSlice(v) }
+
 func (ncc NativeCallContext) SetInterfaceResult(v interface{})  { ncc.env.result.SetInterface(v) }
 func (ncc NativeCallContext) SetInterfaceResult2(v interface{}) { ncc.env.result2.SetInterface(v) }

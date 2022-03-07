@@ -17,6 +17,12 @@ type goString struct {
 	len  int
 }
 
+type goSlice struct {
+	data unsafe.Pointer
+	len  int
+	cap  int
+}
+
 type Slot struct {
 	// TODO: make fields unexported, adjust the user code as needed.
 	Ptr     unsafe.Pointer
@@ -71,6 +77,28 @@ func (slot *Slot) SetString(v string) {
 
 func (slot Slot) String() string {
 	return *(*string)(unsafe.Pointer(&slot))
+}
+
+func (slot Slot) slice64() []uint64 {
+	return *(*[]uint64)(unsafe.Pointer(&slot))
+}
+
+func (slot *Slot) setRawSlice(s goSlice) {
+	slot.Ptr = s.data
+	slot.Scalar = uint64(s.len)
+	slot.Scalar2 = uint64(s.cap)
+}
+
+func (slot *Slot) setSlice64(v []uint64) {
+	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
+}
+
+func (slot *Slot) SetByteSlice(v []byte) {
+	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
+}
+
+func (slot Slot) ByteSlice() []byte {
+	return *(*[]byte)(unsafe.Pointer(&slot))
 }
 
 func (slot *Slot) SetInt(v int) {

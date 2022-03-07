@@ -75,6 +75,7 @@ type CompileContext struct {
 
 	Package *types.Package
 	Types   *types.Info
+	Sizes   types.Sizes
 	Fset    *token.FileSet
 
 	Optimize bool
@@ -87,6 +88,7 @@ func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
 		Optimize: ctx.Optimize,
 		Package:  ctx.Package,
 		Types:    ctx.Types,
+		Sizes:    ctx.Sizes,
 		Fset:     ctx.Fset,
 	}
 	compiler := qcompile.NewCompiler()

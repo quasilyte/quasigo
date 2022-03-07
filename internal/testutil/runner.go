@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -145,6 +146,7 @@ func (r *Runner) runMainTest(target RunnerTarget, pkg *testPackage, goResult str
 		Env:      env.handle,
 		Package:  pkg.typesPackage,
 		Types:    pkg.typesInfo,
+		Sizes:    types.SizesFor("gc", runtime.GOARCH),
 		Fset:     pkg.fset,
 		Optimize: optimize,
 	}

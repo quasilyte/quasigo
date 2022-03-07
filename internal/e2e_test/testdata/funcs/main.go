@@ -10,7 +10,7 @@ func add1(x int) int {
 	return x + 1
 }
 
-func strlen(s string) int {
+func Len(s string) int {
 	return len(s)
 }
 
@@ -24,8 +24,8 @@ func concat3(s1, s2, s3 string) string {
 
 //test:disasm_both
 // main.streq code=52 frame=144 (6 slots: 2 args, 1 locals, 3 temps)
-//   StrLen tmp1 = s1
-//   StrLen tmp2 = s2
+//   Len tmp1 = s1
+//   Len tmp2 = s2
 //   ScalarNotEq tmp0 = tmp1 tmp2
 //   JumpZero L0 tmp0
 //   ReturnFalse
@@ -41,7 +41,7 @@ func concat3(s1, s2, s3 string) string {
 // L2:
 //   IntInc i
 // L1:
-//   StrLen tmp1 = s1
+//   Len tmp1 = s1
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L3 tmp0
 //   ReturnTrue
@@ -66,11 +66,11 @@ func streq(s1, s2 string) bool {
 //   LoadScalarConst tmp0 = 16777619
 //   IntMul v = v tmp0
 //   StrIndex tmp1 = s i
-//   MoveScalar tmp0 = tmp1
+//   Move tmp0 = tmp1
 //   IntXor v = v tmp0
 //   IntInc i
 // L0:
-//   StrLen tmp1 = s
+//   Len tmp1 = s
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L1 tmp0
 //   ReturnScalar v
@@ -101,7 +101,7 @@ func fnv1(s string) int {
 // L2:
 //   IntInc i
 // L0:
-//   StrLen tmp1 = s
+//   Len tmp1 = s
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L3 tmp0
 //   ReturnTrue
@@ -116,7 +116,7 @@ func isNumericString(s string) bool {
 
 //test:disasm
 // main.atoi code=104 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
-//   StrLen tmp1 = s
+//   Len tmp1 = s
 //   LoadScalarConst tmp2 = 0
 //   ScalarEq tmp0 = tmp1 tmp2
 //   JumpZero L0 tmp0
@@ -141,11 +141,11 @@ func isNumericString(s string) bool {
 //   StrIndex tmp4 = s i
 //   LoadScalarConst tmp5 = 48
 //   IntSub tmp3 = tmp4 tmp5
-//   MoveScalar tmp2 = tmp3
+//   Move tmp2 = tmp3
 //   IntAdd result = tmp0 tmp2
 //   IntInc i
 // L2:
-//   StrLen tmp1 = s
+//   Len tmp1 = s
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L3 tmp0
 //   JumpZero L4 sign
@@ -156,7 +156,7 @@ func isNumericString(s string) bool {
 //
 //test:disasm_opt
 // main.atoi code=97 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
-//   StrLen tmp1 = s
+//   Len tmp1 = s
 //   JumpNotZero L0 tmp1
 //   LoadScalarConst tmp0 = 0
 //   ReturnScalar tmp0
@@ -179,11 +179,11 @@ func isNumericString(s string) bool {
 //   StrIndex tmp4 = s i
 //   LoadScalarConst tmp5 = 48
 //   IntSub tmp3 = tmp4 tmp5
-//   MoveScalar tmp2 = tmp3
+//   Move tmp2 = tmp3
 //   IntAdd result = tmp0 tmp2
 //   IntInc i
 // L2:
-//   StrLen tmp1 = s
+//   Len tmp1 = s
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L3 tmp0
 //   JumpZero L4 sign
@@ -225,7 +225,7 @@ func atoi(s string) int {
 // L1:
 //   IntInc i
 // L0:
-//   StrLen tmp1 = s
+//   Len tmp1 = s
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L2 tmp0
 //   ReturnScalar n
@@ -241,11 +241,11 @@ func countByte(s string, b byte) int {
 
 //test:disasm_opt
 // main.hasPrefix code=27 frame=168 (7 slots: 2 args, 0 locals, 5 temps)
-//   StrLen tmp1 = s
-//   StrLen tmp2 = prefix
+//   Len tmp1 = s
+//   Len tmp2 = prefix
 //   IntGtEq tmp0 = tmp1 tmp2
 //   JumpZero L0 tmp0
-//   StrLen tmp4 = prefix
+//   Len tmp4 = prefix
 //   StrSliceTo tmp3 = s tmp4
 //   StrEq tmp0 = tmp3 prefix
 // L0:
@@ -264,7 +264,7 @@ func hasPrefix(s, prefix string) bool {
 // L0:
 //   LoadScalarConst tmp3 = 1
 //   IntSub tmp2 = x tmp3
-//   MoveScalar arg0 = tmp2
+//   Move arg0 = tmp2
 //   CallRecur tmp1
 //   IntMul tmp0 = x tmp1
 //   ReturnScalar tmp0
@@ -294,11 +294,11 @@ func testFactorial() {
 //   StrIndex tmp2 = s tmp3
 //   LoadScalarConst tmp4 = 48
 //   IntSub tmp1 = tmp2 tmp4
-//   MoveScalar tmp0 = tmp1
+//   Move tmp0 = tmp1
 //   IntAdd sum = sum tmp0
 //   IntInc i
 // L0:
-//   StrLen tmp1 = s
+//   Len tmp1 = s
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L1 tmp0
 //   ReturnScalar sum
@@ -312,11 +312,11 @@ func charsum(s string) int {
 
 //test:disasm
 // main.substringIndex code=54 frame=168 (7 slots: 2 args, 2 locals, 3 temps)
-//   MoveStr head = s
+//   Move head = s
 //   LoadScalarConst i = 0
 //   Jump L0
 // L2:
-//   StrLen tmp2 = sub
+//   Len tmp2 = sub
 //   StrSliceTo tmp1 = head tmp2
 //   StrEq tmp0 = tmp1 sub
 //   JumpZero L1 tmp0
@@ -326,8 +326,8 @@ func charsum(s string) int {
 //   LoadScalarConst tmp0 = 1
 //   StrSliceFrom head = head tmp0
 // L0:
-//   StrLen tmp1 = head
-//   StrLen tmp2 = sub
+//   Len tmp1 = head
+//   Len tmp2 = sub
 //   IntGtEq tmp0 = tmp1 tmp2
 //   JumpNotZero L2 tmp0
 //   LoadScalarConst tmp0 = -1
@@ -433,7 +433,7 @@ func main() {
 	helloWorld()
 	println(ten())
 	println(add1(ten()))
-	println(strlen("hello"))
+	println(Len("hello"))
 	println(concat("foo", "bar"))
 	println(concat3("", "", ""))
 	println(concat3("x", "", ""))
