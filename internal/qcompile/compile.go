@@ -30,9 +30,11 @@ type compiler struct {
 
 	insideVariadic bool
 
-	locals map[string]frameSlotInfo
-	tmpSeq int
-	numTmp int
+	locals       map[string]frameSlotInfo
+	autoLocalSeq int
+	numAutoLocal int
+	tmpSeq       int
+	numTmp       int
 
 	strConstantsPool    map[string]int
 	scalarConstantsPool map[uint64]int
@@ -99,7 +101,6 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	}
 
 	cl.collectLocals(&dbg, fn.Body)
-	dbg.NumLocals = len(cl.locals)
 
 	cl.compileStmt(fn.Body)
 	if cl.retType == voidType {
@@ -109,11 +110,15 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	irFunc := ir.Func{
 		Code:            cl.code,
 		NumParams:       len(cl.params),
-		NumLocals:       len(cl.locals),
-		NumFrameSlots:   len(cl.params) + len(cl.locals) + cl.numTmp,
+		NumLocals:       len(cl.locals) + cl.numAutoLocal,
+		NumFrameSlots:   len(cl.params) + len(cl.locals) + cl.numAutoLocal + cl.numTmp,
 		StrConstants:    cl.strConstants,
 		ScalarConstants: cl.scalarConstants,
 	}
+	for i := 0; i < cl.numAutoLocal; i++ {
+		dbg.SlotNames = append(dbg.SlotNames, fmt.Sprintf("auto%d", i))
+	}
+	dbg.NumLocals = irFunc.NumLocals
 
 	if cl.ctx.Optimize {
 		qopt.Func(&irFunc)
@@ -126,6 +131,10 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	}
 	if len(code) == 0 {
 		panic(cl.errorf(fn.Name, "unexpected result: 0-sized bytecode"))
+	}
+
+	if cl.autoLocalSeq != 0 {
+		panic("internal error: leaking auto locals?")
 	}
 
 	compiled := &qruntime.Func{
@@ -365,6 +374,15 @@ func (cl *compiler) allocTmp() ir.Slot {
 		cl.numTmp = cl.tmpSeq
 	}
 	return ir.NewUniqSlot(uint8(id))
+}
+
+func (cl *compiler) allocAutoLocal() ir.Slot {
+	id := cl.autoLocalSeq + len(cl.locals)
+	cl.autoLocalSeq++
+	if cl.numAutoLocal < cl.autoLocalSeq {
+		cl.numAutoLocal = cl.autoLocalSeq
+	}
+	return ir.NewLocalSlot(uint8(id))
 }
 
 func (cl *compiler) isSimpleExpr(e ast.Expr) bool {

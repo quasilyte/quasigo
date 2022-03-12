@@ -136,11 +136,25 @@ func (cl *compiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 		}
 
 	case token.GTR:
-		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntGt, typ)
+		switch {
+		case typeIsByte(typ) || typeIsInt(typ):
+			cl.compileBinaryOp(dst, bytecode.OpIntGt, e)
+		case typeIsString(typ):
+			cl.compileBinaryOp(dst, bytecode.OpStrGt, e)
+		default:
+			panic(cl.errorf(e, "> is not implemented for %s bytecode.Operands", typ))
+		}
+	case token.LSS:
+		switch {
+		case typeIsByte(typ) || typeIsInt(typ):
+			cl.compileBinaryOp(dst, bytecode.OpIntLt, e)
+		case typeIsString(typ):
+			cl.compileBinaryOp(dst, bytecode.OpStrLt, e)
+		default:
+			panic(cl.errorf(e, "< is not implemented for %s bytecode.Operands", typ))
+		}
 	case token.GEQ:
 		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntGtEq, typ)
-	case token.LSS:
-		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntLt, typ)
 	case token.LEQ:
 		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntLtEq, typ)
 
