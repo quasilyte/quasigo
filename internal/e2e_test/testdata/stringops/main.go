@@ -167,7 +167,25 @@ func testIsIdent() {
 	println(isIdent("IDENT2_"))
 }
 
+func testBasicOps() {
+	s1 := "hello"
+	s2 := "world"
+	println(s1 < s2)
+	println(s1 > s2)
+	println(s2 < s1)
+	println(s2 > s1)
+	println(s1 < "")
+	println(s1 > "")
+	println(s2 < "")
+	println(s2 > "")
+	println(s1 < "OK")
+	println(s1 > "OK")
+	println(s2 < "OK")
+	println(s2 > "OK")
+}
+
 func main() {
+	testBasicOps()
 	testindex()
 	testReverse()
 	testIsPalindrome()

@@ -11,9 +11,10 @@ import (
 func (cl *compiler) compileStmt(stmt ast.Stmt) {
 	switch stmt := stmt.(type) {
 	case *ast.BlockStmt:
-		for i := range stmt.List {
-			cl.compileStmt(stmt.List[i])
-		}
+		cl.compileStmtList(stmt.List)
+
+	case *ast.SwitchStmt:
+		cl.compileSwitchStmt(stmt)
 
 	case *ast.ReturnStmt:
 		cl.compileReturnStmt(stmt)
@@ -38,6 +39,12 @@ func (cl *compiler) compileStmt(stmt ast.Stmt) {
 
 	default:
 		panic(cl.errorf(stmt, "can't compile %T yet", stmt))
+	}
+}
+
+func (cl *compiler) compileStmtList(list []ast.Stmt) {
+	for i := range list {
+		cl.compileStmt(list[i])
 	}
 }
 
