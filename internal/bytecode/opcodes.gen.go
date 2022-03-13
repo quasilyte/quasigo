@@ -140,53 +140,56 @@ const (
 	// Encoding: 0x2d offset:i16 cond:u8 (width=4)
 	OpJumpNotZero Op = 45
 
-	// Encoding: 0x2e dst:u8 fn:u16 (width=4)
-	OpCall Op = 46
+	// Encoding: 0x2e value:u8 (width=2)
+	OpJumpTable Op = 46
 
-	// Encoding: 0x2f dst:u8 (width=2)
-	OpCallRecur Op = 47
+	// Encoding: 0x2f dst:u8 fn:u16 (width=4)
+	OpCall Op = 47
 
-	// Encoding: 0x30 fn:u16 (width=3)
-	OpCallVoid Op = 48
+	// Encoding: 0x30 dst:u8 (width=2)
+	OpCallRecur Op = 48
 
-	// Encoding: 0x31 dst:u8 fn:u16 (width=4)
-	OpCallNative Op = 49
+	// Encoding: 0x31 fn:u16 (width=3)
+	OpCallVoid Op = 49
 
-	// Encoding: 0x32 fn:u16 (width=3)
-	OpCallVoidNative Op = 50
+	// Encoding: 0x32 dst:u8 fn:u16 (width=4)
+	OpCallNative Op = 50
 
-	// Encoding: 0x33 x:u8 (width=2)
-	OpPushVariadicBoolArg Op = 51
+	// Encoding: 0x33 fn:u16 (width=3)
+	OpCallVoidNative Op = 51
 
 	// Encoding: 0x34 x:u8 (width=2)
-	OpPushVariadicScalarArg Op = 52
+	OpPushVariadicBoolArg Op = 52
 
 	// Encoding: 0x35 x:u8 (width=2)
-	OpPushVariadicStrArg Op = 53
+	OpPushVariadicScalarArg Op = 53
 
 	// Encoding: 0x36 x:u8 (width=2)
-	OpPushVariadicInterfaceArg Op = 54
+	OpPushVariadicStrArg Op = 54
 
-	// Encoding: 0x37 (width=1)
-	OpVariadicReset Op = 55
+	// Encoding: 0x37 x:u8 (width=2)
+	OpPushVariadicInterfaceArg Op = 55
 
 	// Encoding: 0x38 (width=1)
-	OpReturnVoid Op = 56
+	OpVariadicReset Op = 56
 
 	// Encoding: 0x39 (width=1)
-	OpReturnFalse Op = 57
+	OpReturnVoid Op = 57
 
 	// Encoding: 0x3a (width=1)
-	OpReturnTrue Op = 58
+	OpReturnFalse Op = 58
 
-	// Encoding: 0x3b x:u8 (width=2)
-	OpReturnStr Op = 59
+	// Encoding: 0x3b (width=1)
+	OpReturnTrue Op = 59
 
 	// Encoding: 0x3c x:u8 (width=2)
-	OpReturnScalar Op = 60
+	OpReturnStr Op = 60
 
 	// Encoding: 0x3d x:u8 (width=2)
-	OpReturn Op = 61
+	OpReturnScalar Op = 61
+
+	// Encoding: 0x3e x:u8 (width=2)
+	OpReturn Op = 62
 )
 
 var opcodeInfoTable = [256]OpcodeInfo{
@@ -530,6 +533,12 @@ var opcodeInfoTable = [256]OpcodeInfo{
 		Args: []Argument{
 			{Name: "offset", Kind: ArgOffset, Offset: 1, Flags: 0},
 			{Name: "cond", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpJumpTable: {
+		Width: 2,
+		Flags: 0,
+		Args: []Argument{
+			{Name: "value", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 	OpCall: {
 		Width: 4,

@@ -66,6 +66,9 @@ func (asm *assembler) linkJumps(labelOffsets *[256]uint16) {
 		if !op.IsJump() {
 			return
 		}
+		if op == bytecode.OpJumpTable {
+			return
+		}
 		labelID := asm.code[pc+1]
 		targetPos := int(labelOffsets[labelID])
 		jumpOffset := targetPos - pc

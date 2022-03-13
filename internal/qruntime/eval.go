@@ -220,6 +220,10 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			offset := unpack16(codeptr, pc+1)
 			pc += offset
 
+		case bytecode.OpJumpTable:
+			slot := unpack8(codeptr, pc+1)
+			pc += (getslot(slotptr, slot).Int() * 3) + 2
+
 		case bytecode.OpJumpZero:
 			srcslot := unpack8(codeptr, pc+3)
 			if getslot(slotptr, srcslot).Scalar == 0 {

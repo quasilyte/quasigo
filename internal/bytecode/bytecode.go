@@ -13,7 +13,7 @@ func (op Op) Args() []Argument {
 
 func (op Op) IsJump() bool {
 	switch op {
-	case OpJump, OpJumpNotZero, OpJumpZero:
+	case OpJump, OpJumpNotZero, OpJumpZero, OpJumpTable:
 		return true
 	default:
 		return false

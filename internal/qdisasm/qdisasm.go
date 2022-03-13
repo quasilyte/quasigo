@@ -40,6 +40,9 @@ func Func(env *qruntime.Env, fn *qruntime.Func) string {
 		if !op.IsJump() {
 			return
 		}
+		if op == bytecode.OpJumpTable {
+			return
+		}
 		offset := decode16(fn.Code, pc+1)
 		targetPC := pc + offset
 		if _, ok := labels[targetPC]; !ok {
