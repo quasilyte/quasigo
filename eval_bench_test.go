@@ -108,6 +108,26 @@ var benchmarksNoAlloc = []*benchTestCase{
 	},
 
 	{
+		name: `CallLoop`,
+		src:  `res := false; for i := 0; i < 100; i++ { res = nestedcall(i); res = fn2(1, 1); }; return res`,
+	},
+
+	{
+		name: `CallRecur5`,
+		src:  `return recur(5)`,
+	},
+
+	{
+		name: `CallRecur20`,
+		src:  `return recur(20)`,
+	},
+
+	{
+		name: `CallRecur40`,
+		src:  `return recur(40)`,
+	},
+
+	{
 		name: `CounterLoop`,
 		src:  `j := 0; for j < 10000 { j++ }; return j`,
 	},
@@ -176,7 +196,7 @@ func BenchmarkEval(b *testing.B) {
 		test := test
 		b.Run(test.name, func(b *testing.B) {
 			env, compiled := compileBenchFunc(b, test.params, test.src)
-			evalEnv := env.GetEvalEnv(1024)
+			evalEnv := env.GetEvalEnv(4096)
 			evalEnv.BindArgs(test.args...)
 			b.ResetTimer()
 			runBench(b, evalEnv, compiled)
@@ -193,6 +213,13 @@ func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, qu
 		  func fn0() bool { return false }
 		  func fn1(x int) bool { return false }
 		  func fn2(x, y int) bool { return false }
+
+		  func recur(x int) bool {
+			  if x == 0 {
+				  return true
+			  }
+			  return recur(x - 1)
+		  }
 		  
 		  func _nestedcall4(x int) bool { return false }
 		  func _nestedcall3(x int) bool { return _nestedcall4(x) }
