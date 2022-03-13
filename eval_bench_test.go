@@ -88,6 +88,26 @@ var benchmarksNoAlloc = []*benchTestCase{
 	},
 
 	{
+		name: `Call0`,
+		src:  `return fn0()`,
+	},
+
+	{
+		name: `Call1`,
+		src:  `return fn1(1)`,
+	},
+
+	{
+		name: `Call2`,
+		src:  `return fn2(1, 1)`,
+	},
+
+	{
+		name: `CallNested`,
+		src:  `return nestedcall(1)`,
+	},
+
+	{
 		name: `CounterLoop`,
 		src:  `j := 0; for j < 10000 { j++ }; return j`,
 	},
@@ -170,6 +190,16 @@ func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, qu
 		  package ` + testPackage + `
 		  import "fmt"
 		  var _ = fmt.Sprintf
+		  func fn0() bool { return false }
+		  func fn1(x int) bool { return false }
+		  func fn2(x, y int) bool { return false }
+		  
+		  func _nestedcall4(x int) bool { return false }
+		  func _nestedcall3(x int) bool { return _nestedcall4(x) }
+		  func _nestedcall2(x int) bool { return _nestedcall3(x) }
+		  func _nestedcall1(x int) bool { return _nestedcall2(x) }
+		  func nestedcall(x int) bool { return _nestedcall1(x) }
+
 		  func f(` + paramsSig + `) interface{} {
 			  ` + body + `
 		  }
@@ -189,7 +219,7 @@ func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, qu
 	if err != nil {
 		t.Fatalf("parse %s: %v", bodySrc, err)
 	}
-	compiled, err := testutil.CompileTestFunc(env, "f", parsed)
+	compiled, err := testutil.CompileTestFile(env, "f", testPackage, parsed)
 	if err != nil {
 		t.Fatalf("compile %s: %v", bodySrc, err)
 	}
