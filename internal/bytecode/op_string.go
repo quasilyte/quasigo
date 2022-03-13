@@ -54,27 +54,28 @@ func _() {
 	_ = x[OpJump-43]
 	_ = x[OpJumpZero-44]
 	_ = x[OpJumpNotZero-45]
-	_ = x[OpCall-46]
-	_ = x[OpCallRecur-47]
-	_ = x[OpCallVoid-48]
-	_ = x[OpCallNative-49]
-	_ = x[OpCallVoidNative-50]
-	_ = x[OpPushVariadicBoolArg-51]
-	_ = x[OpPushVariadicScalarArg-52]
-	_ = x[OpPushVariadicStrArg-53]
-	_ = x[OpPushVariadicInterfaceArg-54]
-	_ = x[OpVariadicReset-55]
-	_ = x[OpReturnVoid-56]
-	_ = x[OpReturnFalse-57]
-	_ = x[OpReturnTrue-58]
-	_ = x[OpReturnStr-59]
-	_ = x[OpReturnScalar-60]
-	_ = x[OpReturn-61]
+	_ = x[OpJumpTable-46]
+	_ = x[OpCall-47]
+	_ = x[OpCallRecur-48]
+	_ = x[OpCallVoid-49]
+	_ = x[OpCallNative-50]
+	_ = x[OpCallVoidNative-51]
+	_ = x[OpPushVariadicBoolArg-52]
+	_ = x[OpPushVariadicScalarArg-53]
+	_ = x[OpPushVariadicStrArg-54]
+	_ = x[OpPushVariadicInterfaceArg-55]
+	_ = x[OpVariadicReset-56]
+	_ = x[OpReturnVoid-57]
+	_ = x[OpReturnFalse-58]
+	_ = x[OpReturnTrue-59]
+	_ = x[OpReturnStr-60]
+	_ = x[OpReturnScalar-61]
+	_ = x[OpReturn-62]
 }
 
-const _Op_name = "InvalidLoadScalarConstLoadStrConstMoveMove8MoveResult2NotIsNilIsNotNilIsNilInterfaceIsNotNilInterfaceLenCapStrSliceStrSliceFromStrSliceToStrIndexSliceIndexScalar8SliceIndexScalar64SliceSetScalar8SliceSetScalar64ConcatStrEqStrNotEqStrGtStrLtIntNegScalarEqScalarNotEqIntGtIntGtEqIntLtIntLtEqIntAdd8IntAdd64IntSub8IntSub64IntMul8IntMul64IntXorIntDivIntIncIntDecJumpJumpZeroJumpNotZeroCallCallRecurCallVoidCallNativeCallVoidNativePushVariadicBoolArgPushVariadicScalarArgPushVariadicStrArgPushVariadicInterfaceArgVariadicResetReturnVoidReturnFalseReturnTrueReturnStrReturnScalarReturn"
+const _Op_name = "InvalidLoadScalarConstLoadStrConstMoveMove8MoveResult2NotIsNilIsNotNilIsNilInterfaceIsNotNilInterfaceLenCapStrSliceStrSliceFromStrSliceToStrIndexSliceIndexScalar8SliceIndexScalar64SliceSetScalar8SliceSetScalar64ConcatStrEqStrNotEqStrGtStrLtIntNegScalarEqScalarNotEqIntGtIntGtEqIntLtIntLtEqIntAdd8IntAdd64IntSub8IntSub64IntMul8IntMul64IntXorIntDivIntIncIntDecJumpJumpZeroJumpNotZeroJumpTableCallCallRecurCallVoidCallNativeCallVoidNativePushVariadicBoolArgPushVariadicScalarArgPushVariadicStrArgPushVariadicInterfaceArgVariadicResetReturnVoidReturnFalseReturnTrueReturnStrReturnScalarReturn"
 
-var _Op_index = [...]uint16{0, 7, 22, 34, 38, 43, 54, 57, 62, 70, 84, 101, 104, 107, 115, 127, 137, 145, 162, 180, 195, 211, 217, 222, 230, 235, 240, 246, 254, 265, 270, 277, 282, 289, 296, 304, 311, 319, 326, 334, 340, 346, 352, 358, 362, 370, 381, 385, 394, 402, 412, 426, 445, 466, 484, 508, 521, 531, 542, 552, 561, 573, 579}
+var _Op_index = [...]uint16{0, 7, 22, 34, 38, 43, 54, 57, 62, 70, 84, 101, 104, 107, 115, 127, 137, 145, 162, 180, 195, 211, 217, 222, 230, 235, 240, 246, 254, 265, 270, 277, 282, 289, 296, 304, 311, 319, 326, 334, 340, 346, 352, 358, 362, 370, 381, 390, 394, 403, 411, 421, 435, 454, 475, 493, 517, 530, 540, 551, 561, 570, 582, 588}
 
 func (i Op) String() string {
 	if i >= Op(len(_Op_index)-1) {

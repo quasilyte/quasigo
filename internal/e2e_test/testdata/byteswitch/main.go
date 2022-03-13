@@ -76,7 +76,7 @@ func test5noDefault(x byte) string {
 //   LoadScalarConst tmp1 = 0
 //   IntLt tmp0 = auto0 tmp1
 //   JumpNotZero L0 tmp0
-//   LoadScalarConst tmp1 = 9
+//   LoadScalarConst tmp1 = 90
 //   IntGt tmp0 = auto0 tmp1
 //   JumpNotZero L0 tmp0
 //   LoadScalarConst tmp1 = 4
@@ -110,7 +110,7 @@ func test5noDefault(x byte) string {
 //   LoadScalarConst tmp1 = 8
 //   ScalarEq tmp0 = auto0 tmp1
 //   JumpNotZero L10 tmp0
-//   LoadScalarConst tmp1 = 9
+//   LoadScalarConst tmp1 = 90
 //   ScalarEq tmp0 = auto0 tmp1
 //   JumpNotZero L11 tmp0
 //   Jump L0
@@ -142,7 +142,7 @@ func test5noDefault(x byte) string {
 //   LoadStrConst tmp0 = "8"
 //   ReturnStr tmp0
 // L11:
-//   LoadStrConst tmp0 = "9"
+//   LoadStrConst tmp0 = "90"
 //   ReturnStr tmp0
 // L0:
 //   LoadStrConst tmp0 = "?"
@@ -167,8 +167,8 @@ func test10withDefault(x byte) string {
 		return "7"
 	case 8:
 		return "8"
-	case 9:
-		return "9"
+	case 90:
+		return "90"
 	default:
 		return "?"
 	}

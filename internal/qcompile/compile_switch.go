@@ -93,10 +93,79 @@ func (cl switchCompiler) compile(stmt *ast.SwitchStmt) {
 		numCases--
 	}
 	if len(constCases) == numCases {
-		cl.compileBinarySearch(defaultBody, constCases)
+		if cl.canCompileAsTable(constCases) {
+			cl.compileTableSearch(defaultBody, constCases)
+		} else {
+			cl.compileBinarySearch(defaultBody, constCases)
+		}
 	} else {
 		cl.compileLinearSearch(stmt, defaultBody)
 	}
+}
+
+func (cl switchCompiler) canCompileAsTable(cases []constCaseClause) bool {
+	if cl.opEq != bytecode.OpScalarEq || len(cases) < 8 {
+		return false
+	}
+	first := cases[0].value
+	if first.Kind() != constant.Int {
+		return false
+	}
+	firstVal, exact := constant.Int64Val(first)
+	if !exact || firstVal != 0 {
+		return false
+	}
+	last := cases[len(cases)-1].value
+	lastVal, exact := constant.Int64Val(last)
+	if !exact || lastVal != int64(len(cases)-1) {
+		return false
+	}
+	return true
+}
+
+func (cl switchCompiler) compileTableSearch(defaultBody []ast.Stmt, cases []constCaseClause) {
+	labelEnd := cl.newLabel()
+	labelDefault := cl.newLabel()
+
+	// Like with a binary search, we need a value range check.
+	{
+		// if tag < firstCase { goto default }
+		firstCase := cases[0]
+		condtmp := cl.allocTmp()
+		yslot := cl.allocTmp()
+		cl.compileConstantValue(yslot, firstCase.expr, firstCase.value)
+		cl.emit3(cl.opLt, condtmp, cl.tagslot, yslot)
+		cl.emitCondJump(condtmp, bytecode.OpJumpNotZero, labelDefault)
+
+		// if tag > lastCase { goto default }
+		lastLase := cases[len(cases)-1]
+		cl.compileConstantValue(yslot, lastLase.expr, lastLase.value)
+		cl.emit3(cl.opGt, condtmp, cl.tagslot, yslot)
+		cl.emitCondJump(condtmp, bytecode.OpJumpNotZero, labelDefault)
+
+		cl.freeTmp()
+	}
+
+	cl.emit(ir.Inst{Op: bytecode.OpJumpTable, Arg0: cl.tagslot.ToInstArg()})
+	for i := range cases {
+		c := &cases[i]
+		c.label = cl.newLabel()
+		cl.emitJump(c.label)
+	}
+
+	for _, c := range cases {
+		cl.bindLabel(c.label)
+		cl.compileStmtList(c.body)
+		if !cl.isUncondJump(cl.lastOp()) {
+			cl.emitJump(labelEnd)
+		}
+	}
+
+	cl.bindLabel(labelDefault)
+	if defaultBody != nil {
+		cl.compileStmtList(defaultBody)
+	}
+	cl.bindLabel(labelEnd)
 }
 
 func (cl switchCompiler) compileLinearSearch(stmt *ast.SwitchStmt, defaultBody []ast.Stmt) {

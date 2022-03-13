@@ -73,6 +73,7 @@ var opcodePrototypes = []opcodeProto{
 	{"Jump", "op offset:offset"},
 	{"JumpZero", "op offset:offset cond:rslot"},
 	{"JumpNotZero", "op offset:offset cond:rslot"},
+	{"JumpTable", "op value:rslot"},
 
 	{"Call", "op dst:wslot fn:funcid"},
 	{"CallRecur", "op dst:wslot"},

@@ -76,7 +76,7 @@ func test5noDefault(x int) string {
 //   LoadScalarConst tmp1 = 0
 //   IntLt tmp0 = auto0 tmp1
 //   JumpNotZero L0 tmp0
-//   LoadScalarConst tmp1 = 9
+//   LoadScalarConst tmp1 = 90
 //   IntGt tmp0 = auto0 tmp1
 //   JumpNotZero L0 tmp0
 //   LoadScalarConst tmp1 = 4
@@ -110,7 +110,7 @@ func test5noDefault(x int) string {
 //   LoadScalarConst tmp1 = 8
 //   ScalarEq tmp0 = auto0 tmp1
 //   JumpNotZero L10 tmp0
-//   LoadScalarConst tmp1 = 9
+//   LoadScalarConst tmp1 = 90
 //   ScalarEq tmp0 = auto0 tmp1
 //   JumpNotZero L11 tmp0
 //   Jump L0
@@ -142,7 +142,7 @@ func test5noDefault(x int) string {
 //   LoadStrConst tmp0 = "8"
 //   ReturnStr tmp0
 // L11:
-//   LoadStrConst tmp0 = "9"
+//   LoadStrConst tmp0 = "90"
 //   ReturnStr tmp0
 // L0:
 //   LoadStrConst tmp0 = "?"
@@ -167,13 +167,66 @@ func test10withDefault(x int) string {
 		return "7"
 	case 8:
 		return "8"
-	case 9:
-		return "9"
+	case 90:
+		return "90"
 	default:
 		return "?"
 	}
 }
 
+//test:disasm
+// main.test10noDefault code=122 frame=120 (5 slots: 1 args, 2 locals, 2 temps)
+//   LoadStrConst res = "?"
+//   Move auto0 = x
+//   LoadScalarConst tmp1 = 0
+//   IntLt tmp0 = auto0 tmp1
+//   JumpNotZero L0 tmp0
+//   LoadScalarConst tmp1 = 9
+//   IntGt tmp0 = auto0 tmp1
+//   JumpNotZero L0 tmp0
+//   JumpTable auto0
+//   Jump L1
+//   Jump L2
+//   Jump L3
+//   Jump L4
+//   Jump L5
+//   Jump L6
+//   Jump L7
+//   Jump L8
+//   Jump L9
+//   Jump L10
+// L1:
+//   LoadStrConst res = "0"
+//   Jump L0
+// L2:
+//   LoadStrConst res = "1"
+//   Jump L0
+// L3:
+//   LoadStrConst res = "2"
+//   Jump L0
+// L4:
+//   LoadStrConst res = "3"
+//   Jump L0
+// L5:
+//   LoadStrConst res = "4"
+//   Jump L0
+// L6:
+//   LoadStrConst res = "5"
+//   Jump L0
+// L7:
+//   LoadStrConst res = "6"
+//   Jump L0
+// L8:
+//   LoadStrConst res = "7"
+//   Jump L0
+// L9:
+//   LoadStrConst res = "8"
+//   Jump L0
+// L10:
+//   LoadStrConst res = "9"
+//   Jump L0
+// L0:
+//   ReturnStr res
 func test10noDefault(x int) string {
 	res := "?"
 	switch x {
