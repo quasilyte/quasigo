@@ -12,5 +12,4 @@ func NewDebugInfo() *DebugInfo {
 
 type FuncDebugInfo struct {
 	SlotNames []string
-	NumLocals int
 }

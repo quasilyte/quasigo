@@ -226,6 +226,8 @@ func (cl *compiler) compileBranchStmt(branch *ast.BranchStmt) {
 }
 
 func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
+	cl.hasLoops = true
+
 	labelBreak := cl.newLabel()
 	labelContinue := cl.newLabel()
 	prevBreakTarget := cl.breakTarget

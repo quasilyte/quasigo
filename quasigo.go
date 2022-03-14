@@ -79,6 +79,7 @@ type CompileContext struct {
 	Fset    *token.FileSet
 
 	Optimize bool
+	Static   bool
 }
 
 // Compile prepares an executable version of fn.
@@ -86,6 +87,7 @@ func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
 	internalCtx := qcompile.Context{
 		Env:      &ctx.Env.data,
 		Optimize: ctx.Optimize,
+		Static:   ctx.Static,
 		Package:  ctx.Package,
 		Types:    ctx.Types,
 		Sizes:    ctx.Sizes,

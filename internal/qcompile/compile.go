@@ -30,6 +30,9 @@ type compiler struct {
 
 	insideVariadic bool
 
+	hasCalls bool
+	hasLoops bool
+
 	locals       map[string]frameSlotInfo
 	autoLocalSeq int
 	numAutoLocal int
@@ -83,6 +86,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	dbg := qruntime.FuncDebugInfo{
 		SlotNames: make([]string, 0, len(cl.params)+len(cl.locals)),
 	}
+	cl.hasCalls = false
 	cl.fnName = fn.Name
 	cl.fnKey = qruntime.FuncKey{Qualifier: cl.ctx.Package.Path(), Name: fn.Name.String()}
 	cl.params = make(map[string]frameSlotInfo, cl.fnType.Params().Len())
@@ -118,7 +122,6 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	for i := 0; i < cl.numAutoLocal; i++ {
 		dbg.SlotNames = append(dbg.SlotNames, fmt.Sprintf("auto%d", i))
 	}
-	dbg.NumLocals = irFunc.NumLocals
 
 	if cl.ctx.Optimize {
 		qopt.Func(&irFunc)
@@ -145,9 +148,21 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		Name:            cl.fnKey.String(),
 		FrameSize:       int(qruntime.SizeofSlot) * irFunc.NumFrameSlots,
 		FrameSlots:      byte(irFunc.NumFrameSlots),
+		NumParams:       byte(len(cl.params)),
+		NumLocals:       byte(len(cl.locals) + cl.numAutoLocal),
+		CanInline:       cl.canInline(&irFunc),
 	}
 	cl.ctx.Env.Debug.Funcs[compiled] = dbg
 	return compiled
+}
+
+func (cl *compiler) canInline(fn *ir.Func) bool {
+	return cl.ctx.Static &&
+		!cl.hasCalls && !cl.hasLoops &&
+		cl.numLabels <= 6 &&
+		fn.NumFrameSlots <= 16 &&
+		len(fn.ScalarConstants) <= 8 &&
+		len(fn.StrConstants) <= 8
 }
 
 func (cl *compiler) collectLocals(dbg *qruntime.FuncDebugInfo, body *ast.BlockStmt) {
@@ -255,6 +270,7 @@ func (cl *compiler) emitCall(op bytecode.Op, dst ir.Slot, funcid int) {
 		cl.emit(ir.Inst{Op: bytecode.OpCallVoid, Arg0: ir.InstArg(funcid)})
 		return
 	}
+	cl.hasCalls = true
 	cl.emit(ir.Inst{
 		Op:   op,
 		Arg0: dst.ToInstArg(),
@@ -367,12 +383,16 @@ func (cl *compiler) freeTmp() {
 	cl.tmpSeq = 0
 }
 
+func (cl *compiler) trackTmp(id int) {
+	if cl.numTmp < id+1 {
+		cl.numTmp = id + 1
+	}
+}
+
 func (cl *compiler) allocTmp() ir.Slot {
 	id := cl.tmpSeq
 	cl.tmpSeq++
-	if cl.numTmp < cl.tmpSeq {
-		cl.numTmp = cl.tmpSeq
-	}
+	cl.trackTmp(id)
 	return ir.NewUniqSlot(uint8(id))
 }
 
