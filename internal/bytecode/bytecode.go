@@ -7,6 +7,10 @@ func (op Op) HasDst() bool {
 	return opcodeInfoTable[op].Flags&FlagHasDst != 0
 }
 
+func (op Op) Width() int {
+	return int(opcodeInfoTable[op].Width)
+}
+
 func (op Op) Args() []Argument {
 	return opcodeInfoTable[op].Args
 }

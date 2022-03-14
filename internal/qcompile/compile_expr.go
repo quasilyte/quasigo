@@ -350,7 +350,7 @@ func (cl *compiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
 		panic(cl.errorf(call.Fun, "can't resolve the called function"))
 	}
 
-	// // TODO: just use Func.FullName as a key?
+	// TODO: just use Func.FullName as a key?
 	key := qruntime.FuncKey{Name: fn.Name()}
 	sig := fn.Type().(*types.Signature)
 	if sig.Recv() != nil {
@@ -369,6 +369,10 @@ func (cl *compiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
 		variadic := sig.Params().Len() - 1
 		normalArgs = call.Args[:variadic]
 		variadicArgs = call.Args[variadic:]
+	}
+
+	if !sig.Variadic() && cl.inlineCall(dst, expr, normalArgs, key) {
+		return
 	}
 
 	isMethod := expr != nil
@@ -510,24 +514,33 @@ func (cl *compiler) compileCallVariadicArgs(args []ast.Expr) {
 	}
 }
 
-func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []ast.Expr) {
-	if len(args) == 1 {
-		// Check that it's not a f(g()) call, where g() returns
-		// a multi-value result; we can't compile that yet.
-		if call, ok := args[0].(*ast.CallExpr); ok {
-			sig, ok := cl.ctx.Types.TypeOf(call.Fun).(*types.Signature)
-			if ok && sig.Results() != nil && sig.Results().Len() > 1 {
-				panic(cl.errorf(args[0], "can't pass tuple as a func argument"))
-			}
+func (cl *compiler) checkTupleArg(args []ast.Expr) {
+	if len(args) != 1 {
+		return
+	}
+	// Check that it's not a f(g()) call, where g() returns
+	// a multi-value result; we can't compile that yet.
+	if call, ok := args[0].(*ast.CallExpr); ok {
+		sig, ok := cl.ctx.Types.TypeOf(call.Fun).(*types.Signature)
+		if ok && sig.Results() != nil && sig.Results().Len() > 1 {
+			panic(cl.errorf(args[0], "can't pass tuple as a func argument"))
 		}
 	}
+}
 
-	if recv != nil {
-		allArgs := make([]ast.Expr, 0, len(args)+1)
-		allArgs = append(allArgs, recv)
-		allArgs = append(allArgs, args...)
-		args = allArgs
+func (cl *compiler) prependRecv(recv ast.Expr, args []ast.Expr) []ast.Expr {
+	if recv == nil {
+		return args
 	}
+	allArgs := make([]ast.Expr, 0, len(args)+1)
+	allArgs = append(allArgs, recv)
+	allArgs = append(allArgs, args...)
+	return allArgs
+}
+
+func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []ast.Expr) {
+	cl.checkTupleArg(args)
+	args = cl.prependRecv(recv, args)
 
 	// If all arguments are really simple and can be evaluated without
 	// clobbering arg slots, we can evaluate arguments directly to their
@@ -586,6 +599,7 @@ func (cl *compiler) compileNativeCall(dst ir.Slot, key qruntime.FuncKey) bool {
 }
 
 func (cl *compiler) compileRecurCall(dst ir.Slot) bool {
+	cl.hasCalls = true
 	cl.emit1(bytecode.OpCallRecur, dst)
 	return true
 }

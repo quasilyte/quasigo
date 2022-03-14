@@ -149,6 +149,7 @@ func (r *Runner) runMainTest(target RunnerTarget, pkg *testPackage, goResult str
 		Sizes:    types.SizesFor("gc", runtime.GOARCH),
 		Fset:     pkg.fset,
 		Optimize: optimize,
+		Static:   true,
 	}
 	checkDisasm := false
 	for _, f := range pkg.files {

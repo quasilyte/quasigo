@@ -30,6 +30,19 @@ type Inst struct {
 	Arg3   InstArg
 }
 
+func (inst *Inst) SetArg(i int, arg InstArg) {
+	switch i {
+	case 0:
+		inst.Arg0 = arg
+	case 1:
+		inst.Arg1 = arg
+	case 2:
+		inst.Arg2 = arg
+	default:
+		inst.Arg3 = arg
+	}
+}
+
 func (inst Inst) GetArg(i int) InstArg {
 	switch i {
 	case 0:

@@ -9,6 +9,11 @@ type Func struct {
 
 	FrameSize  int
 	FrameSlots byte
+	NumParams  byte
+	NumLocals  byte
+	NumTemps   byte
+
+	CanInline bool
 
 	Name string
 }

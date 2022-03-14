@@ -13,6 +13,7 @@ type Context struct {
 	Env *qruntime.Env
 
 	Optimize bool
+	Static   bool
 
 	Package *types.Package
 	Types   *types.Info

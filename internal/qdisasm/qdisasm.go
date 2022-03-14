@@ -18,7 +18,7 @@ func Func(env *qruntime.Env, fn *qruntime.Func) string {
 	}
 
 	numSlots := fn.FrameSize / int(qruntime.SizeofSlot)
-	numLocals := dbg.NumLocals
+	numLocals := int(fn.NumLocals)
 	numArgs := len(dbg.SlotNames) - numLocals
 	numTemps := numSlots - numArgs - numLocals
 	fmt.Fprintf(&out, "%s code=%d frame=%d (%d slots: %d args, %d locals, %d temps)\n",
