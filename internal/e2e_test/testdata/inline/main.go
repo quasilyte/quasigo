@@ -176,13 +176,12 @@ func testInlLocal() int {
 }
 
 //test:disasm
-// main.inlSwitch code=40 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
+// main.inlSwitch code=36 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
 //   Move auto0 = x
 //   LoadScalarConst tmp1 = 10
 //   ScalarEq tmp0 = auto0 tmp1
 //   JumpZero L0 tmp0
-//   LoadScalarConst tmp0 = 1
-//   ReturnScalar tmp0
+//   ReturnOne
 // L0:
 //   LoadScalarConst tmp1 = 20
 //   ScalarEq tmp0 = auto0 tmp1
@@ -204,14 +203,13 @@ func inlSwitch(x int) int {
 }
 
 //test:disasm_opt
-// main.testInlSwitch code=54 frame=192 (8 slots: 1 args, 0 locals, 7 temps)
+// main.testInlSwitch code=51 frame=192 (8 slots: 1 args, 0 locals, 7 temps)
 //   Move tmp1 = x
 //   Move tmp4 = tmp1
 //   LoadScalarConst tmp6 = 10
 //   ScalarEq tmp5 = tmp4 tmp6
 //   JumpZero L0 tmp5
-//   LoadScalarConst tmp5 = 1
-//   Move tmp0 = tmp5
+//   LoadScalarConst tmp0 = 1
 //   Jump L1
 // L0:
 //   LoadScalarConst tmp6 = 20

@@ -71,9 +71,9 @@ func test5noDefault(x byte) string {
 }
 
 //test:disasm
-// main.test10withDefault code=204 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
+// main.test10withDefault code=202 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
 //   Move auto0 = x
-//   LoadScalarConst tmp1 = 0
+//   Zero tmp1
 //   IntLt tmp0 = auto0 tmp1
 //   JumpNotZero L0 tmp0
 //   LoadScalarConst tmp1 = 90
@@ -84,7 +84,7 @@ func test5noDefault(x byte) string {
 //   JumpNotZero L1 tmp0
 //   IntGt tmp0 = auto0 tmp1
 //   JumpNotZero L2 tmp0
-//   LoadScalarConst tmp1 = 0
+//   Zero tmp1
 //   ScalarEq tmp0 = auto0 tmp1
 //   JumpNotZero L3 tmp0
 //   LoadScalarConst tmp1 = 1

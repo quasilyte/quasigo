@@ -24,6 +24,11 @@ var benchmarksNoAlloc = []*benchTestCase{
 	},
 
 	{
+		name: `Return0`,
+		src:  `return 0`,
+	},
+
+	{
 		name: `ReturnInt`,
 		src:  `return 384723`,
 	},

@@ -2,6 +2,7 @@ package qcompile
 
 import (
 	"go/ast"
+	"go/constant"
 	"go/token"
 	"go/types"
 
@@ -58,25 +59,38 @@ func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 		panic(cl.errorf(ret, "'naked' return statements are not allowed"))
 	}
 
-	switch {
-	case identName(ret.Results[0]) == "true":
-		cl.emitOp(bytecode.OpReturnTrue)
-	case identName(ret.Results[0]) == "false":
-		cl.emitOp(bytecode.OpReturnFalse)
-	default:
-		typ := cl.ctx.Types.TypeOf(ret.Results[0])
-		var op bytecode.Op
-		switch {
-		case typeIsScalar(typ):
-			op = bytecode.OpReturnScalar
-		case typeIsString(typ):
-			op = bytecode.OpReturnStr
-		default:
-			op = bytecode.OpReturn
+	cv := cl.ctx.Types.Types[ret.Results[0]].Value
+	if cv != nil {
+		// Return of a constant value.
+		switch cv.Kind() {
+		case constant.Bool:
+			cl.emitOp(pickOp(constant.BoolVal(cv), bytecode.OpReturnOne, bytecode.OpReturnZero))
+			return
+		case constant.Int:
+			v, exact := constant.Int64Val(cv)
+			if exact && v == 0 {
+				cl.emitOp(bytecode.OpReturnZero)
+				return
+			}
+			if exact && v == 1 {
+				cl.emitOp(bytecode.OpReturnOne)
+				return
+			}
 		}
-		slot := cl.compileRootTempExpr(ret.Results[0])
-		cl.emit1(op, slot)
 	}
+
+	typ := cl.ctx.Types.TypeOf(ret.Results[0])
+	var op bytecode.Op
+	switch {
+	case typeIsScalar(typ):
+		op = bytecode.OpReturnScalar
+	case typeIsString(typ):
+		op = bytecode.OpReturnStr
+	default:
+		op = bytecode.OpReturn
+	}
+	slot := cl.compileRootTempExpr(ret.Results[0])
+	cl.emit1(op, slot)
 }
 
 func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {

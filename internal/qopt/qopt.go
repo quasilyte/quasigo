@@ -116,7 +116,7 @@ func (opt *optimizer) walkBlocks(visit func([]ir.Inst)) {
 		switch inst.Op {
 		case bytecode.OpJump, bytecode.OpJumpZero, bytecode.OpJumpNotZero:
 			fallthrough
-		case bytecode.OpReturnFalse, bytecode.OpReturnTrue, bytecode.OpReturnVoid:
+		case bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnVoid:
 			fallthrough
 		case bytecode.OpReturnScalar, bytecode.OpReturnStr:
 			block := code[blockStart : i+1]
@@ -175,7 +175,7 @@ func (opt *optimizer) zeroComparisons(block []ir.Inst) bool {
 
 	// x != 0
 	//
-	// LoadScalarConst tmp1 = 0
+	// Zero tmp1
 	// ScalarNotEq tmp0 = x tmp1
 	// JumpZero L0 tmp0
 	// =>
@@ -202,18 +202,15 @@ func (opt *optimizer) zeroComparisons(block []ir.Inst) bool {
 	}
 
 	cmp := block[len(block)-2]
-	if block[len(block)-3].Op != bytecode.OpLoadScalarConst {
+	if block[len(block)-3].Op != bytecode.OpZero {
 		return false
 	}
 	cmpDst := cmp.Arg0.ToSlot()
 	if !cmpDst.IsUniq() || cmpDst.ID != jumpSlot.ID {
 		return false
 	}
-	load := block[len(block)-3]
-	if opt.fn.ScalarConstants[load.Arg1] != 0 {
-		return false
-	}
-	if cmp.Arg2 != load.Arg0 {
+	zero := block[len(block)-3]
+	if cmp.Arg2 != zero.Arg0 {
 		return false
 	}
 

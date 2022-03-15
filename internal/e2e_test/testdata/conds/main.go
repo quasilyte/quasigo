@@ -1,8 +1,8 @@
 package main
 
 //test:disasm_both
-// main.cond0 code=17 frame=96 (4 slots: 2 args, 0 locals, 2 temps)
-//   LoadScalarConst tmp1 = 0
+// main.cond0 code=16 frame=96 (4 slots: 2 args, 0 locals, 2 temps)
+//   Zero tmp1
 //   ScalarEq tmp0 = x tmp1
 //   JumpNotZero L0 tmp0
 //   ScalarEq tmp0 = y x
