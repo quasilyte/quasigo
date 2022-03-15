@@ -76,8 +76,8 @@ var inlineableOps = [256]bool{
 	bytecode.OpReturn:       true,
 	bytecode.OpReturnStr:    true,
 	bytecode.OpReturnScalar: true,
-	bytecode.OpReturnFalse:  true,
-	bytecode.OpReturnTrue:   true,
+	bytecode.OpReturnZero:   true,
+	bytecode.OpReturnOne:    true,
 
 	bytecode.OpJump:        true,
 	bytecode.OpJumpZero:    true,
@@ -189,21 +189,11 @@ func (inl *inliner) Inline(recv ast.Expr, args []ast.Expr) bool {
 				Arg1: srcslot.ToInstArg(),
 			})
 			isReturnOp = true
-		case bytecode.OpReturnFalse:
-			id := inl.cl.internIntConstant(0)
-			inlined = append(inlined, ir.Inst{
-				Op:   bytecode.OpLoadScalarConst,
-				Arg0: inl.dst.ToInstArg(),
-				Arg1: ir.InstArg(id),
-			})
+		case bytecode.OpReturnZero:
+			inlined = append(inlined, inl.cl.moveInt(inl.dst, 0))
 			isReturnOp = true
-		case bytecode.OpReturnTrue:
-			id := inl.cl.internIntConstant(1)
-			inlined = append(inlined, ir.Inst{
-				Op:   bytecode.OpLoadScalarConst,
-				Arg0: inl.dst.ToInstArg(),
-				Arg1: ir.InstArg(id),
-			})
+		case bytecode.OpReturnOne:
+			inlined = append(inlined, inl.cl.moveInt(inl.dst, 1))
 			isReturnOp = true
 		}
 		if isReturnOp {

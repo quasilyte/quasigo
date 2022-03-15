@@ -17,12 +17,11 @@ func TestOptimize(t *testing.T) {
 	tests := map[string][]string{
 		// TODO: compile `s == ""` as `len(s) == 0`
 		`if s == "" { return 1 }; return 2`: {
-			`testpkg.f code=21 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
+			`testpkg.f code=17 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
 			`  LoadStrConst tmp1 = ""`,
 			`  StrEq tmp0 = s tmp1`,
 			`  JumpZero L0 tmp0`,
-			`  LoadScalarConst tmp0 = 1`,
-			`  ReturnScalar tmp0`,
+			`  ReturnOne`,
 			`L0:`,
 			`  LoadScalarConst tmp0 = 2`,
 			`  ReturnScalar tmp0`,
@@ -32,15 +31,15 @@ func TestOptimize(t *testing.T) {
 		`if b { return true }; return false`: {
 			`testpkg.f code=6 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
 			`  JumpZero L0 b`,
-			`  ReturnTrue`,
+			`  ReturnOne`,
 			`L0:`,
-			`  ReturnFalse`,
+			`  ReturnZero`,
 		},
 
 		// TODO: x+0 -> x
 		`return i + 0`: {
-			`testpkg.f code=9 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
-			`  LoadScalarConst tmp1 = 0`,
+			`testpkg.f code=8 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
+			`  Zero tmp1`,
 			`  IntAdd64 tmp0 = i tmp1`,
 			`  ReturnScalar tmp0`,
 		},
@@ -108,13 +107,13 @@ func TestOptimize(t *testing.T) {
 
 		// TODO: optimize redundant jumps.
 		`x := 1; y := 2; if x == 0 || y == 0 { return "a" }; return "b"`: {
-			`testpkg.f code=38 frame=216 (9 slots: 4 args, 2 locals, 3 temps)`,
+			`testpkg.f code=36 frame=216 (9 slots: 4 args, 2 locals, 3 temps)`,
 			`  LoadScalarConst x = 1`,
 			`  LoadScalarConst y = 2`,
-			`  LoadScalarConst tmp1 = 0`,
+			`  Zero tmp1`,
 			`  ScalarEq tmp0 = x tmp1`,
 			`  JumpNotZero L0 tmp0`,
-			`  LoadScalarConst tmp2 = 0`,
+			`  Zero tmp2`,
 			`  ScalarEq tmp0 = y tmp2`,
 			`L0:`,
 			`  JumpZero L1 tmp0`,
@@ -152,11 +151,11 @@ func TestOptimize(t *testing.T) {
 
 		// TODO: fuse into <= 0.
 		`return bool2int(i == 0 || i < 0)`: {
-			`testpkg.f code=27 frame=192 (8 slots: 4 args, 0 locals, 4 temps)`,
-			`  LoadScalarConst tmp2 = 0`,
+			`testpkg.f code=25 frame=192 (8 slots: 4 args, 0 locals, 4 temps)`,
+			`  Zero tmp2`,
 			`  ScalarEq tmp1 = i tmp2`,
 			`  JumpNotZero L0 tmp1`,
-			`  LoadScalarConst tmp3 = 0`,
+			`  Zero tmp3`,
 			`  IntLt tmp1 = i tmp3`,
 			`L0:`,
 			`  Move arg0 = tmp1`,
@@ -165,8 +164,8 @@ func TestOptimize(t *testing.T) {
 		},
 
 		`return bool2int(i == 0 || i == 20)`: {
-			`testpkg.f code=27 frame=192 (8 slots: 4 args, 0 locals, 4 temps)`,
-			`  LoadScalarConst tmp2 = 0`,
+			`testpkg.f code=26 frame=192 (8 slots: 4 args, 0 locals, 4 temps)`,
+			`  Zero tmp2`,
 			`  ScalarEq tmp1 = i tmp2`,
 			`  JumpNotZero L0 tmp1`,
 			`  LoadScalarConst tmp3 = 20`,
@@ -247,13 +246,13 @@ func TestOptimize(t *testing.T) {
 		},
 
 		`x := 10; y := 20; return (x == 0 || x > 0) && (y < 5 || y >= 10)`: {
-			`testpkg.f code=48 frame=264 (11 slots: 4 args, 2 locals, 5 temps)`,
+			`testpkg.f code=46 frame=264 (11 slots: 4 args, 2 locals, 5 temps)`,
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst y = 20`,
-			`  LoadScalarConst tmp1 = 0`,
+			`  Zero tmp1`,
 			`  ScalarEq tmp0 = x tmp1`,
 			`  JumpNotZero L0 tmp0`,
-			`  LoadScalarConst tmp2 = 0`,
+			`  Zero tmp2`,
 			`  IntGt tmp0 = x tmp2`,
 			`L0:`,
 			`  JumpZero L1 tmp0`,

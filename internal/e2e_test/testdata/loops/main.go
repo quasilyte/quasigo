@@ -3,8 +3,8 @@ package main
 const one int = 1
 
 //test:disasm_both
-// main.cstyle1 code=26 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   LoadScalarConst i = 0
+// main.cstyle1 code=25 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
+//   Zero i
 //   Jump L0
 // L1:
 //   Move arg0 = i
@@ -24,9 +24,9 @@ func cstyle1() {
 // TODO: opt: remove dead store to i in the beginning of this func.
 //
 //test:disasm_both
-// main.cstyle2 code=35 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
+// main.cstyle2 code=34 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
 //   LoadScalarConst i = 10
-//   LoadScalarConst i = 0
+//   Zero i
 //   Jump L0
 // L1:
 //   Move arg0 = i
@@ -48,8 +48,8 @@ func cstyle2() {
 }
 
 //test:disasm_both
-// main.cstyle3 code=46 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   LoadScalarConst i = 0
+// main.cstyle3 code=45 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
+//   Zero i
 //   Jump L0
 // L3:
 //   Move arg0 = i
@@ -79,7 +79,7 @@ func cstyle3() {
 }
 
 //test:disasm_both
-// main.cstyle4 code=46 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
+// main.cstyle4 code=45 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
 //   LoadScalarConst i = 10
 //   Jump L0
 // L3:
@@ -94,7 +94,7 @@ func cstyle3() {
 //   CallVoidNative builtin.PrintString()
 //   IntDec i
 // L0:
-//   LoadScalarConst tmp1 = 0
+//   Zero tmp1
 //   IntGtEq tmp0 = i tmp1
 //   JumpNotZero L3 tmp0
 // L2:
@@ -168,8 +168,8 @@ func cstyle6(n int) {
 }
 
 //test:disasm_both
-// main.cstyle7 code=35 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   LoadScalarConst i = 0
+// main.cstyle7 code=34 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
+//   Zero i
 // L2:
 //   IntInc i
 //   Move arg0 = i

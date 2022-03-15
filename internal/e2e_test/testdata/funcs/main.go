@@ -23,28 +23,28 @@ func concat3(s1, s2, s3 string) string {
 }
 
 //test:disasm_both
-// main.streq code=52 frame=144 (6 slots: 2 args, 1 locals, 3 temps)
+// main.streq code=51 frame=144 (6 slots: 2 args, 1 locals, 3 temps)
 //   Len tmp1 = s1
 //   Len tmp2 = s2
 //   ScalarNotEq tmp0 = tmp1 tmp2
 //   JumpZero L0 tmp0
-//   ReturnFalse
+//   ReturnZero
 // L0:
-//   LoadScalarConst i = 0
+//   Zero i
 //   Jump L1
 // L3:
 //   StrIndex tmp1 = s1 i
 //   StrIndex tmp2 = s2 i
 //   ScalarNotEq tmp0 = tmp1 tmp2
 //   JumpZero L2 tmp0
-//   ReturnFalse
+//   ReturnZero
 // L2:
 //   IntInc i
 // L1:
 //   Len tmp1 = s1
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L3 tmp0
-//   ReturnTrue
+//   ReturnOne
 func streq(s1, s2 string) bool {
 	if len(s1) != len(s2) {
 		return false
@@ -58,9 +58,9 @@ func streq(s1, s2 string) bool {
 }
 
 //test:disasm_both
-// main.fnv1 code=42 frame=120 (5 slots: 1 args, 2 locals, 2 temps)
+// main.fnv1 code=41 frame=120 (5 slots: 1 args, 2 locals, 2 temps)
 //   LoadScalarConst v = 2166136261
-//   LoadScalarConst i = 0
+//   Zero i
 //   Jump L0
 // L1:
 //   LoadScalarConst tmp0 = 16777619
@@ -84,8 +84,8 @@ func fnv1(s string) int {
 }
 
 //test:disasm_both
-// main.isNumericString code=51 frame=168 (7 slots: 1 args, 1 locals, 5 temps)
-//   LoadScalarConst i = 0
+// main.isNumericString code=50 frame=168 (7 slots: 1 args, 1 locals, 5 temps)
+//   Zero i
 //   Jump L0
 // L3:
 //   StrIndex tmp1 = s i
@@ -97,14 +97,14 @@ func fnv1(s string) int {
 //   IntGt tmp0 = tmp3 tmp4
 // L1:
 //   JumpZero L2 tmp0
-//   ReturnFalse
+//   ReturnZero
 // L2:
 //   IntInc i
 // L0:
 //   Len tmp1 = s
 //   IntLt tmp0 = i tmp1
 //   JumpNotZero L3 tmp0
-//   ReturnTrue
+//   ReturnOne
 func isNumericString(s string) bool {
 	for i := 0; i < len(s); i++ {
 		if s[i] < '0' || s[i] > '9' {
@@ -115,18 +115,17 @@ func isNumericString(s string) bool {
 }
 
 //test:disasm
-// main.atoi code=104 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
+// main.atoi code=95 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
 //   Len tmp1 = s
-//   LoadScalarConst tmp2 = 0
+//   Zero tmp2
 //   ScalarEq tmp0 = tmp1 tmp2
 //   JumpZero L0 tmp0
-//   LoadScalarConst tmp0 = 0
-//   ReturnScalar tmp0
+//   ReturnZero
 // L0:
-//   LoadScalarConst result = 0
-//   LoadScalarConst sign = 0
-//   LoadScalarConst i = 0
-//   LoadScalarConst tmp2 = 0
+//   Zero result
+//   Zero sign
+//   Zero i
+//   Zero tmp2
 //   StrIndex tmp1 = s tmp2
 //   LoadScalarConst tmp3 = 45
 //   ScalarEq tmp0 = tmp1 tmp3
@@ -155,16 +154,15 @@ func isNumericString(s string) bool {
 //   ReturnScalar result
 //
 //test:disasm_opt
-// main.atoi code=97 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
+// main.atoi code=89 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
 //   Len tmp1 = s
 //   JumpNotZero L0 tmp1
-//   LoadScalarConst tmp0 = 0
-//   ReturnScalar tmp0
+//   ReturnZero
 // L0:
-//   LoadScalarConst result = 0
-//   LoadScalarConst sign = 0
-//   LoadScalarConst i = 0
-//   LoadScalarConst tmp2 = 0
+//   Zero result
+//   Zero sign
+//   Zero i
+//   Zero tmp2
 //   StrIndex tmp1 = s tmp2
 //   LoadScalarConst tmp3 = 45
 //   ScalarEq tmp0 = tmp1 tmp3
@@ -213,9 +211,9 @@ func atoi(s string) int {
 }
 
 //test:disasm_both
-// main.countByte code=38 frame=144 (6 slots: 2 args, 2 locals, 2 temps)
-//   LoadScalarConst n = 0
-//   LoadScalarConst i = 0
+// main.countByte code=36 frame=144 (6 slots: 2 args, 2 locals, 2 temps)
+//   Zero n
+//   Zero i
 //   Jump L0
 // L2:
 //   StrIndex tmp1 = s i
@@ -255,12 +253,11 @@ func hasPrefix(s, prefix string) bool {
 }
 
 //test:disasm_opt
-// main.factorial code=34 frame=120 (5 slots: 1 args, 0 locals, 4 temps)
-//   LoadScalarConst tmp1 = 0
+// main.factorial code=29 frame=120 (5 slots: 1 args, 0 locals, 4 temps)
+//   Zero tmp1
 //   IntLtEq tmp0 = x tmp1
 //   JumpZero L0 tmp0
-//   LoadScalarConst tmp0 = 1
-//   ReturnScalar tmp0
+//   ReturnOne
 // L0:
 //   LoadScalarConst tmp3 = 1
 //   IntSub64 tmp2 = x tmp3
@@ -285,12 +282,12 @@ func testFactorial() {
 }
 
 //test:disasm_both
-// main.charsum code=45 frame=192 (8 slots: 1 args, 2 locals, 5 temps)
-//   LoadScalarConst sum = 0
-//   LoadScalarConst i = 0
+// main.charsum code=42 frame=192 (8 slots: 1 args, 2 locals, 5 temps)
+//   Zero sum
+//   Zero i
 //   Jump L0
 // L1:
-//   LoadScalarConst tmp3 = 0
+//   Zero tmp3
 //   StrIndex tmp2 = s tmp3
 //   LoadScalarConst tmp4 = 48
 //   IntSub8 tmp1 = tmp2 tmp4
@@ -311,9 +308,9 @@ func charsum(s string) int {
 }
 
 //test:disasm
-// main.substringIndex code=54 frame=168 (7 slots: 2 args, 2 locals, 3 temps)
+// main.substringIndex code=53 frame=168 (7 slots: 2 args, 2 locals, 3 temps)
 //   Move head = s
-//   LoadScalarConst i = 0
+//   Zero i
 //   Jump L0
 // L2:
 //   Len tmp2 = sub

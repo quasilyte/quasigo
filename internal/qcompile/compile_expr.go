@@ -653,24 +653,14 @@ func (cl *compiler) compileConstantValue(dst ir.Slot, source ast.Expr, cv consta
 	switch cv.Kind() {
 	case constant.Bool:
 		v := constant.BoolVal(cv)
-		id := cl.internBoolConstant(v)
-		cl.emit(ir.Inst{
-			Op:   bytecode.OpLoadScalarConst,
-			Arg0: dst.ToInstArg(),
-			Arg1: ir.InstArg(id),
-		})
+		cl.emit(cl.moveBool(dst, v))
 
 	case constant.Int:
 		v, exact := constant.Int64Val(cv)
 		if !exact {
 			panic(cl.errorf(source, "non-exact int value"))
 		}
-		id := cl.internIntConstant(int(v))
-		cl.emit(ir.Inst{
-			Op:   bytecode.OpLoadScalarConst,
-			Arg0: dst.ToInstArg(),
-			Arg1: ir.InstArg(id),
-		})
+		cl.emit(cl.moveInt(dst, int(v)))
 
 	case constant.String:
 		v := constant.StringVal(cv)

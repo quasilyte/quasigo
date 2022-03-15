@@ -297,7 +297,7 @@ func (cl *compiler) lastOp() bytecode.Op {
 
 func (cl *compiler) isUncondJump(op bytecode.Op) bool {
 	switch op {
-	case bytecode.OpJump, bytecode.OpReturnFalse, bytecode.OpReturnTrue, bytecode.OpReturnStr, bytecode.OpReturnScalar:
+	case bytecode.OpJump, bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnStr, bytecode.OpReturnScalar:
 		return true
 	default:
 		return false
@@ -336,6 +336,30 @@ func (cl *compiler) isSupportedType(typ types.Type) bool {
 	default:
 		return false
 	}
+}
+
+func (cl *compiler) moveBool(dst ir.Slot, v bool) ir.Inst {
+	if v {
+		id := cl.internBoolConstant(true)
+		return ir.Inst{
+			Op:   bytecode.OpLoadScalarConst,
+			Arg0: dst.ToInstArg(),
+			Arg1: ir.InstArg(id),
+		}
+	}
+	return ir.Inst{Op: bytecode.OpZero, Arg0: dst.ToInstArg()}
+}
+
+func (cl *compiler) moveInt(dst ir.Slot, v int) ir.Inst {
+	if v != 0 {
+		id := cl.internIntConstant(v)
+		return ir.Inst{
+			Op:   bytecode.OpLoadScalarConst,
+			Arg0: dst.ToInstArg(),
+			Arg1: ir.InstArg(id),
+		}
+	}
+	return ir.Inst{Op: bytecode.OpZero, Arg0: dst.ToInstArg()}
 }
 
 func (cl *compiler) internBoolConstant(v bool) int {

@@ -26,6 +26,10 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			getslot(slotptr, dstslot).Scalar = fn.ScalarConstants[constindex]
 			pc += 3
 
+		case bytecode.OpZero:
+			dstslot := unpack8(codeptr, pc+1)
+			*getslot(slotptr, dstslot) = Slot{}
+			pc += 2
 		case bytecode.OpMove:
 			dstslot, srcslot := unpack8x2(codeptr, pc+1)
 			*getslot(slotptr, dstslot) = *getslot(slotptr, srcslot)
@@ -314,11 +318,11 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 
 		case bytecode.OpReturnVoid:
 			return
-		case bytecode.OpReturnTrue:
-			env.result.SetBool(true)
+		case bytecode.OpReturnZero:
+			env.result.Scalar = 0
 			return
-		case bytecode.OpReturnFalse:
-			env.result.SetBool(false)
+		case bytecode.OpReturnOne:
+			env.result.Scalar = 1
 			return
 		case bytecode.OpReturnStr:
 			srcslot := unpack8(codeptr, pc+1)

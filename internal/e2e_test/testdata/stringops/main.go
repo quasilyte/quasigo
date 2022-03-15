@@ -1,7 +1,7 @@
 package main
 
 //test:disasm_both
-// main.reverse code=47 frame=144 (6 slots: 1 args, 2 locals, 3 temps)
+// main.reverse code=46 frame=144 (6 slots: 1 args, 2 locals, 3 temps)
 //   LoadStrConst out = ""
 //   Len tmp0 = s
 //   LoadScalarConst tmp1 = 1
@@ -14,7 +14,7 @@ package main
 //   Concat out = out tmp0
 //   IntDec i
 // L0:
-//   LoadScalarConst tmp1 = 0
+//   Zero tmp1
 //   IntGtEq tmp0 = i tmp1
 //   JumpNotZero L1 tmp0
 //   ReturnStr out

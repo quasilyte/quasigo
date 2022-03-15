@@ -13,12 +13,6 @@ import (
 
 func TestCompile(t *testing.T) {
 	tests := map[string][]string{
-		`return 1`: {
-			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
-			`  LoadScalarConst tmp0 = 1`,
-			`  ReturnScalar tmp0`,
-		},
-
 		// We perform const-folding for simple expressions,
 		// so there should be no actual evaluations here.
 		`return 40 + 549 * 2`: {
@@ -31,16 +25,6 @@ func TestCompile(t *testing.T) {
 			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
 			`  LoadStrConst tmp0 = "ok"`,
 			`  ReturnStr tmp0`,
-		},
-
-		`return false`: {
-			`testpkg.f code=1 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
-			`  ReturnFalse`,
-		},
-
-		`return true`: {
-			`testpkg.f code=1 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
-			`  ReturnTrue`,
 		},
 
 		// No redundant copy (move) is generated in this example.
@@ -83,14 +67,14 @@ func TestCompile(t *testing.T) {
 		},
 
 		`x := 0; x++; return x`: {
-			`testpkg.f code=7 frame=120 (5 slots: 4 args, 1 locals, 0 temps)`,
-			`  LoadScalarConst x = 0`,
+			`testpkg.f code=6 frame=120 (5 slots: 4 args, 1 locals, 0 temps)`,
+			`  Zero x`,
 			`  IntInc x`,
 			`  ReturnScalar x`,
 		},
 		`x := 0; x--; return x`: {
-			`testpkg.f code=7 frame=120 (5 slots: 4 args, 1 locals, 0 temps)`,
-			`  LoadScalarConst x = 0`,
+			`testpkg.f code=6 frame=120 (5 slots: 4 args, 1 locals, 0 temps)`,
+			`  Zero x`,
 			`  IntDec x`,
 			`  ReturnScalar x`,
 		},
@@ -106,28 +90,24 @@ func TestCompile(t *testing.T) {
 		},
 
 		`if b { return 1 }; return 0`: {
-			`testpkg.f code=14 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`testpkg.f code=6 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
 			`  JumpZero L0 b`,
-			`  LoadScalarConst tmp0 = 1`,
-			`  ReturnScalar tmp0`,
+			`  ReturnOne`,
 			`L0:`,
-			`  LoadScalarConst tmp0 = 0`,
-			`  ReturnScalar tmp0`,
+			`  ReturnZero`,
 		},
 
 		`if b { return 1 } else { return 0 }`: {
-			`testpkg.f code=14 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`testpkg.f code=6 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
 			`  JumpZero L0 b`,
-			`  LoadScalarConst tmp0 = 1`,
-			`  ReturnScalar tmp0`,
+			`  ReturnOne`,
 			`L0:`,
-			`  LoadScalarConst tmp0 = 0`,
-			`  ReturnScalar tmp0`,
+			`  ReturnZero`,
 		},
 
 		`x := 0; if b { x = 5 } else { x = 50 }; return x`: {
-			`testpkg.f code=18 frame=120 (5 slots: 4 args, 1 locals, 0 temps)`,
-			`  LoadScalarConst x = 0`,
+			`testpkg.f code=17 frame=120 (5 slots: 4 args, 1 locals, 0 temps)`,
+			`  Zero x`,
 			`  JumpZero L0 b`,
 			`  LoadScalarConst x = 5`,
 			`  Jump L1`,
@@ -154,10 +134,10 @@ func TestCompile(t *testing.T) {
 		},
 
 		`j := -5; for { if j > 0 { break }; j++; }; return j`: {
-			`testpkg.f code=24 frame=168 (7 slots: 4 args, 1 locals, 2 temps)`,
+			`testpkg.f code=23 frame=168 (7 slots: 4 args, 1 locals, 2 temps)`,
 			`  LoadScalarConst j = -5`,
 			`L2:`,
-			`  LoadScalarConst tmp1 = 0`,
+			`  Zero tmp1`,
 			`  IntGt tmp0 = j tmp1`,
 			`  JumpZero L0 tmp0`,
 			`  Jump L1`,
@@ -175,9 +155,9 @@ func TestCompile(t *testing.T) {
 		},
 
 		`return len(s) >= 0`: {
-			`testpkg.f code=12 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
+			`testpkg.f code=11 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
 			`  Len tmp1 = s`,
-			`  LoadScalarConst tmp2 = 0`,
+			`  Zero tmp2`,
 			`  IntGtEq tmp0 = tmp1 tmp2`,
 			`  ReturnScalar tmp0`,
 		},
@@ -214,8 +194,8 @@ func TestCompile(t *testing.T) {
 
 		// TODO: optimize.
 		`return !(i == 0)`: {
-			`testpkg.f code=12 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
-			`  LoadScalarConst tmp2 = 0`,
+			`testpkg.f code=11 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
+			`  Zero tmp2`,
 			`  ScalarEq tmp1 = i tmp2`,
 			`  Not tmp0 = tmp1`,
 			`  ReturnScalar tmp0`,
@@ -245,16 +225,16 @@ func TestCompile(t *testing.T) {
 
 		// TODO: optimize.
 		`return i + 0`: {
-			`testpkg.f code=9 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
-			`  LoadScalarConst tmp1 = 0`,
+			`testpkg.f code=8 frame=144 (6 slots: 4 args, 0 locals, 2 temps)`,
+			`  Zero tmp1`,
 			`  IntAdd64 tmp0 = i tmp1`,
 			`  ReturnScalar tmp0`,
 		},
 
 		// TODO: emit inc for +1.
 		`x := 0; x += 1; return x`: {
-			`testpkg.f code=12 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
-			`  LoadScalarConst x = 0`,
+			`testpkg.f code=11 frame=144 (6 slots: 4 args, 1 locals, 1 temps)`,
+			`  Zero x`,
 			`  LoadScalarConst tmp0 = 1`,
 			`  IntAdd64 x = x tmp0`,
 			`  ReturnScalar x`,
@@ -274,13 +254,13 @@ func TestCompile(t *testing.T) {
 
 		// TODO: optimize.
 		`x := i; cond := x == 0; for !cond { cond = x == 0; x-- }; return 10`: {
-			`testpkg.f code=34 frame=168 (7 slots: 4 args, 2 locals, 1 temps)`,
+			`testpkg.f code=32 frame=168 (7 slots: 4 args, 2 locals, 1 temps)`,
 			`  Move x = i`,
-			`  LoadScalarConst tmp0 = 0`,
+			`  Zero tmp0`,
 			`  ScalarEq cond = x tmp0`,
 			`  Jump L0`,
 			`L1:`,
-			`  LoadScalarConst tmp0 = 0`,
+			`  Zero tmp0`,
 			`  ScalarEq cond = x tmp0`,
 			`  IntDec x`,
 			`L0:`,
@@ -291,9 +271,8 @@ func TestCompile(t *testing.T) {
 		},
 
 		`return len("x")`: {
-			`testpkg.f code=5 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
-			`  LoadScalarConst tmp0 = 1`,
-			`  ReturnScalar tmp0`,
+			`testpkg.f code=1 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
+			`  ReturnOne`,
 		},
 
 		`return i == 10 || i == 2`: {
@@ -319,13 +298,13 @@ func TestCompile(t *testing.T) {
 		},
 
 		`x := 10; y := 20; return (x == 0 || x > 0) && (y < 5 || y >= 10)`: {
-			`testpkg.f code=48 frame=264 (11 slots: 4 args, 2 locals, 5 temps)`,
+			`testpkg.f code=46 frame=264 (11 slots: 4 args, 2 locals, 5 temps)`,
 			`  LoadScalarConst x = 10`,
 			`  LoadScalarConst y = 20`,
-			`  LoadScalarConst tmp1 = 0`,
+			`  Zero tmp1`,
 			`  ScalarEq tmp0 = x tmp1`,
 			`  JumpNotZero L0 tmp0`,
-			`  LoadScalarConst tmp2 = 0`,
+			`  Zero tmp2`,
 			`  IntGt tmp0 = x tmp2`,
 			`L0:`,
 			`  JumpZero L1 tmp0`,
@@ -366,19 +345,17 @@ func TestCompile(t *testing.T) {
 		},
 
 		`println("s"); return 0`: {
-			`testpkg.f code=11 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`testpkg.f code=7 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
 			`  LoadStrConst arg0 = "s"`,
 			`  CallVoidNative builtin.PrintString()`,
-			`  LoadScalarConst tmp0 = 0`,
-			`  ReturnScalar tmp0`,
+			`  ReturnZero`,
 		},
 
 		`println(540); return 0`: {
-			`testpkg.f code=11 frame=120 (5 slots: 4 args, 0 locals, 1 temps)`,
+			`testpkg.f code=7 frame=96 (4 slots: 4 args, 0 locals, 0 temps)`,
 			`  LoadScalarConst arg0 = 540`,
 			`  CallVoidNative builtin.PrintInt()`,
-			`  LoadScalarConst tmp0 = 0`,
-			`  ReturnScalar tmp0`,
+			`  ReturnZero`,
 		},
 
 		`x := 1; return x + x + x`: {

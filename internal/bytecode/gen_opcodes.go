@@ -17,6 +17,7 @@ var opcodePrototypes = []opcodeProto{
 	{"LoadScalarConst", "op dst:wslot value:scalarindex"},
 	{"LoadStrConst", "op dst:wslot value:strindex"},
 
+	{"Zero", "op dst:wslot"},
 	{"Move", "op dst:wslot src:rslot"},
 	{"Move8", "op dst:wslot src:rslot"},
 	{"MoveResult2", "op dst:wslot"},
@@ -88,8 +89,8 @@ var opcodePrototypes = []opcodeProto{
 	{"VariadicReset", "op"},
 
 	{"ReturnVoid", "op"},
-	{"ReturnFalse", "op"},
-	{"ReturnTrue", "op"},
+	{"ReturnZero", "op"},
+	{"ReturnOne", "op"},
 	{"ReturnStr", "op x:rslot"},
 	{"ReturnScalar", "op x:rslot"},
 	{"Return", "op x:rslot"},
