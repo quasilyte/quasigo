@@ -2,12 +2,12 @@ package main
 
 //test:disasm_both
 // main.cond0 code=16 frame=96 (4 slots: 2 args, 0 locals, 2 temps)
-//   Zero tmp1
-//   ScalarEq tmp0 = x tmp1
-//   JumpNotZero L0 tmp0
-//   ScalarEq tmp0 = y x
+//   Zero temp1
+//   ScalarEq temp0 = x temp1
+//   JumpNotZero L0 temp0
+//   ScalarEq temp0 = y x
 // L0:
-//   ReturnScalar tmp0
+//   ReturnScalar temp0
 func cond0(x, y int) bool {
 	return x == 0 || y == x
 }

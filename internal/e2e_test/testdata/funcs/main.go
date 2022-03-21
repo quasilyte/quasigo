@@ -24,26 +24,26 @@ func concat3(s1, s2, s3 string) string {
 
 //test:disasm_both
 // main.streq code=51 frame=144 (6 slots: 2 args, 1 locals, 3 temps)
-//   Len tmp1 = s1
-//   Len tmp2 = s2
-//   ScalarNotEq tmp0 = tmp1 tmp2
-//   JumpZero L0 tmp0
+//   Len temp1 = s1
+//   Len temp2 = s2
+//   ScalarNotEq temp0 = temp1 temp2
+//   JumpZero L0 temp0
 //   ReturnZero
 // L0:
 //   Zero i
 //   Jump L1
 // L3:
-//   StrIndex tmp1 = s1 i
-//   StrIndex tmp2 = s2 i
-//   ScalarNotEq tmp0 = tmp1 tmp2
-//   JumpZero L2 tmp0
+//   StrIndex temp1 = s1 i
+//   StrIndex temp2 = s2 i
+//   ScalarNotEq temp0 = temp1 temp2
+//   JumpZero L2 temp0
 //   ReturnZero
 // L2:
 //   IntInc i
 // L1:
-//   Len tmp1 = s1
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L3 tmp0
+//   Len temp1 = s1
+//   IntLt temp0 = i temp1
+//   JumpNotZero L3 temp0
 //   ReturnOne
 func streq(s1, s2 string) bool {
 	if len(s1) != len(s2) {
@@ -63,16 +63,16 @@ func streq(s1, s2 string) bool {
 //   Zero i
 //   Jump L0
 // L1:
-//   LoadScalarConst tmp0 = 16777619
-//   IntMul64 v = v tmp0
-//   StrIndex tmp1 = s i
-//   Move tmp0 = tmp1
-//   IntXor v = v tmp0
+//   LoadScalarConst temp0 = 16777619
+//   IntMul64 v = v temp0
+//   StrIndex temp1 = s i
+//   Move temp0 = temp1
+//   IntXor v = v temp0
 //   IntInc i
 // L0:
-//   Len tmp1 = s
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L1 tmp0
+//   Len temp1 = s
+//   IntLt temp0 = i temp1
+//   JumpNotZero L1 temp0
 //   ReturnScalar v
 func fnv1(s string) int {
 	v := 0x811c9dc5
@@ -88,22 +88,22 @@ func fnv1(s string) int {
 //   Zero i
 //   Jump L0
 // L3:
-//   StrIndex tmp1 = s i
-//   LoadScalarConst tmp2 = 48
-//   IntLt tmp0 = tmp1 tmp2
-//   JumpNotZero L1 tmp0
-//   StrIndex tmp3 = s i
-//   LoadScalarConst tmp4 = 57
-//   IntGt tmp0 = tmp3 tmp4
+//   StrIndex temp1 = s i
+//   LoadScalarConst temp2 = 48
+//   IntLt temp0 = temp1 temp2
+//   JumpNotZero L1 temp0
+//   StrIndex temp3 = s i
+//   LoadScalarConst temp4 = 57
+//   IntGt temp0 = temp3 temp4
 // L1:
-//   JumpZero L2 tmp0
+//   JumpZero L2 temp0
 //   ReturnZero
 // L2:
 //   IntInc i
 // L0:
-//   Len tmp1 = s
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L3 tmp0
+//   Len temp1 = s
+//   IntLt temp0 = i temp1
+//   JumpNotZero L3 temp0
 //   ReturnOne
 func isNumericString(s string) bool {
 	for i := 0; i < len(s); i++ {
@@ -116,77 +116,77 @@ func isNumericString(s string) bool {
 
 //test:disasm
 // main.atoi code=95 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
-//   Len tmp1 = s
-//   Zero tmp2
-//   ScalarEq tmp0 = tmp1 tmp2
-//   JumpZero L0 tmp0
+//   Len temp1 = s
+//   Zero temp2
+//   ScalarEq temp0 = temp1 temp2
+//   JumpZero L0 temp0
 //   ReturnZero
 // L0:
 //   Zero result
 //   Zero sign
 //   Zero i
-//   Zero tmp2
-//   StrIndex tmp1 = s tmp2
-//   LoadScalarConst tmp3 = 45
-//   ScalarEq tmp0 = tmp1 tmp3
-//   JumpZero L1 tmp0
+//   Zero temp2
+//   StrIndex temp1 = s temp2
+//   LoadScalarConst temp3 = 45
+//   ScalarEq temp0 = temp1 temp3
+//   JumpZero L1 temp0
 //   LoadScalarConst sign = 1
 //   LoadScalarConst i = 1
 // L1:
 //   Jump L2
 // L3:
-//   LoadScalarConst tmp1 = 10
-//   IntMul64 tmp0 = result tmp1
-//   StrIndex tmp4 = s i
-//   LoadScalarConst tmp5 = 48
-//   IntSub8 tmp3 = tmp4 tmp5
-//   Move tmp2 = tmp3
-//   IntAdd64 result = tmp0 tmp2
+//   LoadScalarConst temp1 = 10
+//   IntMul64 temp0 = result temp1
+//   StrIndex temp4 = s i
+//   LoadScalarConst temp5 = 48
+//   IntSub8 temp3 = temp4 temp5
+//   Move temp2 = temp3
+//   IntAdd64 result = temp0 temp2
 //   IntInc i
 // L2:
-//   Len tmp1 = s
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L3 tmp0
+//   Len temp1 = s
+//   IntLt temp0 = i temp1
+//   JumpNotZero L3 temp0
 //   JumpZero L4 sign
-//   IntNeg tmp0 = result
-//   ReturnScalar tmp0
+//   IntNeg temp0 = result
+//   ReturnScalar temp0
 // L4:
 //   ReturnScalar result
 //
 //test:disasm_opt
 // main.atoi code=89 frame=240 (10 slots: 1 args, 3 locals, 6 temps)
-//   Len tmp1 = s
-//   JumpNotZero L0 tmp1
+//   Len temp1 = s
+//   JumpNotZero L0 temp1
 //   ReturnZero
 // L0:
 //   Zero result
 //   Zero sign
 //   Zero i
-//   Zero tmp2
-//   StrIndex tmp1 = s tmp2
-//   LoadScalarConst tmp3 = 45
-//   ScalarEq tmp0 = tmp1 tmp3
-//   JumpZero L1 tmp0
+//   Zero temp2
+//   StrIndex temp1 = s temp2
+//   LoadScalarConst temp3 = 45
+//   ScalarEq temp0 = temp1 temp3
+//   JumpZero L1 temp0
 //   LoadScalarConst sign = 1
 //   LoadScalarConst i = 1
 // L1:
 //   Jump L2
 // L3:
-//   LoadScalarConst tmp1 = 10
-//   IntMul64 tmp0 = result tmp1
-//   StrIndex tmp4 = s i
-//   LoadScalarConst tmp5 = 48
-//   IntSub8 tmp3 = tmp4 tmp5
-//   Move tmp2 = tmp3
-//   IntAdd64 result = tmp0 tmp2
+//   LoadScalarConst temp1 = 10
+//   IntMul64 temp0 = result temp1
+//   StrIndex temp4 = s i
+//   LoadScalarConst temp5 = 48
+//   IntSub8 temp3 = temp4 temp5
+//   Move temp2 = temp3
+//   IntAdd64 result = temp0 temp2
 //   IntInc i
 // L2:
-//   Len tmp1 = s
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L3 tmp0
+//   Len temp1 = s
+//   IntLt temp0 = i temp1
+//   JumpNotZero L3 temp0
 //   JumpZero L4 sign
-//   IntNeg tmp0 = result
-//   ReturnScalar tmp0
+//   IntNeg temp0 = result
+//   ReturnScalar temp0
 // L4:
 //   ReturnScalar result
 func atoi(s string) int {
@@ -216,16 +216,16 @@ func atoi(s string) int {
 //   Zero i
 //   Jump L0
 // L2:
-//   StrIndex tmp1 = s i
-//   ScalarEq tmp0 = tmp1 b
-//   JumpZero L1 tmp0
+//   StrIndex temp1 = s i
+//   ScalarEq temp0 = temp1 b
+//   JumpZero L1 temp0
 //   IntInc n
 // L1:
 //   IntInc i
 // L0:
-//   Len tmp1 = s
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L2 tmp0
+//   Len temp1 = s
+//   IntLt temp0 = i temp1
+//   JumpNotZero L2 temp0
 //   ReturnScalar n
 func countByte(s string, b byte) int {
 	n := 0
@@ -239,32 +239,32 @@ func countByte(s string, b byte) int {
 
 //test:disasm_opt
 // main.hasPrefix code=27 frame=168 (7 slots: 2 args, 0 locals, 5 temps)
-//   Len tmp1 = s
-//   Len tmp2 = prefix
-//   IntGtEq tmp0 = tmp1 tmp2
-//   JumpZero L0 tmp0
-//   Len tmp4 = prefix
-//   StrSliceTo tmp3 = s tmp4
-//   StrEq tmp0 = tmp3 prefix
+//   Len temp1 = s
+//   Len temp2 = prefix
+//   IntGtEq temp0 = temp1 temp2
+//   JumpZero L0 temp0
+//   Len temp4 = prefix
+//   StrSliceTo temp3 = s temp4
+//   StrEq temp0 = temp3 prefix
 // L0:
-//   ReturnScalar tmp0
+//   ReturnScalar temp0
 func hasPrefix(s, prefix string) bool {
 	return len(s) >= len(prefix) && s[:len(prefix)] == prefix
 }
 
 //test:disasm_opt
 // main.factorial code=29 frame=120 (5 slots: 1 args, 0 locals, 4 temps)
-//   Zero tmp1
-//   IntLtEq tmp0 = x tmp1
-//   JumpZero L0 tmp0
+//   Zero temp1
+//   IntLtEq temp0 = x temp1
+//   JumpZero L0 temp0
 //   ReturnOne
 // L0:
-//   LoadScalarConst tmp3 = 1
-//   IntSub64 tmp2 = x tmp3
-//   Move arg0 = tmp2
-//   CallRecur tmp1
-//   IntMul64 tmp0 = x tmp1
-//   ReturnScalar tmp0
+//   LoadScalarConst temp3 = 1
+//   IntSub64 temp2 = x temp3
+//   Move arg0 = temp2
+//   CallRecur temp1
+//   IntMul64 temp0 = x temp1
+//   ReturnScalar temp0
 func factorial(x int) int {
 	if x <= 0 {
 		return 1
@@ -287,17 +287,17 @@ func testFactorial() {
 //   Zero i
 //   Jump L0
 // L1:
-//   Zero tmp3
-//   StrIndex tmp2 = s tmp3
-//   LoadScalarConst tmp4 = 48
-//   IntSub8 tmp1 = tmp2 tmp4
-//   Move tmp0 = tmp1
-//   IntAdd64 sum = sum tmp0
+//   Zero temp3
+//   StrIndex temp2 = s temp3
+//   LoadScalarConst temp4 = 48
+//   IntSub8 temp1 = temp2 temp4
+//   Move temp0 = temp1
+//   IntAdd64 sum = sum temp0
 //   IntInc i
 // L0:
-//   Len tmp1 = s
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L1 tmp0
+//   Len temp1 = s
+//   IntLt temp0 = i temp1
+//   JumpNotZero L1 temp0
 //   ReturnScalar sum
 func charsum(s string) int {
 	sum := 0
@@ -313,22 +313,22 @@ func charsum(s string) int {
 //   Zero i
 //   Jump L0
 // L2:
-//   Len tmp2 = sub
-//   StrSliceTo tmp1 = head tmp2
-//   StrEq tmp0 = tmp1 sub
-//   JumpZero L1 tmp0
+//   Len temp2 = sub
+//   StrSliceTo temp1 = head temp2
+//   StrEq temp0 = temp1 sub
+//   JumpZero L1 temp0
 //   ReturnScalar i
 // L1:
 //   IntInc i
-//   LoadScalarConst tmp0 = 1
-//   StrSliceFrom head = head tmp0
+//   LoadScalarConst temp0 = 1
+//   StrSliceFrom head = head temp0
 // L0:
-//   Len tmp1 = head
-//   Len tmp2 = sub
-//   IntGtEq tmp0 = tmp1 tmp2
-//   JumpNotZero L2 tmp0
-//   LoadScalarConst tmp0 = -1
-//   ReturnScalar tmp0
+//   Len temp1 = head
+//   Len temp2 = sub
+//   IntGtEq temp0 = temp1 temp2
+//   JumpNotZero L2 temp0
+//   LoadScalarConst temp0 = -1
+//   ReturnScalar temp0
 func substringIndex(s, sub string) int {
 	head := s
 	i := 0

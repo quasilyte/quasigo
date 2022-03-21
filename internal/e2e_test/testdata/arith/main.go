@@ -9,8 +9,8 @@ const one int = 1
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst arg0 = 1
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst tmp0 = 3
-//   Move arg0 = tmp0
+//   LoadScalarConst temp0 = 3
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
 //
@@ -33,16 +33,16 @@ func constexpr1() {
 
 //test:disasm_both
 // main.intnegvar code=5 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
-//   IntNeg tmp0 = x
-//   ReturnScalar tmp0
+//   IntNeg temp0 = x
+//   ReturnScalar temp0
 func intnegvar(x int) int {
 	return -x
 }
 
 //test:disasm_both
 // main.intnegconst code=5 frame=24 (1 slots: 0 args, 0 locals, 1 temps)
-//   LoadScalarConst tmp0 = -50
-//   ReturnScalar tmp0
+//   LoadScalarConst temp0 = -50
+//   ReturnScalar temp0
 func intnegconst() int {
 	return -50
 }

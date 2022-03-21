@@ -10,7 +10,7 @@ import (
 func Dump(fn *Func) string {
 	var out strings.Builder
 
-	tmpSeq := make(map[uint8]int)
+	tempSeq := make(map[uint8]int)
 
 	fmtSlot := func(slot Slot) string {
 		switch slot.Kind {
@@ -21,10 +21,10 @@ func Dump(fn *Func) string {
 		case SlotLocal:
 			return fmt.Sprintf("l%d", slot.ID)
 		case SlotTemp:
-			return fmt.Sprintf("tmp%d", slot.ID)
+			return fmt.Sprintf("temp%d", slot.ID)
 		case SlotUniq:
-			subscript := tmpSeq[slot.ID]
-			return fmt.Sprintf("tmp%d_%d", slot.ID, subscript-1)
+			subscript := tempSeq[slot.ID]
+			return fmt.Sprintf("temp%d_%d", slot.ID, subscript-1)
 		}
 		return "?"
 	}
@@ -37,7 +37,7 @@ func Dump(fn *Func) string {
 		}
 
 		if inst.Op.HasDst() && inst.Arg0.ToSlot().IsUniq() {
-			tmpSeq[inst.Arg0.ToSlot().ID]++
+			tempSeq[inst.Arg0.ToSlot().ID]++
 		}
 
 		args = args[:0]

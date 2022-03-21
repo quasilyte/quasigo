@@ -36,8 +36,8 @@ type compiler struct {
 	locals       map[string]frameSlotInfo
 	autoLocalSeq int
 	numAutoLocal int
-	tmpSeq       int
-	numTmp       int
+	tempSeq      int
+	numTemp      int
 
 	strConstantsPool    map[string]int
 	scalarConstantsPool map[uint64]int
@@ -115,7 +115,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		Code:            cl.code,
 		NumParams:       len(cl.params),
 		NumLocals:       len(cl.locals) + cl.numAutoLocal,
-		NumFrameSlots:   len(cl.params) + len(cl.locals) + cl.numAutoLocal + cl.numTmp,
+		NumFrameSlots:   len(cl.params) + len(cl.locals) + cl.numAutoLocal + cl.numTemp,
 		StrConstants:    cl.strConstants,
 		ScalarConstants: cl.scalarConstants,
 	}
@@ -403,20 +403,20 @@ func (cl *compiler) getNamedSlot(v ast.Expr, varname string) ir.Slot {
 	panic(cl.errorf(v, "%s is not a writeable local variable", varname))
 }
 
-func (cl *compiler) freeTmp() {
-	cl.tmpSeq = 0
+func (cl *compiler) freeTemp() {
+	cl.tempSeq = 0
 }
 
-func (cl *compiler) trackTmp(id int) {
-	if cl.numTmp < id+1 {
-		cl.numTmp = id + 1
+func (cl *compiler) trackTemp(id int) {
+	if cl.numTemp < id+1 {
+		cl.numTemp = id + 1
 	}
 }
 
-func (cl *compiler) allocTmp() ir.Slot {
-	id := cl.tmpSeq
-	cl.tmpSeq++
-	cl.trackTmp(id)
+func (cl *compiler) allocTemp() ir.Slot {
+	id := cl.tempSeq
+	cl.tempSeq++
+	cl.trackTemp(id)
 	return ir.NewUniqSlot(uint8(id))
 }
 

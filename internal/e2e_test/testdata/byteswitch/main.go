@@ -3,26 +3,26 @@ package main
 //test:disasm
 // main.test3withDefault code=56 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
 //   Move auto0 = x
-//   LoadScalarConst tmp1 = 10
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpZero L0 tmp0
-//   LoadStrConst tmp0 = "ten"
-//   ReturnStr tmp0
+//   LoadScalarConst temp1 = 10
+//   ScalarEq temp0 = auto0 temp1
+//   JumpZero L0 temp0
+//   LoadStrConst temp0 = "ten"
+//   ReturnStr temp0
 // L0:
-//   LoadScalarConst tmp1 = 20
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpZero L1 tmp0
-//   LoadStrConst tmp0 = "twenty"
-//   ReturnStr tmp0
+//   LoadScalarConst temp1 = 20
+//   ScalarEq temp0 = auto0 temp1
+//   JumpZero L1 temp0
+//   LoadStrConst temp0 = "twenty"
+//   ReturnStr temp0
 // L1:
-//   LoadScalarConst tmp1 = 30
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpZero L2 tmp0
-//   LoadStrConst tmp0 = "thirty"
-//   ReturnStr tmp0
+//   LoadScalarConst temp1 = 30
+//   ScalarEq temp0 = auto0 temp1
+//   JumpZero L2 temp0
+//   LoadStrConst temp0 = "thirty"
+//   ReturnStr temp0
 // L2:
-//   LoadStrConst tmp0 = "?"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "?"
+//   ReturnStr temp0
 func test3withDefault(x byte) string {
 	switch x {
 	case 10:
@@ -73,80 +73,80 @@ func test5noDefault(x byte) string {
 //test:disasm
 // main.test10withDefault code=202 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
 //   Move auto0 = x
-//   Zero tmp1
-//   IntLt tmp0 = auto0 tmp1
-//   JumpNotZero L0 tmp0
-//   LoadScalarConst tmp1 = 90
-//   IntGt tmp0 = auto0 tmp1
-//   JumpNotZero L0 tmp0
-//   LoadScalarConst tmp1 = 4
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L1 tmp0
-//   IntGt tmp0 = auto0 tmp1
-//   JumpNotZero L2 tmp0
-//   Zero tmp1
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L3 tmp0
-//   LoadScalarConst tmp1 = 1
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L4 tmp0
-//   LoadScalarConst tmp1 = 2
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L5 tmp0
-//   LoadScalarConst tmp1 = 3
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L6 tmp0
+//   Zero temp1
+//   IntLt temp0 = auto0 temp1
+//   JumpNotZero L0 temp0
+//   LoadScalarConst temp1 = 90
+//   IntGt temp0 = auto0 temp1
+//   JumpNotZero L0 temp0
+//   LoadScalarConst temp1 = 4
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L1 temp0
+//   IntGt temp0 = auto0 temp1
+//   JumpNotZero L2 temp0
+//   Zero temp1
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L3 temp0
+//   LoadScalarConst temp1 = 1
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L4 temp0
+//   LoadScalarConst temp1 = 2
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L5 temp0
+//   LoadScalarConst temp1 = 3
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L6 temp0
 //   Jump L0
 // L2:
-//   LoadScalarConst tmp1 = 5
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L7 tmp0
-//   LoadScalarConst tmp1 = 6
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L8 tmp0
-//   LoadScalarConst tmp1 = 7
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L9 tmp0
-//   LoadScalarConst tmp1 = 8
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L10 tmp0
-//   LoadScalarConst tmp1 = 90
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpNotZero L11 tmp0
+//   LoadScalarConst temp1 = 5
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L7 temp0
+//   LoadScalarConst temp1 = 6
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L8 temp0
+//   LoadScalarConst temp1 = 7
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L9 temp0
+//   LoadScalarConst temp1 = 8
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L10 temp0
+//   LoadScalarConst temp1 = 90
+//   ScalarEq temp0 = auto0 temp1
+//   JumpNotZero L11 temp0
 //   Jump L0
 // L3:
-//   LoadStrConst tmp0 = "0"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "0"
+//   ReturnStr temp0
 // L4:
-//   LoadStrConst tmp0 = "1"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "1"
+//   ReturnStr temp0
 // L5:
-//   LoadStrConst tmp0 = "2"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "2"
+//   ReturnStr temp0
 // L6:
-//   LoadStrConst tmp0 = "3"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "3"
+//   ReturnStr temp0
 // L1:
-//   LoadStrConst tmp0 = "4"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "4"
+//   ReturnStr temp0
 // L7:
-//   LoadStrConst tmp0 = "5"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "5"
+//   ReturnStr temp0
 // L8:
-//   LoadStrConst tmp0 = "6"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "6"
+//   ReturnStr temp0
 // L9:
-//   LoadStrConst tmp0 = "7"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "7"
+//   ReturnStr temp0
 // L10:
-//   LoadStrConst tmp0 = "8"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "8"
+//   ReturnStr temp0
 // L11:
-//   LoadStrConst tmp0 = "90"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "90"
+//   ReturnStr temp0
 // L0:
-//   LoadStrConst tmp0 = "?"
-//   ReturnStr tmp0
+//   LoadStrConst temp0 = "?"
+//   ReturnStr temp0
 func test10withDefault(x byte) string {
 	switch x {
 	case 0:

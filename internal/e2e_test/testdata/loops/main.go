@@ -11,9 +11,9 @@ const one int = 1
 //   CallVoidNative builtin.PrintInt()
 //   IntInc i
 // L0:
-//   LoadScalarConst tmp1 = 3
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L1 tmp0
+//   LoadScalarConst temp1 = 3
+//   IntLt temp0 = i temp1
+//   JumpNotZero L1 temp0
 //   ReturnVoid
 func cstyle1() {
 	for i := 0; i < 3; i++ {
@@ -33,9 +33,9 @@ func cstyle1() {
 //   CallVoidNative builtin.PrintInt()
 //   IntInc i
 // L0:
-//   LoadScalarConst tmp1 = 3
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L1 tmp0
+//   LoadScalarConst temp1 = 3
+//   IntLt temp0 = i temp1
+//   JumpNotZero L1 temp0
 //   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
@@ -54,9 +54,9 @@ func cstyle2() {
 // L3:
 //   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst tmp1 = 5
-//   IntGt tmp0 = i tmp1
-//   JumpZero L1 tmp0
+//   LoadScalarConst temp1 = 5
+//   IntGt temp0 = i temp1
+//   JumpZero L1 temp0
 //   Jump L2
 // L1:
 //   LoadStrConst arg0 = "after continue"
@@ -64,9 +64,9 @@ func cstyle2() {
 // L2:
 //   IntInc i
 // L0:
-//   LoadScalarConst tmp1 = 10
-//   IntLt tmp0 = i tmp1
-//   JumpNotZero L3 tmp0
+//   LoadScalarConst temp1 = 10
+//   IntLt temp0 = i temp1
+//   JumpNotZero L3 temp0
 //   ReturnVoid
 func cstyle3() {
 	for i := 0; i < 10; i++ {
@@ -85,18 +85,18 @@ func cstyle3() {
 // L3:
 //   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst tmp1 = 5
-//   IntLtEq tmp0 = i tmp1
-//   JumpZero L1 tmp0
+//   LoadScalarConst temp1 = 5
+//   IntLtEq temp0 = i temp1
+//   JumpZero L1 temp0
 //   Jump L2
 // L1:
 //   LoadStrConst arg0 = "after break"
 //   CallVoidNative builtin.PrintString()
 //   IntDec i
 // L0:
-//   Zero tmp1
-//   IntGtEq tmp0 = i tmp1
-//   JumpNotZero L3 tmp0
+//   Zero temp1
+//   IntGtEq temp0 = i temp1
+//   JumpNotZero L3 temp0
 // L2:
 //   ReturnVoid
 func cstyle4() {
@@ -116,9 +116,9 @@ func cstyle4() {
 // L2:
 //   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst tmp1 = 5
-//   IntLtEq tmp0 = i tmp1
-//   JumpZero L0 tmp0
+//   LoadScalarConst temp1 = 5
+//   IntLtEq temp0 = i temp1
+//   JumpZero L0 temp0
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"
@@ -145,9 +145,9 @@ func cstyle5() {
 // L2:
 //   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst tmp1 = 5
-//   IntLtEq tmp0 = i tmp1
-//   JumpZero L0 tmp0
+//   LoadScalarConst temp1 = 5
+//   IntLtEq temp0 = i temp1
+//   JumpZero L0 temp0
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"
@@ -174,9 +174,9 @@ func cstyle6(n int) {
 //   IntInc i
 //   Move arg0 = i
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst tmp1 = 5
-//   ScalarEq tmp0 = i tmp1
-//   JumpZero L0 tmp0
+//   LoadScalarConst temp1 = 5
+//   ScalarEq temp0 = i temp1
+//   JumpZero L0 temp0
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"

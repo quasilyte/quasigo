@@ -23,20 +23,20 @@ func (cl *compiler) compileTempExpr(e ast.Expr) ir.Slot {
 			return l.i
 		}
 	}
-	tmp := cl.allocTmp()
-	cl.CompileExpr(tmp, e)
-	return tmp
+	temp := cl.allocTemp()
+	cl.CompileExpr(temp, e)
+	return temp
 }
 
 func (cl *compiler) compileRootTempExpr(e ast.Expr) ir.Slot {
 	slot := cl.compileTempExpr(e)
-	cl.freeTmp()
+	cl.freeTemp()
 	return slot
 }
 
 func (cl *compiler) compileRootExpr(dst ir.Slot, e ast.Expr) {
 	cl.CompileExpr(dst, e)
-	cl.freeTmp()
+	cl.freeTemp()
 }
 
 func (cl *compiler) CompileExpr(dst ir.Slot, e ast.Expr) {
@@ -495,19 +495,19 @@ func (cl *compiler) compileMakeCall(dst ir.Slot, call *ast.CallExpr) {
 
 func (cl *compiler) compileCallVariadicArgs(args []ast.Expr) {
 	cl.emitOp(bytecode.OpVariadicReset)
-	tmpslot := cl.allocTmp()
+	tempslot := cl.allocTemp()
 	for _, arg := range args {
-		cl.CompileExpr(tmpslot, arg)
+		cl.CompileExpr(tempslot, arg)
 		argType := cl.ctx.Types.TypeOf(arg)
 		switch {
 		case typeIsBool(argType):
-			cl.emit1(bytecode.OpPushVariadicBoolArg, tmpslot)
+			cl.emit1(bytecode.OpPushVariadicBoolArg, tempslot)
 		case typeIsScalar(argType):
-			cl.emit1(bytecode.OpPushVariadicScalarArg, tmpslot)
+			cl.emit1(bytecode.OpPushVariadicScalarArg, tempslot)
 		case typeIsString(argType):
-			cl.emit1(bytecode.OpPushVariadicStrArg, tmpslot)
+			cl.emit1(bytecode.OpPushVariadicStrArg, tempslot)
 		case typeIsInterface(argType):
-			cl.emit1(bytecode.OpPushVariadicInterfaceArg, tmpslot)
+			cl.emit1(bytecode.OpPushVariadicInterfaceArg, tempslot)
 		default:
 			panic(cl.errorf(arg, "can't pass %s typed variadic arg", argType.String()))
 		}
@@ -564,9 +564,9 @@ func (cl *compiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []a
 	if needTemporaries {
 		tempSlots := make([]ir.Slot, 0, 8)
 		for _, arg := range args {
-			tmpslot := cl.allocTmp()
-			cl.CompileExpr(tmpslot, arg)
-			tempSlots = append(tempSlots, tmpslot)
+			tempslot := cl.allocTemp()
+			cl.CompileExpr(tempslot, arg)
+			tempSlots = append(tempSlots, tempslot)
 		}
 		if variadic != nil {
 			cl.compileCallVariadicArgs(variadic)

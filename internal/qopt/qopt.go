@@ -6,8 +6,8 @@ import (
 )
 
 // TODO:
-//   Len tmp0 = xs
-//   Move arg0 = tmp0
+//   Len temp0 = xs
+//   Move arg0 = temp0
 // =>
 //   Len arg0 = xs
 
@@ -129,10 +129,10 @@ func (opt *optimizer) walkBlocks(visit func([]ir.Inst)) {
 }
 
 func (opt *optimizer) condInvert(block []ir.Inst) bool {
-	// Not tmp0 = tmp1
-	// JumpZero L0 tmp0
+	// Not temp0 = temp1
+	// JumpZero L0 temp0
 	// =>
-	// JumpNotZero L0 tmp1
+	// JumpNotZero L0 temp1
 
 	if len(block) < 2 {
 		return false
@@ -175,13 +175,13 @@ func (opt *optimizer) zeroComparisons(block []ir.Inst) bool {
 
 	// x != 0
 	//
-	// Zero tmp1
-	// ScalarNotEq tmp0 = x tmp1
-	// JumpZero L0 tmp0
+	// Zero temp1
+	// ScalarNotEq temp0 = x temp1
+	// JumpZero L0 temp0
 	// =>
 	// JumpZero L0 x
 	//
-	// tmp0 must be uniq
+	// temp0 must be uniq
 
 	switch block[len(block)-1].Op {
 	case bytecode.OpJumpZero, bytecode.OpJumpNotZero:
