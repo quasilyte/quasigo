@@ -31,7 +31,7 @@ func Func(env *qruntime.Env, fn *qruntime.Func) string {
 		if index >= numSlots {
 			return fmt.Sprintf("arg%d", index-numSlots)
 		}
-		return fmt.Sprintf("tmp%d", index-len(dbg.SlotNames))
+		return fmt.Sprintf("temp%d", index-len(dbg.SlotNames))
 	}
 
 	code := fn.Code

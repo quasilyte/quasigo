@@ -3,20 +3,20 @@ package main
 //test:disasm_both
 // main.reverse code=46 frame=144 (6 slots: 1 args, 2 locals, 3 temps)
 //   LoadStrConst out = ""
-//   Len tmp0 = s
-//   LoadScalarConst tmp1 = 1
-//   IntSub64 i = tmp0 tmp1
+//   Len temp0 = s
+//   LoadScalarConst temp1 = 1
+//   IntSub64 i = temp0 temp1
 //   Jump L0
 // L1:
-//   LoadScalarConst tmp2 = 1
-//   IntAdd64 tmp1 = i tmp2
-//   StrSlice tmp0 = s i tmp1
-//   Concat out = out tmp0
+//   LoadScalarConst temp2 = 1
+//   IntAdd64 temp1 = i temp2
+//   StrSlice temp0 = s i temp1
+//   Concat out = out temp0
 //   IntDec i
 // L0:
-//   Zero tmp1
-//   IntGtEq tmp0 = i tmp1
-//   JumpNotZero L1 tmp0
+//   Zero temp1
+//   IntGtEq temp0 = i temp1
+//   JumpNotZero L1 temp0
 //   ReturnStr out
 func reverse(s string) string {
 	out := ""

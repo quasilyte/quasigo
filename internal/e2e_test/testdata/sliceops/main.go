@@ -5,8 +5,8 @@ package main
 //   LoadScalarConst arg0 = 8
 //   Move arg1 = length
 //   Move arg2 = length
-//   CallNative tmp0 = builtin.makeSlice()
-//   Return tmp0
+//   CallNative temp0 = builtin.makeSlice()
+//   Return temp0
 func makeIntSlice1(length int) []int {
 	return make([]int, length)
 }
@@ -16,8 +16,8 @@ func makeIntSlice1(length int) []int {
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = length
 //   Move arg2 = length
-//   CallNative tmp0 = builtin.makeSlice()
-//   Return tmp0
+//   CallNative temp0 = builtin.makeSlice()
+//   Return temp0
 func makeByteSlice1(length int) []byte {
 	return make([]byte, length)
 }
@@ -27,8 +27,8 @@ func makeByteSlice1(length int) []byte {
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = length
 //   Move arg2 = length
-//   CallNative tmp0 = builtin.makeSlice()
-//   Return tmp0
+//   CallNative temp0 = builtin.makeSlice()
+//   Return temp0
 func makeBoolSlice1(length int) []bool {
 	return make([]bool, length)
 }
@@ -38,8 +38,8 @@ func makeBoolSlice1(length int) []bool {
 //   LoadScalarConst arg0 = 8
 //   Move arg1 = length
 //   Move arg2 = capacity
-//   CallNative tmp0 = builtin.makeSlice()
-//   Return tmp0
+//   CallNative temp0 = builtin.makeSlice()
+//   Return temp0
 func makeIntSlice2(length, capacity int) []int {
 	return make([]int, length, capacity)
 }
@@ -49,8 +49,8 @@ func makeIntSlice2(length, capacity int) []int {
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = length
 //   Move arg2 = capacity
-//   CallNative tmp0 = builtin.makeSlice()
-//   Return tmp0
+//   CallNative temp0 = builtin.makeSlice()
+//   Return temp0
 func makeByteSlice2(length, capacity int) []byte {
 	return make([]byte, length, capacity)
 }
@@ -60,19 +60,19 @@ func makeByteSlice2(length, capacity int) []byte {
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = length
 //   Move arg2 = capacity
-//   CallNative tmp0 = builtin.makeSlice()
-//   Return tmp0
+//   CallNative temp0 = builtin.makeSlice()
+//   Return temp0
 func makeBoolSlice2(length, capacity int) []bool {
 	return make([]bool, length, capacity)
 }
 
 //test:disasm_both
 // main.intSliceLenCap code=19 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
-//   Len tmp0 = xs
-//   Move arg0 = tmp0
+//   Len temp0 = xs
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   Cap tmp0 = xs
-//   Move arg0 = tmp0
+//   Cap temp0 = xs
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
 func intSliceLenCap(xs []int) {
@@ -82,11 +82,11 @@ func intSliceLenCap(xs []int) {
 
 //test:disasm_both
 // main.byteSliceLenCap code=19 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
-//   Len tmp0 = xs
-//   Move arg0 = tmp0
+//   Len temp0 = xs
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   Cap tmp0 = xs
-//   Move arg0 = tmp0
+//   Cap temp0 = xs
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
 func byteSliceLenCap(xs []byte) {
@@ -96,11 +96,11 @@ func byteSliceLenCap(xs []byte) {
 
 //test:disasm_both
 // main.boolSliceLenCap code=19 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
-//   Len tmp0 = xs
-//   Move arg0 = tmp0
+//   Len temp0 = xs
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   Cap tmp0 = xs
-//   Move arg0 = tmp0
+//   Cap temp0 = xs
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
 func boolSliceLenCap(xs []bool) {
@@ -185,8 +185,8 @@ func byteSliceAppend(xs []byte, value byte) []byte {
 // main.boolSliceAppend code=12 frame=72 (3 slots: 2 args, 0 locals, 1 temps)
 //   Move arg0 = xs
 //   Move arg1 = value
-//   CallNative tmp0 = builtin.append8()
-//   Return tmp0
+//   CallNative temp0 = builtin.append8()
+//   Return temp0
 func boolSliceAppend(xs []bool, value bool) []bool {
 	return append(xs, value)
 }

@@ -2,121 +2,121 @@ package main
 
 //test:disasm
 // main.fx3 code=9 frame=72 (3 slots: 1 args, 0 locals, 2 temps)
-//   LoadScalarConst tmp1 = 1
-//   IntAdd64 tmp0 = x tmp1
-//   ReturnScalar tmp0
+//   LoadScalarConst temp1 = 1
+//   IntAdd64 temp0 = x temp1
+//   ReturnScalar temp0
 func fx3(x int) int { return x + 1 }
 
 //test:disasm_opt
 // main.fx2 code=32 frame=168 (7 slots: 0 args, 0 locals, 7 temps)
-//   LoadScalarConst tmp2 = 1
-//   LoadScalarConst tmp5 = 1
-//   IntAdd64 tmp4 = tmp2 tmp5
-//   Move tmp1 = tmp4
-//   LoadScalarConst tmp3 = 2
-//   LoadScalarConst tmp6 = 1
-//   IntAdd64 tmp5 = tmp3 tmp6
-//   Move tmp2 = tmp5
-//   IntAdd64 tmp0 = tmp1 tmp2
-//   ReturnScalar tmp0
+//   LoadScalarConst temp2 = 1
+//   LoadScalarConst temp5 = 1
+//   IntAdd64 temp4 = temp2 temp5
+//   Move temp1 = temp4
+//   LoadScalarConst temp3 = 2
+//   LoadScalarConst temp6 = 1
+//   IntAdd64 temp5 = temp3 temp6
+//   Move temp2 = temp5
+//   IntAdd64 temp0 = temp1 temp2
+//   ReturnScalar temp0
 func fx2() int { return fx3(1) + fx3(2) }
 
 //test:disasm_opt
 // main.fx1 code=35 frame=192 (8 slots: 0 args, 0 locals, 8 temps)
-//   LoadScalarConst tmp3 = 1
-//   LoadScalarConst tmp6 = 1
-//   IntAdd64 tmp5 = tmp3 tmp6
-//   Move tmp2 = tmp5
-//   LoadScalarConst tmp4 = 2
-//   LoadScalarConst tmp7 = 1
-//   IntAdd64 tmp6 = tmp4 tmp7
-//   Move tmp3 = tmp6
-//   IntAdd64 tmp1 = tmp2 tmp3
-//   Move tmp0 = tmp1
-//   ReturnScalar tmp0
+//   LoadScalarConst temp3 = 1
+//   LoadScalarConst temp6 = 1
+//   IntAdd64 temp5 = temp3 temp6
+//   Move temp2 = temp5
+//   LoadScalarConst temp4 = 2
+//   LoadScalarConst temp7 = 1
+//   IntAdd64 temp6 = temp4 temp7
+//   Move temp3 = temp6
+//   IntAdd64 temp1 = temp2 temp3
+//   Move temp0 = temp1
+//   ReturnScalar temp0
 func fx1() int { return fx2() }
 
 //test:disasm_opt
 // main.fx code=38 frame=216 (9 slots: 0 args, 0 locals, 9 temps)
-//   LoadScalarConst tmp4 = 1
-//   LoadScalarConst tmp7 = 1
-//   IntAdd64 tmp6 = tmp4 tmp7
-//   Move tmp3 = tmp6
-//   LoadScalarConst tmp5 = 2
-//   LoadScalarConst tmp8 = 1
-//   IntAdd64 tmp7 = tmp5 tmp8
-//   Move tmp4 = tmp7
-//   IntAdd64 tmp2 = tmp3 tmp4
-//   Move tmp1 = tmp2
-//   Move tmp0 = tmp1
-//   ReturnScalar tmp0
+//   LoadScalarConst temp4 = 1
+//   LoadScalarConst temp7 = 1
+//   IntAdd64 temp6 = temp4 temp7
+//   Move temp3 = temp6
+//   LoadScalarConst temp5 = 2
+//   LoadScalarConst temp8 = 1
+//   IntAdd64 temp7 = temp5 temp8
+//   Move temp4 = temp7
+//   IntAdd64 temp2 = temp3 temp4
+//   Move temp1 = temp2
+//   Move temp0 = temp1
+//   ReturnScalar temp0
 func fx() int { return fx1() }
 
 //test:disasm
 // main.isDigit code=20 frame=96 (4 slots: 1 args, 0 locals, 3 temps)
-//   LoadScalarConst tmp1 = 48
-//   IntGtEq tmp0 = ch tmp1
-//   JumpZero L0 tmp0
-//   LoadScalarConst tmp2 = 57
-//   IntLtEq tmp0 = ch tmp2
+//   LoadScalarConst temp1 = 48
+//   IntGtEq temp0 = ch temp1
+//   JumpZero L0 temp0
+//   LoadScalarConst temp2 = 57
+//   IntLtEq temp0 = ch temp2
 // L0:
-//   ReturnScalar tmp0
+//   ReturnScalar temp0
 func isDigit(ch byte) bool {
 	return ch >= '0' && ch <= '9'
 }
 
 //test:disasm
 // main.isAlpha code=20 frame=96 (4 slots: 1 args, 0 locals, 3 temps)
-//   LoadScalarConst tmp1 = 97
-//   IntGtEq tmp0 = ch tmp1
-//   JumpZero L0 tmp0
-//   LoadScalarConst tmp2 = 122
-//   IntLtEq tmp0 = ch tmp2
+//   LoadScalarConst temp1 = 97
+//   IntGtEq temp0 = ch temp1
+//   JumpZero L0 temp0
+//   LoadScalarConst temp2 = 122
+//   IntLtEq temp0 = ch temp2
 // L0:
-//   ReturnScalar tmp0
+//   ReturnScalar temp0
 func isAlpha(ch byte) bool {
 	return ch >= 'a' && ch <= 'z'
 }
 
 //test:disasm_opt
 // main.isAlphaNum code=54 frame=168 (7 slots: 1 args, 0 locals, 6 temps)
-//   Move tmp1 = ch
-//   LoadScalarConst tmp4 = 48
-//   IntGtEq tmp3 = tmp1 tmp4
-//   JumpZero L0 tmp3
-//   LoadScalarConst tmp5 = 57
-//   IntLtEq tmp3 = tmp1 tmp5
+//   Move temp1 = ch
+//   LoadScalarConst temp4 = 48
+//   IntGtEq temp3 = temp1 temp4
+//   JumpZero L0 temp3
+//   LoadScalarConst temp5 = 57
+//   IntLtEq temp3 = temp1 temp5
 // L0:
-//   Move tmp0 = tmp3
-//   JumpNotZero L1 tmp0
-//   Move tmp1 = ch
-//   LoadScalarConst tmp4 = 97
-//   IntGtEq tmp3 = tmp1 tmp4
-//   JumpZero L2 tmp3
-//   LoadScalarConst tmp5 = 122
-//   IntLtEq tmp3 = tmp1 tmp5
+//   Move temp0 = temp3
+//   JumpNotZero L1 temp0
+//   Move temp1 = ch
+//   LoadScalarConst temp4 = 97
+//   IntGtEq temp3 = temp1 temp4
+//   JumpZero L2 temp3
+//   LoadScalarConst temp5 = 122
+//   IntLtEq temp3 = temp1 temp5
 // L2:
-//   Move tmp0 = tmp3
+//   Move temp0 = temp3
 // L1:
-//   ReturnScalar tmp0
+//   ReturnScalar temp0
 func isAlphaNum(ch byte) bool {
 	return isDigit(ch) || isAlpha(ch)
 }
 
 //test:disasm
 // main.inlNot code=5 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
-//   Not tmp0 = b
-//   ReturnScalar tmp0
+//   Not temp0 = b
+//   ReturnScalar temp0
 func inlNot(b bool) bool {
 	return !b
 }
 
 //test:disasm_opt
 // main.testInlNot code=11 frame=120 (5 slots: 1 args, 0 locals, 4 temps)
-//   Move tmp1 = b
-//   Not tmp3 = tmp1
-//   Move tmp0 = tmp3
-//   ReturnScalar tmp0
+//   Move temp1 = b
+//   Not temp3 = temp1
+//   Move temp0 = temp3
+//   ReturnScalar temp0
 func testInlNot(b bool) bool {
 	return inlNot(b)
 }
@@ -124,11 +124,11 @@ func testInlNot(b bool) bool {
 //test:disasm
 // main.inlMultiStmt code=14 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
 //   JumpZero L0 b
-//   LoadScalarConst tmp0 = 10
-//   ReturnScalar tmp0
+//   LoadScalarConst temp0 = 10
+//   ReturnScalar temp0
 // L0:
-//   LoadScalarConst tmp0 = 20
-//   ReturnScalar tmp0
+//   LoadScalarConst temp0 = 20
+//   ReturnScalar temp0
 func inlMultiStmt(b bool) int {
 	if b {
 		return 10
@@ -138,16 +138,16 @@ func inlMultiStmt(b bool) int {
 
 //test:disasm_opt
 // main.testInlMultiStmt code=24 frame=120 (5 slots: 1 args, 0 locals, 4 temps)
-//   Move tmp1 = b
-//   JumpZero L0 tmp1
-//   LoadScalarConst tmp3 = 10
-//   Move tmp0 = tmp3
+//   Move temp1 = b
+//   JumpZero L0 temp1
+//   LoadScalarConst temp3 = 10
+//   Move temp0 = temp3
 //   Jump L1
 // L0:
-//   LoadScalarConst tmp3 = 20
-//   Move tmp0 = tmp3
+//   LoadScalarConst temp3 = 20
+//   Move temp0 = temp3
 // L1:
-//   ReturnScalar tmp0
+//   ReturnScalar temp0
 func testInlMultiStmt(b bool) int {
 	return inlMultiStmt(b)
 }
@@ -165,12 +165,12 @@ func inlLocal() int {
 
 //test:disasm_opt
 // main.testInlLocal code=17 frame=72 (3 slots: 0 args, 0 locals, 3 temps)
-//   LoadScalarConst tmp2 = 10
-//   IntInc tmp2
-//   Move tmp1 = tmp2
-//   LoadScalarConst tmp2 = 1
-//   IntAdd64 tmp0 = tmp1 tmp2
-//   ReturnScalar tmp0
+//   LoadScalarConst temp2 = 10
+//   IntInc temp2
+//   Move temp1 = temp2
+//   LoadScalarConst temp2 = 1
+//   IntAdd64 temp0 = temp1 temp2
+//   ReturnScalar temp0
 func testInlLocal() int {
 	return inlLocal() + 1
 }
@@ -178,19 +178,19 @@ func testInlLocal() int {
 //test:disasm
 // main.inlSwitch code=36 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
 //   Move auto0 = x
-//   LoadScalarConst tmp1 = 10
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpZero L0 tmp0
+//   LoadScalarConst temp1 = 10
+//   ScalarEq temp0 = auto0 temp1
+//   JumpZero L0 temp0
 //   ReturnOne
 // L0:
-//   LoadScalarConst tmp1 = 20
-//   ScalarEq tmp0 = auto0 tmp1
-//   JumpZero L1 tmp0
-//   LoadScalarConst tmp0 = -1
-//   ReturnScalar tmp0
+//   LoadScalarConst temp1 = 20
+//   ScalarEq temp0 = auto0 temp1
+//   JumpZero L1 temp0
+//   LoadScalarConst temp0 = -1
+//   ReturnScalar temp0
 // L1:
-//   LoadScalarConst tmp0 = 100
-//   ReturnScalar tmp0
+//   LoadScalarConst temp0 = 100
+//   ReturnScalar temp0
 func inlSwitch(x int) int {
 	switch x {
 	case 10:
@@ -204,25 +204,25 @@ func inlSwitch(x int) int {
 
 //test:disasm_opt
 // main.testInlSwitch code=51 frame=192 (8 slots: 1 args, 0 locals, 7 temps)
-//   Move tmp1 = x
-//   Move tmp4 = tmp1
-//   LoadScalarConst tmp6 = 10
-//   ScalarEq tmp5 = tmp4 tmp6
-//   JumpZero L0 tmp5
-//   LoadScalarConst tmp0 = 1
+//   Move temp1 = x
+//   Move temp4 = temp1
+//   LoadScalarConst temp6 = 10
+//   ScalarEq temp5 = temp4 temp6
+//   JumpZero L0 temp5
+//   LoadScalarConst temp0 = 1
 //   Jump L1
 // L0:
-//   LoadScalarConst tmp6 = 20
-//   ScalarEq tmp5 = tmp4 tmp6
-//   JumpZero L2 tmp5
-//   LoadScalarConst tmp5 = -1
-//   Move tmp0 = tmp5
+//   LoadScalarConst temp6 = 20
+//   ScalarEq temp5 = temp4 temp6
+//   JumpZero L2 temp5
+//   LoadScalarConst temp5 = -1
+//   Move temp0 = temp5
 //   Jump L1
 // L2:
-//   LoadScalarConst tmp5 = 100
-//   Move tmp0 = tmp5
+//   LoadScalarConst temp5 = 100
+//   Move temp0 = temp5
 // L1:
-//   ReturnScalar tmp0
+//   ReturnScalar temp0
 func testInlSwitch(x int) int {
 	return inlSwitch(x)
 }

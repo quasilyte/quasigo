@@ -100,13 +100,13 @@ func (cl *compiler) inlineCall(dst ir.Slot, recv ast.Expr, args []ast.Expr, key 
 	// If temps pressure is high and inlining candidate frame is big,
 	// do not attempt any inlining.
 	numFrameSlots := int(fn.NumParams) + int(fn.NumLocals) + int(fn.NumTemps)
-	if cl.tmpSeq+numFrameSlots > 100 {
+	if cl.tempSeq+numFrameSlots > 100 {
 		return false
 	}
 
 	numLabels := cl.numLabels
-	numTemps := cl.numTmp
-	tmpSeq := cl.tmpSeq
+	numTemps := cl.numTemp
+	tempSeq := cl.tempSeq
 	inl := inliner{
 		cl:       cl,
 		fn:       fn,
@@ -117,15 +117,15 @@ func (cl *compiler) inlineCall(dst ir.Slot, recv ast.Expr, args []ast.Expr, key 
 			NumFrameSlots: numFrameSlots,
 		},
 		dst:        dst,
-		tempOffset: cl.tmpSeq,
+		tempOffset: cl.tempSeq,
 	}
 	inlined := inl.Inline(recv, args)
 	if inlined {
 		cl.bindLabel(inl.labelRet)
 	} else {
 		cl.numLabels = numLabels
-		cl.numTmp = numTemps
-		cl.tmpSeq = tmpSeq
+		cl.numTemp = numTemps
+		cl.tempSeq = tempSeq
 	}
 	return inlined
 }
@@ -253,7 +253,7 @@ func (inl *inliner) compileInlinedCallArgs(recv ast.Expr, args []ast.Expr) {
 
 	for i, arg := range args {
 		id := int(inl.irfn.SlotIndex(ir.NewParamSlot(uint8(i)))) + inl.tempOffset
-		inl.cl.trackTmp(id)
+		inl.cl.trackTemp(id)
 		argslot := ir.NewTempSlot(uint8(id))
 		inl.cl.CompileExpr(argslot, arg)
 	}
@@ -282,6 +282,6 @@ func (inl *inliner) convertSlot(id byte) ir.Slot {
 		orig = ir.NewCallArgSlot(id)
 	}
 	newid := int(inl.irfn.SlotIndex(orig)) + inl.tempOffset
-	inl.cl.trackTmp(newid)
+	inl.cl.trackTemp(newid)
 	return ir.NewTempSlot(uint8(newid))
 }
