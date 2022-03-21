@@ -143,10 +143,12 @@ func (cl *compiler) compileAssignIndex(e *ast.IndexExpr, assign *ast.AssignStmt)
 	case typeIsBool(elemType), typeIsByte(elemType):
 		op = bytecode.OpSliceSetScalar8
 	}
+	cl.beginTempBlock()
 	valueslot := cl.compileTempExpr(assign.Rhs[0])
 	xslot := cl.compileTempExpr(e.X)
 	indexslot := cl.compileTempExpr(e.Index)
 	cl.emit3(op, xslot, indexslot, valueslot)
+	cl.endTempBlock()
 }
 
 func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
