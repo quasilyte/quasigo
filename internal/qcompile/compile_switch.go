@@ -129,6 +129,8 @@ func (cl switchCompiler) compileTableSearch(defaultBody []ast.Stmt, cases []cons
 
 	// Like with a binary search, we need a value range check.
 	{
+		cl.beginTempBlock()
+
 		// if tag < firstCase { goto default }
 		firstCase := cases[0]
 		condtemp := cl.allocTemp()
@@ -143,7 +145,7 @@ func (cl switchCompiler) compileTableSearch(defaultBody []ast.Stmt, cases []cons
 		cl.emit3(cl.opGt, condtemp, cl.tagslot, yslot)
 		cl.emitCondJump(condtemp, bytecode.OpJumpNotZero, labelDefault)
 
-		cl.freeTemp()
+		cl.endTempBlock()
 	}
 
 	cl.emit(ir.Inst{Op: bytecode.OpJumpTable, Arg0: cl.tagslot.ToInstArg()})
@@ -177,13 +179,14 @@ func (cl switchCompiler) compileLinearSearch(stmt *ast.SwitchStmt, defaultBody [
 			continue // Default clause
 		}
 		labelNext := cl.newLabel()
+		cl.beginTempBlock()
 		condtemp := cl.allocTemp()
 		yslot := cl.allocTemp()
 		if len(cc.List) == 1 {
 			cl.CompileExpr(yslot, cc.List[0])
 			cl.emit3(cl.opEq, condtemp, cl.tagslot, yslot)
 			cl.emitCondJump(condtemp, bytecode.OpJumpZero, labelNext)
-			cl.freeTemp()
+			cl.endTempBlock()
 		} else {
 			// TODO: figure out a better way?
 			labelMatched := cl.newLabel()
@@ -193,7 +196,7 @@ func (cl switchCompiler) compileLinearSearch(stmt *ast.SwitchStmt, defaultBody [
 				cl.emitCondJump(condtemp, bytecode.OpJumpNotZero, labelMatched)
 			}
 			cl.emitJump(labelNext)
-			cl.freeTemp()
+			cl.endTempBlock()
 			cl.bindLabel(labelMatched)
 		}
 		cl.compileStmtList(cc.Body)
@@ -225,6 +228,8 @@ func (cl switchCompiler) compileBinarySearch(defaultBody []ast.Stmt, cases []con
 	// Insert value bound checks. If tag values is out of bounds,
 	// we don't need to perform the search.
 	{
+		cl.beginTempBlock()
+
 		// if tag < firstCase { goto default }
 		firstCase := cases[0]
 		condtemp := cl.allocTemp()
@@ -239,7 +244,7 @@ func (cl switchCompiler) compileBinarySearch(defaultBody []ast.Stmt, cases []con
 		cl.emit3(cl.opGt, condtemp, cl.tagslot, yslot)
 		cl.emitCondJump(condtemp, bytecode.OpJumpNotZero, labelDefault)
 
-		cl.freeTemp()
+		cl.endTempBlock()
 	}
 
 	var walkTree func(left, right int)
@@ -252,6 +257,7 @@ func (cl switchCompiler) compileBinarySearch(defaultBody []ast.Stmt, cases []con
 		if numCases <= linearSearchLen {
 			// Have a few cases left in this path, should
 			// switch to a linear search for this remainder.
+			cl.beginTempBlock()
 			condtemp := cl.allocTemp()
 			yslot := cl.allocTemp()
 			for i := left; i <= right; i++ {
@@ -264,7 +270,7 @@ func (cl switchCompiler) compileBinarySearch(defaultBody []ast.Stmt, cases []con
 					cl.emitJump(labelDefault)
 				}
 			}
-			cl.freeTemp()
+			cl.endTempBlock()
 			return
 		}
 
@@ -274,6 +280,7 @@ func (cl switchCompiler) compileBinarySearch(defaultBody []ast.Stmt, cases []con
 		c := &cases[mid]
 
 		c.label = cl.newLabel()
+		cl.beginTempBlock()
 
 		// perform `if tag == c.value { goto c.body }`
 		condtemp := cl.allocTemp()
@@ -286,7 +293,7 @@ func (cl switchCompiler) compileBinarySearch(defaultBody []ast.Stmt, cases []con
 		labelGreater := cl.newLabel()
 		cl.emit3(cl.opGt, condtemp, cl.tagslot, yslot)
 		cl.emitCondJump(condtemp, bytecode.OpJumpNotZero, labelGreater)
-		cl.freeTemp()
+		cl.endTempBlock()
 		walkTree(left, mid-1)
 
 		cl.bindLabel(labelGreater)

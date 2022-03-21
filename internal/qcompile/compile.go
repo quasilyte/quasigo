@@ -38,6 +38,7 @@ type compiler struct {
 	numAutoLocal int
 	tempSeq      int
 	numTemp      int
+	inTempBlock  bool
 
 	strConstantsPool    map[string]int
 	scalarConstantsPool map[uint64]int
@@ -278,6 +279,11 @@ func (cl *compiler) emitCall(op bytecode.Op, dst ir.Slot, funcid int) {
 	})
 }
 
+func (cl *compiler) fatalf(format string, args ...interface{}) {
+	loc := cl.ctx.Fset.Position(cl.fnName.Pos())
+	panic(fmt.Sprintf("%s:%d: internal error: %s", loc.Filename, loc.Line, fmt.Sprintf(format, args...)))
+}
+
 func (cl *compiler) errorUnsupportedType(e ast.Node, typ types.Type, where string) compileError {
 	return cl.errorf(e, "%s type: %s is not supported, try something simpler", where, typ)
 }
@@ -403,8 +409,22 @@ func (cl *compiler) getNamedSlot(v ast.Expr, varname string) ir.Slot {
 	panic(cl.errorf(v, "%s is not a writeable local variable", varname))
 }
 
-func (cl *compiler) freeTemp() {
+func (cl *compiler) beginTempBlock() {
+	if cl.tempSeq != 0 {
+		cl.fatalf("beginTempBlock with non-zero temp seq")
+	}
+	if cl.inTempBlock {
+		cl.fatalf("nested beginTempBlock call")
+	}
+	cl.inTempBlock = true
+}
+
+func (cl *compiler) endTempBlock() {
+	if !cl.inTempBlock {
+		cl.fatalf("endTempBlock without beginTempBlock")
+	}
 	cl.tempSeq = 0
+	cl.inTempBlock = false
 }
 
 func (cl *compiler) trackTemp(id int) {

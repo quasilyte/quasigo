@@ -29,14 +29,16 @@ func (cl *compiler) compileTempExpr(e ast.Expr) ir.Slot {
 }
 
 func (cl *compiler) compileRootTempExpr(e ast.Expr) ir.Slot {
+	cl.beginTempBlock()
 	slot := cl.compileTempExpr(e)
-	cl.freeTemp()
+	cl.endTempBlock()
 	return slot
 }
 
 func (cl *compiler) compileRootExpr(dst ir.Slot, e ast.Expr) {
+	cl.beginTempBlock()
 	cl.CompileExpr(dst, e)
-	cl.freeTemp()
+	cl.endTempBlock()
 }
 
 func (cl *compiler) CompileExpr(dst ir.Slot, e ast.Expr) {
