@@ -2,6 +2,7 @@ package ir
 
 import (
 	"github.com/quasilyte/quasigo/internal/bytecode"
+	"github.com/quasilyte/quasigo/internal/qruntime"
 )
 
 //go:generate stringer -type=PseudoOp -trimprefix=Op
@@ -10,6 +11,7 @@ type PseudoOp byte
 const (
 	OpUnset PseudoOp = iota
 	OpLabel
+	OpVarKill
 )
 
 type InstArg uint16
@@ -43,6 +45,12 @@ func (inst *Inst) SetArg(i int, arg InstArg) {
 	}
 }
 
+func (inst *Inst) SetArgSlotKind(i int, kind SlotKind) {
+	slot := inst.GetArg(i).ToSlot()
+	slot.Kind = kind
+	inst.SetArg(i, slot.ToInstArg())
+}
+
 func (inst Inst) GetArg(i int) InstArg {
 	switch i {
 	case 0:
@@ -61,13 +69,19 @@ func (inst Inst) IsPseudo() bool {
 }
 
 type Func struct {
+	Name string
+
 	Code          []Inst
+	Blocks        []Block
 	NumParams     int
 	NumLocals     int
 	NumFrameSlots int
 
 	StrConstants    []string
 	ScalarConstants []uint64
+
+	Debug qruntime.FuncDebugInfo
+	Env   *qruntime.Env
 }
 
 func (fn *Func) SlotIndex(slot Slot) uint8 {
@@ -81,4 +95,11 @@ func (fn *Func) SlotIndex(slot Slot) uint8 {
 	default:
 		return slot.ID
 	}
+}
+
+type Block struct {
+	Code       []Inst
+	NumVarKill uint16
+	Label      uint16
+	Dirty      bool
 }

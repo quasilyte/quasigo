@@ -1,0 +1,89 @@
+package qopt
+
+import (
+	"github.com/quasilyte/quasigo/internal/bytecode"
+	"github.com/quasilyte/quasigo/internal/ir"
+)
+
+func createBlocks(fn *ir.Func, out []ir.Block) []ir.Block {
+	builder := blocksBuilder{fn: fn, out: out}
+	return builder.Build()
+}
+
+type blocksBuilder struct {
+	fn  *ir.Func
+	out []ir.Block
+}
+
+func (builder *blocksBuilder) Build() []ir.Block {
+	code := builder.fn.Code
+
+	blockStart := 0
+	numVarKill := 0
+	i := 0
+	for {
+		if i >= len(code) {
+			break
+		}
+		inst := code[i]
+
+		if inst.Pseudo == ir.OpVarKill {
+			numVarKill++
+		}
+
+		if inst.Pseudo == ir.OpLabel {
+			blockCode := code[blockStart:i]
+			builder.pushBlock(ir.Block{
+				Code:       blockCode,
+				Label:      uint16(inst.Arg0) + 1,
+				NumVarKill: uint16(numVarKill),
+			})
+			blockStart = i + 1
+			numVarKill = 0
+			i++
+			continue
+		}
+
+		switch inst.Op {
+		case bytecode.OpJump, bytecode.OpJumpZero, bytecode.OpJumpNotZero:
+			fallthrough
+		case bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnVoid:
+			fallthrough
+		case bytecode.OpReturnScalar, bytecode.OpReturnStr:
+			i++
+			for i < len(code) && code[i].Pseudo == ir.OpVarKill {
+				i++
+				numVarKill++
+			}
+			blockCode := code[blockStart:i]
+			if len(blockCode) != 0 {
+				builder.pushBlock(ir.Block{
+					Code:       blockCode,
+					NumVarKill: uint16(numVarKill),
+				})
+			}
+			blockStart = i
+			numVarKill = 0
+			continue
+		}
+
+		i++
+	}
+
+	return builder.out
+}
+
+func (builder *blocksBuilder) pushBlock(b ir.Block) {
+	if len(builder.out) != 0 {
+		last := &builder.out[len(builder.out)-1]
+		if len(last.Code) == 0 && (last.Label == 0 || b.Label == 0) {
+			if b.Label != 0 {
+				last.Label = b.Label
+			}
+			last.Code = b.Code
+			last.NumVarKill = b.NumVarKill
+			return
+		}
+	}
+	builder.out = append(builder.out, b)
+}

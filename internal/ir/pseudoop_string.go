@@ -10,11 +10,12 @@ func _() {
 	var x [1]struct{}
 	_ = x[OpUnset-0]
 	_ = x[OpLabel-1]
+	_ = x[OpVarKill-2]
 }
 
-const _PseudoOp_name = "UnsetLabel"
+const _PseudoOp_name = "UnsetLabelVarKill"
 
-var _PseudoOp_index = [...]uint8{0, 5, 10}
+var _PseudoOp_index = [...]uint8{0, 5, 10, 17}
 
 func (i PseudoOp) String() string {
 	if i >= PseudoOp(len(_PseudoOp_index)-1) {
