@@ -1,6 +1,8 @@
 package qopt
 
 import (
+	"fmt"
+
 	"github.com/quasilyte/quasigo/internal/bytecode"
 	"github.com/quasilyte/quasigo/internal/ir"
 )
@@ -11,19 +13,116 @@ import (
 // =>
 //   Len arg0 = xs
 
-func Func(fn *ir.Func) {
-	opt := optimizer{fn: fn}
-	opt.Optimize()
-}
-
-type optimizer struct {
+type Optimizer struct {
 	fn *ir.Func
 
 	idMap idMap
 	idSet idSet
+
+	varKillTable []varKillState
+	blocksCache  []ir.Block
 }
 
-func (opt *optimizer) Optimize() {
+func (opt *Optimizer) PrepareFunc(fn *ir.Func) {
+	opt.fn = fn
+
+	numTemps := fn.NumFrameSlots - (opt.fn.NumParams + opt.fn.NumLocals)
+	if cap(opt.varKillTable) >= numTemps {
+		opt.varKillTable = opt.varKillTable[:numTemps]
+	} else {
+		opt.varKillTable = make([]varKillState, numTemps)
+	}
+
+	// Create basic blocks.
+	fn.Blocks = createBlocks(fn, opt.blocksCache[:0])
+	for i := range fn.Blocks {
+		b := &fn.Blocks[i]
+		if b.NumVarKill != 0 {
+			opt.markUniq(b)
+		}
+	}
+}
+
+type varKillState struct {
+	pos      uint16
+	readPos  uint16
+	readArg  uint8
+	numReads uint8
+	slotID   uint8
+}
+
+func (opt *Optimizer) markUniq(b *ir.Block) {
+	if len(b.Code) == 0 {
+		return
+	}
+
+	// table is preallocated, but we need to clear it.
+	// Go compiler recognizes this loop and inserts memclearNoHeapPointers here.
+	table := opt.varKillTable
+	for i := range table {
+		table[i] = varKillState{}
+	}
+
+	debugPrint := func(msg string) {
+		if opt.fn.Name == "irtest.testopt" {
+			print(msg)
+		}
+	}
+
+	for i := len(b.Code) - 1; i >= 0; i-- {
+		inst := b.Code[i]
+
+		// Starting to track a variable.
+		// If we were tracking some other variable before, it'll be overwritten.
+		if inst.Pseudo == ir.OpVarKill {
+			slotID := inst.Arg0.ToSlot().ID
+			table[slotID] = varKillState{
+				pos:    uint16(i),
+				slotID: slotID,
+			}
+			debugPrint(fmt.Sprintf("block%d: track temp%d\n", i, slotID))
+			continue
+		}
+
+		for argIndex, argInfo := range inst.Op.Args() {
+			if argInfo.Kind != bytecode.ArgSlot {
+				continue
+			}
+			slot := inst.GetArg(argIndex).ToSlot()
+			if !slot.IsTemp() || table[slot.ID].pos == 0 {
+				continue
+			}
+			if argInfo.IsWriteSlot() {
+				info := table[slot.ID]
+				switch info.numReads {
+				case 0:
+					// No reads for this var. Can safely remove it.
+					b.Code[info.pos].Pseudo = ir.OpUnset
+					b.Code[i].Op = bytecode.OpInvalid
+					b.NumVarKill--
+					debugPrint(fmt.Sprintf("block%d: clear temp%d\n", i, slot.ID))
+				case 1:
+					// Exactly one read for this var. Mark slot as uniq.
+					b.Code[info.pos].Pseudo = ir.OpUnset
+					b.Code[info.readPos].SetArgSlotKind(int(info.readArg), ir.SlotUniq)
+					b.Code[i].SetArgSlotKind(0, ir.SlotUniq)
+					b.NumVarKill--
+					debugPrint(fmt.Sprintf("block%d: mark uniq temp%d\n", i, slot.ID))
+				default:
+					debugPrint(fmt.Sprintf("block%d: ignore temp%d\n", i, slot.ID))
+				}
+				table[slot.ID].pos = 0
+			} else {
+				table[slot.ID].readArg = uint8(argIndex)
+				table[slot.ID].readPos = uint16(i)
+				table[slot.ID].numReads++
+				debugPrint(fmt.Sprintf("block%d: add read to temp%d\n", i, slot.ID))
+			}
+		}
+	}
+}
+
+func (opt *Optimizer) OptimizePrepared() {
 	changed := false
 	opt.walkBlocks(func(block []ir.Inst) {
 		if opt.injectConstants(block) {
@@ -83,7 +182,7 @@ func (opt *optimizer) Optimize() {
 	}
 }
 
-func (opt *optimizer) filterBlock(block []ir.Inst) []ir.Inst {
+func (opt *Optimizer) filterBlock(block []ir.Inst) []ir.Inst {
 	filtered := block[:0]
 	for _, inst := range block {
 		if inst.IsPseudo() || inst.Op != bytecode.OpInvalid {
@@ -100,7 +199,7 @@ func (opt *optimizer) filterBlock(block []ir.Inst) []ir.Inst {
 	return filtered
 }
 
-func (opt *optimizer) walkBlocks(visit func([]ir.Inst)) {
+func (opt *Optimizer) walkBlocks(visit func([]ir.Inst)) {
 	code := opt.fn.Code
 	blockStart := 0
 	for i, inst := range code {
@@ -128,7 +227,7 @@ func (opt *optimizer) walkBlocks(visit func([]ir.Inst)) {
 	}
 }
 
-func (opt *optimizer) condInvert(block []ir.Inst) bool {
+func (opt *Optimizer) condInvert(block []ir.Inst) bool {
 	// Not temp0 = temp1
 	// JumpZero L0 temp0
 	// =>
@@ -168,7 +267,7 @@ func (opt *optimizer) condInvert(block []ir.Inst) bool {
 	return true
 }
 
-func (opt *optimizer) zeroComparisons(block []ir.Inst) bool {
+func (opt *Optimizer) zeroComparisons(block []ir.Inst) bool {
 	if len(block) < 3 {
 		return false
 	}
@@ -237,7 +336,7 @@ func (opt *optimizer) zeroComparisons(block []ir.Inst) bool {
 	return false
 }
 
-func (opt *optimizer) injectConstants(block []ir.Inst) bool {
+func (opt *Optimizer) injectConstants(block []ir.Inst) bool {
 	if len(block) > 255 {
 		return false
 	}

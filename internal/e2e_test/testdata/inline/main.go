@@ -238,6 +238,48 @@ func testBool(b bool) {
 	println(testInlNot(b))
 }
 
+func intneg(x int) int {
+	return -x
+}
+
+func noinline(x, y int) {
+	for i := 0; i < 0; i++ {
+	}
+}
+
+//test:irdump
+// block0 (L0) [0]:
+//   LoadScalarConst temp0.v0 = 3
+//   LoadScalarConst temp1.v0 = -1
+//   Move arg0 = temp0.v0
+//   Move arg1 = temp1.v0
+//   CallVoid main.noinline
+//   Zero temp1
+//   IntNeg temp3 = temp1
+//   Move temp0 = temp3
+// block1 [1]:
+//   Move arg0 = temp0
+//   CallVoidNative builtin.PrintInt
+//   VarKill temp0
+//   ReturnVoid
+//
+//test:disasm_opt
+// main.testIntNeg code=27 frame=96 (4 slots: 0 args, 0 locals, 4 temps)
+//   LoadScalarConst temp0 = 3
+//   Move arg0 = temp0
+//   LoadScalarConst arg1 = -1
+//   CallVoid main.noinline()
+//   Zero temp1
+//   IntNeg temp3 = temp1
+//   Move temp0 = temp3
+//   Move arg0 = temp0
+//   CallVoidNative builtin.PrintInt()
+//   ReturnVoid
+func testIntNeg() {
+	noinline(3, -1)
+	println(intneg(0))
+}
+
 func main() {
 	for i := -15; i < 40; i++ {
 		println(testInlSwitch(i))
@@ -259,4 +301,6 @@ func main() {
 
 	testBool(true)
 	testBool(false)
+
+	testIntNeg()
 }

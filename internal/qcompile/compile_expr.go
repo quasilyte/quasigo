@@ -28,13 +28,6 @@ func (cl *compiler) compileTempExpr(e ast.Expr) ir.Slot {
 	return temp
 }
 
-func (cl *compiler) compileRootTempExpr(e ast.Expr) ir.Slot {
-	cl.beginTempBlock()
-	slot := cl.compileTempExpr(e)
-	cl.endTempBlock()
-	return slot
-}
-
 func (cl *compiler) compileRootExpr(dst ir.Slot, e ast.Expr) {
 	cl.beginTempBlock()
 	cl.CompileExpr(dst, e)
@@ -685,9 +678,6 @@ func (cl *compiler) compileConstantValue(dst ir.Slot, source ast.Expr, cv consta
 }
 
 func (cl *compiler) compileOr(dst ir.Slot, e *ast.BinaryExpr) {
-	if dst.Kind == ir.SlotUniq {
-		dst.Kind = ir.SlotTemp
-	}
 	labelEnd := cl.newLabel()
 	cl.CompileExpr(dst, e.X)
 	cl.emitCondJump(dst, bytecode.OpJumpNotZero, labelEnd)
@@ -696,9 +686,6 @@ func (cl *compiler) compileOr(dst ir.Slot, e *ast.BinaryExpr) {
 }
 
 func (cl *compiler) compileAnd(dst ir.Slot, e *ast.BinaryExpr) {
-	if dst.Kind == ir.SlotUniq {
-		dst.Kind = ir.SlotTemp
-	}
 	labelEnd := cl.newLabel()
 	cl.CompileExpr(dst, e.X)
 	cl.emitCondJump(dst, bytecode.OpJumpZero, labelEnd)

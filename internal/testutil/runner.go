@@ -17,6 +17,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/internal/ir"
+	"github.com/quasilyte/quasigo/internal/qruntime"
 	"github.com/quasilyte/quasigo/qnative"
 	"github.com/quasilyte/quasigo/stdlib/qfmt"
 	"github.com/quasilyte/quasigo/stdlib/qstrconv"
@@ -59,7 +61,9 @@ func (r *Runner) Run() {
 	}
 
 	for _, target := range r.Targets {
-		r.runTarget(target)
+		r.root.Run(target.Name, func(t *testing.T) {
+			r.runTarget(t, target)
+		})
 	}
 }
 
@@ -82,14 +86,14 @@ func (r *Runner) testdataTargets() []RunnerTarget {
 	return targets
 }
 
-func (r *Runner) runTarget(target RunnerTarget) {
+func (r *Runner) runTarget(t *testing.T, target RunnerTarget) {
 	fset := token.NewFileSet()
 	packages, err := parser.ParseDir(fset, target.Path, nil, parser.ParseComments|parser.SkipObjectResolution)
 	if err != nil {
-		r.root.Fatalf("parse %s dir: %v", target.Name, err)
+		t.Fatalf("parse %s dir: %v", target.Name, err)
 	}
 	if len(packages) != 1 {
-		r.root.Fatalf("%s: expected 1 package, found %d", target.Name, len(packages))
+		t.Fatalf("%s: expected 1 package, found %d", target.Name, len(packages))
 	}
 	var pkg *ast.Package
 	for k := range packages {
@@ -108,11 +112,7 @@ func (r *Runner) runTarget(target RunnerTarget) {
 	}
 	typesPkg, err := typesConfig.Check(pkg.Name, fset, pkgFiles, typesInfo)
 	if err != nil {
-		r.root.Fatalf("typecheck %s: %v", target.Name, err)
-	}
-
-	if typesPkg.Path() != "main" {
-		r.root.Fatalf("expected main package, found %s", typesPkg.Path())
+		t.Fatalf("typecheck %s: %v", target.Name, err)
 	}
 
 	testPackage := &testPackage{
@@ -122,24 +122,27 @@ func (r *Runner) runTarget(target RunnerTarget) {
 		files:        make([]*testFile, len(pkgFiles)),
 	}
 	for i := range pkgFiles {
-		f := r.newTestFile(fset, pkgFiles[i])
+		f := r.newTestFile(t, fset, pkgFiles[i])
 		f.pkg = testPackage
 		testPackage.files[i] = f
 	}
 
 	// Run Go only once.
 	// This output will be used for both normal and optimized quasigo runs.
-	relpath, err := filepath.Rel(r.workdir, target.Path)
-	if err != nil {
-		r.root.Fatalf("get relpath: %v", err)
+	var goResult string
+	if typesPkg.Path() == "main" {
+		relpath, err := filepath.Rel(r.workdir, target.Path)
+		if err != nil {
+			t.Fatalf("get relpath: %v", err)
+		}
+		goResult = r.runGo(t, "./"+relpath)
 	}
-	goResult := r.runGo(r.root, "./"+relpath)
 
-	r.runMainTest(target, testPackage, goResult, false)
-	r.runMainTest(target, testPackage, goResult, true)
+	r.runTest(t, testPackage, goResult, false)
+	r.runTest(t, testPackage, goResult, true)
 }
 
-func (r *Runner) runMainTest(target RunnerTarget, pkg *testPackage, goResult string, optimize bool) {
+func (r *Runner) runTest(t *testing.T, pkg *testPackage, goResult string, optimize bool) {
 	env := r.newTestEnv()
 
 	compileContext := &quasigo.CompileContext{
@@ -152,11 +155,27 @@ func (r *Runner) runMainTest(target RunnerTarget, pkg *testPackage, goResult str
 		Static:   true,
 	}
 	checkDisasm := false
+	checkIR := false
 	for _, f := range pkg.files {
-		r.compileQuasigo(r.root, compileContext, f.syntax)
+		if len(f.GetIRDumpChecks(optimize)) != 0 {
+			checkIR = true
+		}
 		if len(f.GetDisasmChecks(optimize)) != 0 {
 			checkDisasm = true
 		}
+	}
+	var irdumpResults map[string]string
+	if checkIR {
+		irdumpResults = make(map[string]string)
+		compileContext.TestingContext = &compilerTestingContext{
+			OnFuncIR: func(fn *ir.Func) {
+				dump := ir.Dump(fn)
+				irdumpResults[fn.Name] = dump
+			},
+		}
+	}
+	for _, f := range pkg.files {
+		r.compileQuasigo(t, compileContext, f.syntax)
 	}
 
 	suffix := ""
@@ -164,20 +183,56 @@ func (r *Runner) runMainTest(target RunnerTarget, pkg *testPackage, goResult str
 		suffix = "_opt"
 	}
 
+	if checkIR {
+		t.Run("irdump", func(t *testing.T) {
+			for _, f := range pkg.files {
+				r.checkIR(t, f, irdumpResults, f.GetIRDumpChecks(optimize))
+			}
+		})
+	}
+
 	if checkDisasm {
-		r.root.Run(fmt.Sprintf("%s_disasm%s", target.Name, suffix), func(t *testing.T) {
+		t.Run("disasm"+suffix, func(t *testing.T) {
 			for _, f := range pkg.files {
 				r.checkDisasm(t, f, env, f.GetDisasmChecks(optimize))
 			}
 		})
 	}
 
-	r.root.Run(fmt.Sprintf("%s_exec%s", target.Name, suffix), func(t *testing.T) {
-		quasigoResult := r.runQuasigo(t, env)
-		if diff := cmp.Diff(quasigoResult, goResult); diff != "" {
-			t.Fatalf("output mismatch (-have +want):\n%s", diff)
+	if pkg.typesPackage.Path() == "main" {
+		t.Run("exec"+suffix, func(t *testing.T) {
+			quasigoResult := r.runQuasigo(t, env)
+			if diff := cmp.Diff(quasigoResult, goResult); diff != "" {
+				t.Fatalf("output mismatch (-have +want):\n%s", diff)
+			}
+		})
+	}
+}
+
+func (r *Runner) checkIR(t *testing.T, f *testFile, irdump map[string]string, checks []disasmCheck) {
+	for _, c := range checks {
+		funcKey := qruntime.FuncKey{
+			Qualifier: f.pkg.typesPackage.Path(),
+			Name:      c.funcName,
 		}
-	})
+		dump, ok := irdump[funcKey.String()]
+		if !ok {
+			t.Fatalf("can't find IR dump for %s", funcKey)
+		}
+		have := splitLines(dump)
+		want := splitLines(c.expected)
+		if diff := cmp.Diff(have, want); diff != "" {
+			t.Errorf("%s:%d: irdump mismatch (-have +want):\n%s", f.name, c.line, diff)
+			fmt.Println("For copy/paste:")
+			for _, l := range strings.Split(dump, "\n") {
+				if l == "" {
+					continue
+				}
+				fmt.Printf("// %s\n", l)
+			}
+			t.FailNow()
+		}
+	}
 }
 
 func (r *Runner) checkDisasm(t *testing.T, f *testFile, env *testEnv, checks []disasmCheck) {
@@ -218,7 +273,7 @@ func (r *Runner) compileQuasigo(t *testing.T, ctx *quasigo.CompileContext, f *as
 	}
 }
 
-func (r *Runner) newTestFile(fset *token.FileSet, syntax *ast.File) *testFile {
+func (r *Runner) newTestFile(t *testing.T, fset *token.FileSet, syntax *ast.File) *testFile {
 	f := &testFile{
 		name:   filepath.Base(fset.Position(syntax.Pos()).Filename),
 		syntax: syntax,
@@ -230,7 +285,7 @@ func (r *Runner) newTestFile(fset *token.FileSet, syntax *ast.File) *testFile {
 			continue
 		}
 		if decl.Doc != nil {
-			r.loadFuncComments(fset, f, decl.Name.Name, decl.Doc)
+			r.loadFuncComments(t, fset, f, decl.Name.Name, decl.Doc)
 		}
 	}
 
@@ -275,13 +330,15 @@ func (r *Runner) newTestEnv() *testEnv {
 	}
 }
 
-func (r *Runner) loadFuncComments(fset *token.FileSet, f *testFile, funcName string, cg *ast.CommentGroup) {
+func (r *Runner) loadFuncComments(t *testing.T, fset *token.FileSet, f *testFile, funcName string, cg *ast.CommentGroup) {
 	var disasmBoth strings.Builder
 	var disasmBothLine int
 	var disasm strings.Builder
 	var disasmLine int
 	var disasmOpt strings.Builder
 	var disasmOptLine int
+	var irdump strings.Builder
+	var irdumpLine int
 
 	var currentSection *strings.Builder
 	for _, c := range cg.List {
@@ -290,6 +347,10 @@ func (r *Runner) loadFuncComments(fset *token.FileSet, f *testFile, funcName str
 		}
 		s := strings.TrimSpace(strings.TrimPrefix(c.Text, "//"))
 		switch {
+		case strings.HasPrefix(s, "test:irdump"):
+			currentSection = &irdump
+			irdumpLine = fset.Position(c.Pos()).Line
+			continue
 		case strings.HasPrefix(s, "test:disasm_opt"):
 			currentSection = &disasmOpt
 			disasmOptLine = fset.Position(c.Pos()).Line
@@ -315,7 +376,7 @@ func (r *Runner) loadFuncComments(fset *token.FileSet, f *testFile, funcName str
 
 	if disasmBoth.Len() != 0 {
 		if disasmOpt.Len() != 0 || disasm.Len() != 0 {
-			r.root.Fatalf("used disasm_both with other disasm test directive")
+			t.Fatalf("used disasm_both with other disasm test directive")
 		}
 		disasm.WriteString(disasmBoth.String())
 		disasmLine = disasmBothLine
@@ -334,6 +395,13 @@ func (r *Runner) loadFuncComments(fset *token.FileSet, f *testFile, funcName str
 			line:     disasmOptLine,
 			funcName: funcName,
 			expected: disasmOpt.String(),
+		})
+	}
+	if irdump.Len() != 0 {
+		f.irdump = append(f.irdump, disasmCheck{
+			line:     irdumpLine,
+			funcName: funcName,
+			expected: irdump.String(),
 		})
 	}
 }
@@ -388,6 +456,7 @@ type testFile struct {
 	syntax    *ast.File
 	disasm    []disasmCheck
 	disasmOpt []disasmCheck
+	irdump    []disasmCheck
 	pkg       *testPackage
 }
 
@@ -398,8 +467,23 @@ func (f *testFile) GetDisasmChecks(optimize bool) []disasmCheck {
 	return f.disasm
 }
 
+func (f *testFile) GetIRDumpChecks(optimize bool) []disasmCheck {
+	if optimize {
+		return f.irdump
+	}
+	return nil
+}
+
 type disasmCheck struct {
 	line     int
 	funcName string
 	expected string
+}
+
+type compilerTestingContext struct {
+	OnFuncIR func(*ir.Func)
+}
+
+func (ctx *compilerTestingContext) FuncIR(fn *ir.Func) {
+	ctx.OnFuncIR(fn)
 }

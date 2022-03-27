@@ -89,15 +89,21 @@ func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 	default:
 		op = bytecode.OpReturn
 	}
-	slot := cl.compileRootTempExpr(ret.Results[0])
+	cl.beginTempBlock()
+	slot := cl.compileTempExpr(ret.Results[0])
 	cl.emit1(op, slot)
+	cl.endTempBlock()
 }
 
 func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	if stmt.Else == nil {
 		labelEnd := cl.newLabel()
-		condslot := cl.compileRootTempExpr(stmt.Cond)
-		cl.emitCondJump(condslot, bytecode.OpJumpZero, labelEnd)
+		{
+			cl.beginTempBlock()
+			condslot := cl.compileTempExpr(stmt.Cond)
+			cl.emitCondJump(condslot, bytecode.OpJumpZero, labelEnd)
+			cl.endTempBlock()
+		}
 		cl.compileStmt(stmt.Body)
 		cl.bindLabel(labelEnd)
 		return
@@ -105,8 +111,12 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 
 	labelEnd := cl.newLabel()
 	labelElse := cl.newLabel()
-	condslot := cl.compileRootTempExpr(stmt.Cond)
-	cl.emitCondJump(condslot, bytecode.OpJumpZero, labelElse)
+	{
+		cl.beginTempBlock()
+		condslot := cl.compileTempExpr(stmt.Cond)
+		cl.emitCondJump(condslot, bytecode.OpJumpZero, labelElse)
+		cl.endTempBlock()
+	}
 	cl.compileStmt(stmt.Body)
 	if !cl.isUncondJump(cl.lastOp()) {
 		cl.emitJump(labelEnd)
@@ -120,8 +130,12 @@ func (cl *compiler) compileAssignOp(op bytecode.Op, assign *ast.AssignStmt) {
 	lhs := assign.Lhs[0].(*ast.Ident)
 	rhs := assign.Rhs[0]
 	dstslot := cl.getNamedSlot(lhs, lhs.Name)
-	rhsslot := cl.compileRootTempExpr(rhs)
-	cl.emit3(op, dstslot, dstslot, rhsslot)
+	{
+		cl.beginTempBlock()
+		rhsslot := cl.compileTempExpr(rhs)
+		cl.emit3(op, dstslot, dstslot, rhsslot)
+		cl.endTempBlock()
+	}
 }
 
 func (cl *compiler) compileAssignIndex(e *ast.IndexExpr, assign *ast.AssignStmt) {
@@ -259,8 +273,12 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 		cl.bindLabel(labelBody)
 		cl.compileStmt(stmt.Body)
 		cl.bindLabel(labelContinue)
-		condslot := cl.compileRootTempExpr(stmt.Cond)
-		cl.emitCondJump(condslot, bytecode.OpJumpNotZero, labelBody)
+		{
+			cl.beginTempBlock()
+			condslot := cl.compileTempExpr(stmt.Cond)
+			cl.emitCondJump(condslot, bytecode.OpJumpNotZero, labelBody)
+			cl.endTempBlock()
+		}
 		cl.bindLabel(labelBreak)
 
 	case stmt.Cond == nil && stmt.Init == nil && stmt.Post == nil:
@@ -288,8 +306,10 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 		}
 		cl.bindLabel(labelStart)
 		if stmt.Cond != nil {
-			condslot := cl.compileRootTempExpr(stmt.Cond)
+			cl.beginTempBlock()
+			condslot := cl.compileTempExpr(stmt.Cond)
 			cl.emitCondJump(condslot, bytecode.OpJumpNotZero, labelBody)
+			cl.endTempBlock()
 		} else {
 			cl.emitJump(labelBody)
 		}

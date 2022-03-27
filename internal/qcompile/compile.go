@@ -12,16 +12,15 @@ import (
 	"github.com/quasilyte/quasigo/internal/qruntime"
 )
 
-// TODO/ideas.
-//
-// - Add ret slots? Could use 1 less temp in some functions.
-
 var voidType = &types.Tuple{}
 
 var voidSlot = ir.Slot{Kind: ir.SlotDiscard}
 
 type compiler struct {
 	ctx *Context
+
+	currentFunc ir.Func
+	optimizer   qopt.Optimizer
 
 	fnName  *ast.Ident
 	fnKey   qruntime.FuncKey
@@ -70,7 +69,7 @@ type compileError string
 
 func (e compileError) Error() string { return string(e) }
 
-func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
+func (cl *compiler) buildIR(fn *ast.FuncDecl) *ir.Func {
 	switch cl.fnType.Results().Len() {
 	case 0:
 		cl.retType = voidType
@@ -112,24 +111,37 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		cl.emitOp(bytecode.OpReturnVoid)
 	}
 
-	irFunc := ir.Func{
+	for i := 0; i < cl.numAutoLocal; i++ {
+		dbg.SlotNames = append(dbg.SlotNames, fmt.Sprintf("auto%d", i))
+	}
+	cl.currentFunc = ir.Func{
+		Name:            cl.fnKey.String(),
 		Code:            cl.code,
 		NumParams:       len(cl.params),
 		NumLocals:       len(cl.locals) + cl.numAutoLocal,
 		NumFrameSlots:   len(cl.params) + len(cl.locals) + cl.numAutoLocal + cl.numTemp,
 		StrConstants:    cl.strConstants,
 		ScalarConstants: cl.scalarConstants,
-	}
-	for i := 0; i < cl.numAutoLocal; i++ {
-		dbg.SlotNames = append(dbg.SlotNames, fmt.Sprintf("auto%d", i))
+		Debug:           dbg,
+		Env:             cl.ctx.Env,
 	}
 
+	return &cl.currentFunc
+}
+
+func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
+	irFunc := cl.buildIR(fn)
+
 	if cl.ctx.Optimize {
-		qopt.Func(&irFunc)
+		cl.optimizer.PrepareFunc(irFunc)
+		if cl.ctx.TestingContext != nil {
+			cl.ctx.TestingContext.FuncIR(irFunc)
+		}
+		cl.optimizer.OptimizePrepared()
 	}
 
 	var asm assembler
-	code, err := asm.Assemble(&irFunc)
+	code, err := asm.Assemble(irFunc)
 	if err != nil {
 		panic(cl.errorf(fn.Name, "unexpected result: %s", err))
 	}
@@ -146,14 +158,14 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		Codeptr:         &code[0],
 		StrConstants:    irFunc.StrConstants,
 		ScalarConstants: irFunc.ScalarConstants,
-		Name:            cl.fnKey.String(),
+		Name:            irFunc.Name,
 		FrameSize:       int(qruntime.SizeofSlot) * irFunc.NumFrameSlots,
 		FrameSlots:      byte(irFunc.NumFrameSlots),
 		NumParams:       byte(len(cl.params)),
 		NumLocals:       byte(len(cl.locals) + cl.numAutoLocal),
-		CanInline:       cl.canInline(&irFunc),
+		CanInline:       cl.canInline(irFunc),
 	}
-	cl.ctx.Env.Debug.Funcs[compiled] = dbg
+	cl.ctx.Env.Debug.Funcs[compiled] = irFunc.Debug
 	return compiled
 }
 
@@ -196,6 +208,13 @@ func (cl *compiler) collectLocals(dbg *qruntime.FuncDebugInfo, body *ast.BlockSt
 			dbg.SlotNames = append(dbg.SlotNames, lhs.Name)
 		}
 		return true
+	})
+}
+
+func (cl *compiler) emitVarKill(id int) {
+	cl.emit(ir.Inst{
+		Pseudo: ir.OpVarKill,
+		Arg0:   ir.NewTempSlot(uint8(id)).ToInstArg(),
 	})
 }
 
@@ -295,8 +314,11 @@ func (cl *compiler) errorf(n ast.Node, format string, args ...interface{}) compi
 }
 
 func (cl *compiler) lastOp() bytecode.Op {
-	if len(cl.code) != 0 {
-		return cl.code[len(cl.code)-1].Op
+	for i := len(cl.code) - 1; i >= 0; i-- {
+		if cl.code[i].Op == bytecode.OpInvalid {
+			continue
+		}
+		return cl.code[i].Op
 	}
 	return bytecode.OpInvalid
 }
@@ -423,7 +445,10 @@ func (cl *compiler) endTempBlock() {
 	if !cl.inTempBlock {
 		cl.fatalf("endTempBlock without beginTempBlock")
 	}
-	cl.tempSeq = 0
+	for cl.tempSeq > 0 {
+		cl.tempSeq--
+		cl.emitVarKill(cl.tempSeq)
+	}
 	cl.inTempBlock = false
 }
 
@@ -437,7 +462,7 @@ func (cl *compiler) allocTemp() ir.Slot {
 	id := cl.tempSeq
 	cl.tempSeq++
 	cl.trackTemp(id)
-	return ir.NewUniqSlot(uint8(id))
+	return ir.NewTempSlot(uint8(id))
 }
 
 func (cl *compiler) allocAutoLocal() ir.Slot {

@@ -19,6 +19,12 @@ type Context struct {
 	Types   *types.Info
 	Sizes   types.Sizes
 	Fset    *token.FileSet
+
+	TestingContext TestingContext
+}
+
+type TestingContext interface {
+	FuncIR(fn *ir.Func)
 }
 
 type Compiler struct {

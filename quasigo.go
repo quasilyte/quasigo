@@ -80,6 +80,8 @@ type CompileContext struct {
 
 	Optimize bool
 	Static   bool
+
+	TestingContext interface{}
 }
 
 // Compile prepares an executable version of fn.
@@ -92,6 +94,9 @@ func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
 		Types:    ctx.Types,
 		Sizes:    ctx.Sizes,
 		Fset:     ctx.Fset,
+	}
+	if testingContext, ok := ctx.TestingContext.(qcompile.TestingContext); ok {
+		internalCtx.TestingContext = testingContext
 	}
 	compiler := qcompile.NewCompiler()
 	compiled, err := compiler.CompileFunc(&internalCtx, fn)

@@ -1,5 +1,27 @@
 package main
 
+//test:irdump
+// block0 [0]:
+//   LoadStrConst out = ""
+//   Len temp0.v0 = s
+//   LoadScalarConst temp1.v0 = 1
+//   IntSub64 i = temp0.v0 temp1.v0
+//   Jump L2
+// block1 (L3) [0]:
+// block2 (L1) [0]:
+//   LoadScalarConst temp2.v0 = 1
+//   IntAdd64 temp1.v1 = i temp2.v0
+//   StrSlice temp0.v1 = s i temp1.v1
+//   Concat out = out temp0.v1
+// block3 (L2) [0]:
+//   IntDec i
+// block4 [0]:
+//   Zero temp1.v2
+//   IntGtEq temp0.v2 = i temp1.v2
+//   JumpNotZero L3 temp0.v2
+// block5 (L0) [0]:
+//   ReturnStr out
+//
 //test:disasm_both
 // main.reverse code=46 frame=144 (6 slots: 1 args, 2 locals, 3 temps)
 //   LoadStrConst out = ""

@@ -84,16 +84,6 @@ func TestOptimize(t *testing.T) {
 			`  LoadStrConst temp0 = "nonzero"`,
 			`  ReturnStr temp0`,
 		},
-		`if !(len(s) == 0) { return "nonzero" }; return "zero"`: {
-			`testpkg.f code=17 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
-			`  Len temp2 = s`,
-			`  JumpZero L0 temp2`,
-			`  LoadStrConst temp0 = "nonzero"`,
-			`  ReturnStr temp0`,
-			`L0:`,
-			`  LoadStrConst temp0 = "zero"`,
-			`  ReturnStr temp0`,
-		},
 		`if !(len(s) != 0) { return "nonzero" }; return "zero"`: {
 			`testpkg.f code=17 frame=168 (7 slots: 4 args, 0 locals, 3 temps)`,
 			`  Len temp2 = s`,
