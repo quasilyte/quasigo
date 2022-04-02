@@ -14,7 +14,7 @@ import (
 // These optimizations are not optional, they're the part of the normal compilation.
 // This type is separated from the compiler to decompose the work a little bit.
 type patternCompiler struct {
-	cl *compiler
+	cl *funcCompiler
 }
 
 func (p *patternCompiler) CompileSliceExpr(dst ir.Slot, slice *ast.SliceExpr) bool {

@@ -18,14 +18,14 @@ type constCaseClause struct {
 }
 
 type switchCompiler struct {
-	*compiler
+	*funcCompiler
 	tagslot ir.Slot
 	opEq    bytecode.Op
 	opLt    bytecode.Op
 	opGt    bytecode.Op
 }
 
-func (cl *compiler) compileSwitchStmt(stmt *ast.SwitchStmt) {
+func (cl *funcCompiler) compileSwitchStmt(stmt *ast.SwitchStmt) {
 	if stmt.Init != nil {
 		panic(cl.errorf(stmt, "can't compile switch with init clause yet"))
 	}
@@ -33,7 +33,7 @@ func (cl *compiler) compileSwitchStmt(stmt *ast.SwitchStmt) {
 		panic(cl.errorf(stmt, "can't compile tagless switch yet"))
 	}
 
-	scl := switchCompiler{compiler: cl}
+	scl := switchCompiler{funcCompiler: cl}
 	tagType := cl.ctx.Types.TypeOf(stmt.Tag)
 	switch {
 	case typeIsInt(tagType) || typeIsByte(tagType):

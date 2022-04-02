@@ -54,7 +54,7 @@ func (c *Compiler) CompileFunc(ctx *Context, fn *ast.FuncDecl) (compiled *qrunti
 	}()
 
 	p := patternCompiler{}
-	cl := compiler{
+	cl := funcCompiler{
 		code: c.instPool[:0],
 		ctx:  ctx,
 

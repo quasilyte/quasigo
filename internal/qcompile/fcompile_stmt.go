@@ -10,7 +10,7 @@ import (
 	"github.com/quasilyte/quasigo/internal/ir"
 )
 
-func (cl *compiler) compileStmt(stmt ast.Stmt) {
+func (cl *funcCompiler) compileStmt(stmt ast.Stmt) {
 	switch stmt := stmt.(type) {
 	case *ast.BlockStmt:
 		cl.compileBlockStmt(stmt)
@@ -44,19 +44,19 @@ func (cl *compiler) compileStmt(stmt ast.Stmt) {
 	}
 }
 
-func (cl *compiler) compileStmtList(list []ast.Stmt) {
+func (cl *funcCompiler) compileStmtList(list []ast.Stmt) {
 	for i := range list {
 		cl.compileStmt(list[i])
 	}
 }
 
-func (cl *compiler) compileBlockStmt(stmt *ast.BlockStmt) {
+func (cl *funcCompiler) compileBlockStmt(stmt *ast.BlockStmt) {
 	cl.scope.Enter()
 	cl.compileStmtList(stmt.List)
 	cl.killScopeVars(cl.scope.Leave())
 }
 
-func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
+func (cl *funcCompiler) compileReturnStmt(ret *ast.ReturnStmt) {
 	if cl.retType == voidType {
 		cl.emitOp(bytecode.OpReturnVoid)
 		return
@@ -102,7 +102,7 @@ func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
 	cl.endTempBlock()
 }
 
-func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
+func (cl *funcCompiler) compileIfStmt(stmt *ast.IfStmt) {
 	if stmt.Else == nil {
 		labelEnd := cl.newLabel()
 		{
@@ -133,7 +133,7 @@ func (cl *compiler) compileIfStmt(stmt *ast.IfStmt) {
 	cl.bindLabel(labelEnd)
 }
 
-func (cl *compiler) compileAssignOp(op bytecode.Op, assign *ast.AssignStmt) {
+func (cl *funcCompiler) compileAssignOp(op bytecode.Op, assign *ast.AssignStmt) {
 	lhs := assign.Lhs[0].(*ast.Ident)
 	rhs := assign.Rhs[0]
 	dstslot := cl.getNamedSlot(lhs, lhs.Name)
@@ -145,7 +145,7 @@ func (cl *compiler) compileAssignOp(op bytecode.Op, assign *ast.AssignStmt) {
 	}
 }
 
-func (cl *compiler) compileAssignIndex(e *ast.IndexExpr, assign *ast.AssignStmt) {
+func (cl *funcCompiler) compileAssignIndex(e *ast.IndexExpr, assign *ast.AssignStmt) {
 	if len(assign.Lhs) != 1 {
 		panic(cl.errorf(assign, "only single lhs operand is allowed in index assignments"))
 	}
@@ -172,7 +172,7 @@ func (cl *compiler) compileAssignIndex(e *ast.IndexExpr, assign *ast.AssignStmt)
 	cl.endTempBlock()
 }
 
-func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
+func (cl *funcCompiler) compileAssignStmt(assign *ast.AssignStmt) {
 	if len(assign.Rhs) != 1 {
 		panic(cl.errorf(assign, "only single right operand is allowed in assignments"))
 	}
@@ -237,7 +237,7 @@ func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 	}
 }
 
-func (cl *compiler) compileIncDecStmt(stmt *ast.IncDecStmt) {
+func (cl *funcCompiler) compileIncDecStmt(stmt *ast.IncDecStmt) {
 	varname, ok := stmt.X.(*ast.Ident)
 	if !ok {
 		panic(cl.errorf(stmt.X, "can assign only to simple variables"))
@@ -250,7 +250,7 @@ func (cl *compiler) compileIncDecStmt(stmt *ast.IncDecStmt) {
 	}
 }
 
-func (cl *compiler) compileBranchStmt(branch *ast.BranchStmt) {
+func (cl *funcCompiler) compileBranchStmt(branch *ast.BranchStmt) {
 	if branch.Label != nil {
 		panic(cl.errorf(branch.Label, "can't compile %s with a label", branch.Tok))
 	}
@@ -265,7 +265,7 @@ func (cl *compiler) compileBranchStmt(branch *ast.BranchStmt) {
 	}
 }
 
-func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
+func (cl *funcCompiler) compileForStmt(stmt *ast.ForStmt) {
 	cl.hasLoops = true
 
 	labelBreak := cl.newLabel()
@@ -332,7 +332,7 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 	cl.continueTarget = prevContinueTarget
 }
 
-func (cl *compiler) compileExprStmt(stmt *ast.ExprStmt) {
+func (cl *funcCompiler) compileExprStmt(stmt *ast.ExprStmt) {
 	if call, ok := stmt.X.(*ast.CallExpr); ok {
 		sig := cl.ctx.Types.TypeOf(call.Fun).(*types.Signature)
 		if sig.Results() != nil {

@@ -15,7 +15,7 @@ var voidType = &types.Tuple{}
 
 var voidSlot = ir.Slot{Kind: ir.SlotDiscard}
 
-type compiler struct {
+type funcCompiler struct {
 	ctx *Context
 
 	currentFunc ir.Func
@@ -66,7 +66,7 @@ type compileError string
 
 func (e compileError) Error() string { return string(e) }
 
-func (cl *compiler) buildIR(fn *ast.FuncDecl) *ir.Func {
+func (cl *funcCompiler) buildIR(fn *ast.FuncDecl) *ir.Func {
 	switch cl.fnType.Results().Len() {
 	case 0:
 		cl.retType = voidType
@@ -120,7 +120,7 @@ func (cl *compiler) buildIR(fn *ast.FuncDecl) *ir.Func {
 	return &cl.currentFunc
 }
 
-func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
+func (cl *funcCompiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	irFunc := cl.buildIR(fn)
 
 	if cl.ctx.Optimize {
@@ -160,7 +160,7 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 	return compiled
 }
 
-func (cl *compiler) canInline(fn *ir.Func) bool {
+func (cl *funcCompiler) canInline(fn *ir.Func) bool {
 	return cl.ctx.Static &&
 		!cl.hasCalls && !cl.hasLoops &&
 		cl.numLabels <= 6 &&
@@ -169,14 +169,14 @@ func (cl *compiler) canInline(fn *ir.Func) bool {
 		len(fn.StrConstants) <= 8
 }
 
-func (cl *compiler) emitVarKill(id int) {
+func (cl *funcCompiler) emitVarKill(id int) {
 	cl.emit(ir.Inst{
 		Pseudo: ir.OpVarKill,
 		Arg0:   ir.NewTempSlot(uint8(id)).ToInstArg(),
 	})
 }
 
-func (cl *compiler) newLabel() label {
+func (cl *funcCompiler) newLabel() label {
 	if cl.numLabels >= 255 {
 		panic(cl.errorf(cl.fnName, "too many labels"))
 	}
@@ -185,26 +185,26 @@ func (cl *compiler) newLabel() label {
 	return l
 }
 
-func (cl *compiler) bindLabel(l label) {
+func (cl *funcCompiler) bindLabel(l label) {
 	cl.emit(ir.Inst{
 		Pseudo: ir.OpLabel,
 		Arg0:   ir.InstArg(l.id),
 	})
 }
 
-func (cl *compiler) emit(inst ir.Inst) {
+func (cl *funcCompiler) emit(inst ir.Inst) {
 	cl.code = append(cl.code, inst)
 }
 
-func (cl *compiler) emitOp(op bytecode.Op) {
+func (cl *funcCompiler) emitOp(op bytecode.Op) {
 	cl.code = append(cl.code, ir.Inst{Op: op})
 }
 
-func (cl *compiler) emitJump(l label) {
+func (cl *funcCompiler) emitJump(l label) {
 	cl.emit(ir.Inst{Op: bytecode.OpJump, Arg0: ir.InstArg(l.id)})
 }
 
-func (cl *compiler) emitCondJump(slot ir.Slot, op bytecode.Op, l label) {
+func (cl *funcCompiler) emitCondJump(slot ir.Slot, op bytecode.Op, l label) {
 	cl.emit(ir.Inst{
 		Op:   op,
 		Arg0: ir.InstArg(l.id),
@@ -212,15 +212,15 @@ func (cl *compiler) emitCondJump(slot ir.Slot, op bytecode.Op, l label) {
 	})
 }
 
-func (cl *compiler) emit1(op bytecode.Op, a0 ir.Slot) {
+func (cl *funcCompiler) emit1(op bytecode.Op, a0 ir.Slot) {
 	cl.emit(ir.Inst{Op: op, Arg0: a0.ToInstArg()})
 }
 
-func (cl *compiler) emit2(op bytecode.Op, a0, a1 ir.Slot) {
+func (cl *funcCompiler) emit2(op bytecode.Op, a0, a1 ir.Slot) {
 	cl.emit(ir.Inst{Op: op, Arg0: a0.ToInstArg(), Arg1: a1.ToInstArg()})
 }
 
-func (cl *compiler) emit3(op bytecode.Op, a0, a1, a2 ir.Slot) {
+func (cl *funcCompiler) emit3(op bytecode.Op, a0, a1, a2 ir.Slot) {
 	cl.emit(ir.Inst{
 		Op:   op,
 		Arg0: a0.ToInstArg(),
@@ -229,7 +229,7 @@ func (cl *compiler) emit3(op bytecode.Op, a0, a1, a2 ir.Slot) {
 	})
 }
 
-func (cl *compiler) emit4(op bytecode.Op, a0, a1, a2, a3 ir.Slot) {
+func (cl *funcCompiler) emit4(op bytecode.Op, a0, a1, a2, a3 ir.Slot) {
 	cl.emit(ir.Inst{
 		Op:   op,
 		Arg0: a0.ToInstArg(),
@@ -239,7 +239,7 @@ func (cl *compiler) emit4(op bytecode.Op, a0, a1, a2, a3 ir.Slot) {
 	})
 }
 
-func (cl *compiler) emitCall(op bytecode.Op, dst ir.Slot, funcid int) {
+func (cl *funcCompiler) emitCall(op bytecode.Op, dst ir.Slot, funcid int) {
 	if dst == voidSlot && op == bytecode.OpCallNative {
 		cl.emit(ir.Inst{Op: bytecode.OpCallVoidNative, Arg0: ir.InstArg(funcid)})
 		return
@@ -256,22 +256,22 @@ func (cl *compiler) emitCall(op bytecode.Op, dst ir.Slot, funcid int) {
 	})
 }
 
-func (cl *compiler) fatalf(format string, args ...interface{}) {
+func (cl *funcCompiler) fatalf(format string, args ...interface{}) {
 	loc := cl.ctx.Fset.Position(cl.fnName.Pos())
 	panic(fmt.Sprintf("%s:%d: internal error: %s", loc.Filename, loc.Line, fmt.Sprintf(format, args...)))
 }
 
-func (cl *compiler) errorUnsupportedType(e ast.Node, typ types.Type, where string) compileError {
+func (cl *funcCompiler) errorUnsupportedType(e ast.Node, typ types.Type, where string) compileError {
 	return cl.errorf(e, "%s type: %s is not supported, try something simpler", where, typ)
 }
 
-func (cl *compiler) errorf(n ast.Node, format string, args ...interface{}) compileError {
+func (cl *funcCompiler) errorf(n ast.Node, format string, args ...interface{}) compileError {
 	loc := cl.ctx.Fset.Position(n.Pos())
 	message := fmt.Sprintf("%s:%d: %s", loc.Filename, loc.Line, fmt.Sprintf(format, args...))
 	return compileError(message)
 }
 
-func (cl *compiler) lastOp() bytecode.Op {
+func (cl *funcCompiler) lastOp() bytecode.Op {
 	for i := len(cl.code) - 1; i >= 0; i-- {
 		if cl.code[i].Op == bytecode.OpInvalid {
 			continue
@@ -281,7 +281,7 @@ func (cl *compiler) lastOp() bytecode.Op {
 	return bytecode.OpInvalid
 }
 
-func (cl *compiler) isUncondJump(op bytecode.Op) bool {
+func (cl *funcCompiler) isUncondJump(op bytecode.Op) bool {
 	switch op {
 	case bytecode.OpJump, bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnStr, bytecode.OpReturnScalar:
 		return true
@@ -290,7 +290,7 @@ func (cl *compiler) isUncondJump(op bytecode.Op) bool {
 	}
 }
 
-func (cl *compiler) isSupportedType(typ types.Type) bool {
+func (cl *funcCompiler) isSupportedType(typ types.Type) bool {
 	if typ == voidType {
 		return true
 	}
@@ -324,7 +324,7 @@ func (cl *compiler) isSupportedType(typ types.Type) bool {
 	}
 }
 
-func (cl *compiler) moveBool(dst ir.Slot, v bool) ir.Inst {
+func (cl *funcCompiler) moveBool(dst ir.Slot, v bool) ir.Inst {
 	if v {
 		id := cl.internBoolConstant(true)
 		return ir.Inst{
@@ -336,7 +336,7 @@ func (cl *compiler) moveBool(dst ir.Slot, v bool) ir.Inst {
 	return ir.Inst{Op: bytecode.OpZero, Arg0: dst.ToInstArg()}
 }
 
-func (cl *compiler) moveInt(dst ir.Slot, v int) ir.Inst {
+func (cl *funcCompiler) moveInt(dst ir.Slot, v int) ir.Inst {
 	if v != 0 {
 		id := cl.internIntConstant(v)
 		return ir.Inst{
@@ -348,18 +348,18 @@ func (cl *compiler) moveInt(dst ir.Slot, v int) ir.Inst {
 	return ir.Inst{Op: bytecode.OpZero, Arg0: dst.ToInstArg()}
 }
 
-func (cl *compiler) internBoolConstant(v bool) int {
+func (cl *funcCompiler) internBoolConstant(v bool) int {
 	if v {
 		return cl.internScalarConstant(1)
 	}
 	return cl.internScalarConstant(0)
 }
 
-func (cl *compiler) internIntConstant(v int) int {
+func (cl *funcCompiler) internIntConstant(v int) int {
 	return cl.internScalarConstant(uint64(v))
 }
 
-func (cl *compiler) internScalarConstant(v uint64) int {
+func (cl *funcCompiler) internScalarConstant(v uint64) int {
 	if id, ok := cl.scalarConstantsPool[v]; ok {
 		return id
 	}
@@ -369,7 +369,7 @@ func (cl *compiler) internScalarConstant(v uint64) int {
 	return id
 }
 
-func (cl *compiler) internStrConstant(s string) int {
+func (cl *funcCompiler) internStrConstant(s string) int {
 	if id, ok := cl.strConstantsPool[s]; ok {
 		return id
 	}
@@ -379,7 +379,7 @@ func (cl *compiler) internStrConstant(s string) int {
 	return id
 }
 
-func (cl *compiler) defineOrLookupVar(e ast.Expr, varname string, define bool) ir.Slot {
+func (cl *funcCompiler) defineOrLookupVar(e ast.Expr, varname string, define bool) ir.Slot {
 	if !define {
 		return cl.getNamedSlot(e, varname)
 	}
@@ -400,7 +400,7 @@ func (cl *compiler) defineOrLookupVar(e ast.Expr, varname string, define bool) i
 	return slot
 }
 
-func (cl *compiler) getNamedSlot(v ast.Expr, varname string) ir.Slot {
+func (cl *funcCompiler) getNamedSlot(v ast.Expr, varname string) ir.Slot {
 	if i := cl.scope.Lookup(varname); i != -1 {
 		return ir.NewTempSlot(uint8(i))
 	}
@@ -410,14 +410,14 @@ func (cl *compiler) getNamedSlot(v ast.Expr, varname string) ir.Slot {
 	panic(cl.errorf(v, "%s is not a writeable local variable", varname))
 }
 
-func (cl *compiler) beginTempBlock() {
+func (cl *funcCompiler) beginTempBlock() {
 	if cl.inTempBlock {
 		cl.fatalf("nested beginTempBlock call")
 	}
 	cl.inTempBlock = true
 }
 
-func (cl *compiler) endTempBlock() {
+func (cl *funcCompiler) endTempBlock() {
 	if !cl.inTempBlock {
 		cl.fatalf("endTempBlock without beginTempBlock")
 	}
@@ -425,27 +425,27 @@ func (cl *compiler) endTempBlock() {
 	cl.inTempBlock = false
 }
 
-func (cl *compiler) killScopeVars(num int) {
+func (cl *funcCompiler) killScopeVars(num int) {
 	for i := 0; i < num; i++ {
 		cl.tempSeq--
 		cl.emitVarKill(cl.tempSeq)
 	}
 }
 
-func (cl *compiler) trackTemp(id int) {
+func (cl *funcCompiler) trackTemp(id int) {
 	if cl.numTemp < id+1 {
 		cl.numTemp = id + 1
 	}
 }
 
-func (cl *compiler) allocTemp() ir.Slot {
+func (cl *funcCompiler) allocTemp() ir.Slot {
 	id := cl.tempSeq
 	cl.tempSeq++
 	cl.trackTemp(id)
 	return ir.NewTempSlot(uint8(id))
 }
 
-func (cl *compiler) isSimpleExpr(e ast.Expr) bool {
+func (cl *funcCompiler) isSimpleExpr(e ast.Expr) bool {
 	switch e := e.(type) {
 	case *ast.ParenExpr:
 		return cl.isSimpleExpr(e.X)

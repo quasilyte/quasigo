@@ -10,7 +10,7 @@ import (
 )
 
 type inliner struct {
-	cl *compiler
+	cl *funcCompiler
 
 	labelRet label
 	fn       *qruntime.Func
@@ -84,7 +84,7 @@ var inlineableOps = [256]bool{
 	bytecode.OpJumpNotZero: true,
 }
 
-func (cl *compiler) inlineCall(dst ir.Slot, recv ast.Expr, args []ast.Expr, key qruntime.FuncKey) bool {
+func (cl *funcCompiler) inlineCall(dst ir.Slot, recv ast.Expr, args []ast.Expr, key qruntime.FuncKey) bool {
 	if !cl.ctx.Optimize || !cl.ctx.Static {
 		return false
 	}
