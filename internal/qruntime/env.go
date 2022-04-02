@@ -41,6 +41,7 @@ func InitEnv(env *Env) {
 	env.AddNativeFunc("builtin", "makeSlice", nativeMakeSlice)
 	env.AddNativeFunc("builtin", "append8", nativeAppend8)
 	env.AddNativeFunc("builtin", "append64", nativeAppend64)
+	env.AddNativeFunc("builtin", "bytesToString", nativeBytesToString)
 }
 
 func InitEvalEnv(env *Env, ee *EvalEnv, stackSize int) {

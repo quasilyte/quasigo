@@ -1,7 +1,15 @@
 package main
 
 //test:disasm_both
-// main.cond0 code=16 frame=96 (4 slots: 2 args, 0 locals, 2 temps)
+// main.notcond0 code=5 frame=48 (2 slots: 1 params, 1 locals)
+//   Not temp0 = x
+//   ReturnScalar temp0
+func notcond0(x bool) bool {
+	return !x
+}
+
+//test:disasm_both
+// main.cond0 code=16 frame=96 (4 slots: 2 params, 2 locals)
 //   Zero temp1
 //   ScalarEq temp0 = x temp1
 //   JumpNotZero L0 temp0
@@ -22,6 +30,18 @@ func cond2(x, y int) bool {
 
 func cond3(x, y int) bool {
 	return x == 1 || x == 2 || y == 3 || y < 0
+}
+
+//test:disasm_both
+// main.cond4 code=17 frame=96 (4 slots: 2 params, 2 locals)
+//   LoadScalarConst temp1 = 2
+//   ScalarEq temp0 = x temp1
+//   JumpZero L0 temp0
+//   ScalarEq temp0 = y x
+// L0:
+//   ReturnScalar temp0
+func cond4(x, y int) bool {
+	return x == 2 && y == x
 }
 
 func test0(x, y int) {
@@ -52,11 +72,19 @@ func test3(x, y int) {
 	println(cond3(y, y))
 }
 
+func test4(x, y int) {
+	println(cond4(x, y))
+	println(cond4(y, x))
+	println(cond4(x, x))
+	println(cond4(y, y))
+}
+
 func testcond(x, y int) {
 	test0(x, y)
 	test1(x, y)
 	test2(x, y)
 	test3(x, y)
+	test4(x, y)
 }
 
 func main() {
@@ -73,6 +101,8 @@ func main() {
 	testcond(0, -130)
 	testcond(0, 130)
 	testcond(10, 130)
-	testcond(10, 10)
 	testcond(5, 10)
+
+	println(notcond0(true))
+	println(notcond0(false))
 }

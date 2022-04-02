@@ -99,7 +99,7 @@ func (cl *compiler) inlineCall(dst ir.Slot, recv ast.Expr, args []ast.Expr, key 
 	}
 	// If temps pressure is high and inlining candidate frame is big,
 	// do not attempt any inlining.
-	numFrameSlots := int(fn.NumParams) + int(fn.NumLocals) + int(fn.NumTemps)
+	numFrameSlots := int(fn.NumParams) + int(fn.NumTemps)
 	if cl.tempSeq+numFrameSlots > 100 {
 		return false
 	}
@@ -112,9 +112,8 @@ func (cl *compiler) inlineCall(dst ir.Slot, recv ast.Expr, args []ast.Expr, key 
 		fn:       fn,
 		labelRet: cl.newLabel(),
 		irfn: ir.Func{
-			NumParams:     int(fn.NumParams),
-			NumLocals:     int(fn.NumLocals),
-			NumFrameSlots: numFrameSlots,
+			NumParams: int(fn.NumParams),
+			NumTemps:  int(fn.NumTemps),
 		},
 		dst:        dst,
 		tempOffset: cl.tempSeq,
@@ -274,8 +273,6 @@ func (inl *inliner) convertSlot(id byte) ir.Slot {
 	switch {
 	case id < inl.fn.NumParams:
 		orig = ir.NewParamSlot(id)
-	case id < inl.fn.NumLocals:
-		orig = ir.NewLocalSlot(id)
 	case id < inl.fn.FrameSlots:
 		orig = ir.NewTempSlot(id)
 	default:

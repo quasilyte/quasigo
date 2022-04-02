@@ -100,6 +100,11 @@ func typeIsSlice(typ types.Type) bool {
 	return ok
 }
 
+func typeIsByteSlice(typ types.Type) bool {
+	slice, ok := typ.Underlying().(*types.Slice)
+	return ok && typeIsByte(slice.Elem())
+}
+
 func typeIsString(typ types.Type) bool {
 	basic, ok := typ.Underlying().(*types.Basic)
 	if !ok {

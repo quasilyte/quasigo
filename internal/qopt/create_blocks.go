@@ -20,6 +20,7 @@ func (builder *blocksBuilder) Build() []ir.Block {
 
 	blockStart := 0
 	numVarKill := 0
+	seenBlockInst := false
 	i := 0
 	for {
 		if i >= len(code) {
@@ -28,7 +29,13 @@ func (builder *blocksBuilder) Build() []ir.Block {
 		inst := code[i]
 
 		if inst.Pseudo == ir.OpVarKill {
-			numVarKill++
+			i++
+			if seenBlockInst {
+				numVarKill++
+			} else {
+				blockStart++
+			}
+			continue
 		}
 
 		if inst.Pseudo == ir.OpLabel {
@@ -40,9 +47,12 @@ func (builder *blocksBuilder) Build() []ir.Block {
 			})
 			blockStart = i + 1
 			numVarKill = 0
+			seenBlockInst = false
 			i++
 			continue
 		}
+
+		seenBlockInst = true
 
 		switch inst.Op {
 		case bytecode.OpJump, bytecode.OpJumpZero, bytecode.OpJumpNotZero:
@@ -64,6 +74,7 @@ func (builder *blocksBuilder) Build() []ir.Block {
 			}
 			blockStart = i
 			numVarKill = 0
+			seenBlockInst = false
 			continue
 		}
 

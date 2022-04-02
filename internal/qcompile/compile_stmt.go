@@ -7,12 +7,13 @@ import (
 	"go/types"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
+	"github.com/quasilyte/quasigo/internal/ir"
 )
 
 func (cl *compiler) compileStmt(stmt ast.Stmt) {
 	switch stmt := stmt.(type) {
 	case *ast.BlockStmt:
-		cl.compileStmtList(stmt.List)
+		cl.compileBlockStmt(stmt)
 
 	case *ast.SwitchStmt:
 		cl.compileSwitchStmt(stmt)
@@ -47,6 +48,12 @@ func (cl *compiler) compileStmtList(list []ast.Stmt) {
 	for i := range list {
 		cl.compileStmt(list[i])
 	}
+}
+
+func (cl *compiler) compileBlockStmt(stmt *ast.BlockStmt) {
+	cl.scope.Enter()
+	cl.compileStmtList(stmt.List)
+	cl.killScopeVars(cl.scope.Leave())
 }
 
 func (cl *compiler) compileReturnStmt(ret *ast.ReturnStmt) {
@@ -209,20 +216,23 @@ func (cl *compiler) compileAssignStmt(assign *ast.AssignStmt) {
 		}
 	}
 
+	dst1 := assign.Lhs[0].(*ast.Ident)
+	rhs := assign.Rhs[0]
+	var lhs1slot ir.Slot
+	var lhs2slot ir.Slot
 	switch assign.Tok {
 	case token.ASSIGN, token.DEFINE:
-		// OK.
+		lhs1slot = cl.defineOrLookupVar(dst1, dst1.Name, assign.Tok == token.DEFINE)
 	default:
 		panic(cl.errorf(assign, "can't compile %s assign op", assign.Tok))
 	}
 
-	dst1 := assign.Lhs[0].(*ast.Ident)
-	rhs := assign.Rhs[0]
-	lhs1slot := cl.getNamedSlot(dst1, dst1.Name)
-	cl.compileRootExpr(lhs1slot, rhs)
 	if len(assign.Lhs) == 2 {
 		dst2 := assign.Lhs[1].(*ast.Ident)
-		lhs2slot := cl.getNamedSlot(dst2, dst2.Name)
+		lhs2slot = cl.defineOrLookupVar(dst2, dst2.Name, assign.Tok == token.DEFINE)
+	}
+	cl.compileRootExpr(lhs1slot, rhs)
+	if len(assign.Lhs) == 2 {
 		cl.emit1(bytecode.OpMoveResult2, lhs2slot)
 	}
 }
@@ -292,6 +302,7 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 		// `for <init>; <cond>; <post> { ... }`
 		labelStart := cl.newLabel()
 		labelBody := cl.newLabel()
+		cl.scope.Enter()
 		if stmt.Init != nil {
 			cl.compileStmt(stmt.Init)
 		}
@@ -314,6 +325,7 @@ func (cl *compiler) compileForStmt(stmt *ast.ForStmt) {
 			cl.emitJump(labelBody)
 		}
 		cl.bindLabel(labelBreak)
+		cl.killScopeVars(cl.scope.Leave())
 	}
 
 	cl.breakTarget = prevBreakTarget

@@ -1,14 +1,14 @@
 package main
 
 //test:disasm
-// main.fx3 code=9 frame=72 (3 slots: 1 args, 0 locals, 2 temps)
+// main.fx3 code=9 frame=72 (3 slots: 1 params, 2 locals)
 //   LoadScalarConst temp1 = 1
 //   IntAdd64 temp0 = x temp1
 //   ReturnScalar temp0
 func fx3(x int) int { return x + 1 }
 
 //test:disasm_opt
-// main.fx2 code=32 frame=168 (7 slots: 0 args, 0 locals, 7 temps)
+// main.fx2 code=32 frame=168 (7 slots: 0 params, 7 locals)
 //   LoadScalarConst temp2 = 1
 //   LoadScalarConst temp5 = 1
 //   IntAdd64 temp4 = temp2 temp5
@@ -22,7 +22,7 @@ func fx3(x int) int { return x + 1 }
 func fx2() int { return fx3(1) + fx3(2) }
 
 //test:disasm_opt
-// main.fx1 code=35 frame=192 (8 slots: 0 args, 0 locals, 8 temps)
+// main.fx1 code=35 frame=192 (8 slots: 0 params, 8 locals)
 //   LoadScalarConst temp3 = 1
 //   LoadScalarConst temp6 = 1
 //   IntAdd64 temp5 = temp3 temp6
@@ -37,7 +37,7 @@ func fx2() int { return fx3(1) + fx3(2) }
 func fx1() int { return fx2() }
 
 //test:disasm_opt
-// main.fx code=38 frame=216 (9 slots: 0 args, 0 locals, 9 temps)
+// main.fx code=38 frame=216 (9 slots: 0 params, 9 locals)
 //   LoadScalarConst temp4 = 1
 //   LoadScalarConst temp7 = 1
 //   IntAdd64 temp6 = temp4 temp7
@@ -53,7 +53,7 @@ func fx1() int { return fx2() }
 func fx() int { return fx1() }
 
 //test:disasm
-// main.isDigit code=20 frame=96 (4 slots: 1 args, 0 locals, 3 temps)
+// main.isDigit code=20 frame=96 (4 slots: 1 params, 3 locals)
 //   LoadScalarConst temp1 = 48
 //   IntGtEq temp0 = ch temp1
 //   JumpZero L0 temp0
@@ -66,7 +66,7 @@ func isDigit(ch byte) bool {
 }
 
 //test:disasm
-// main.isAlpha code=20 frame=96 (4 slots: 1 args, 0 locals, 3 temps)
+// main.isAlpha code=20 frame=96 (4 slots: 1 params, 3 locals)
 //   LoadScalarConst temp1 = 97
 //   IntGtEq temp0 = ch temp1
 //   JumpZero L0 temp0
@@ -79,7 +79,7 @@ func isAlpha(ch byte) bool {
 }
 
 //test:disasm_opt
-// main.isAlphaNum code=54 frame=168 (7 slots: 1 args, 0 locals, 6 temps)
+// main.isAlphaNum code=54 frame=168 (7 slots: 1 params, 6 locals)
 //   Move temp1 = ch
 //   LoadScalarConst temp4 = 48
 //   IntGtEq temp3 = temp1 temp4
@@ -104,7 +104,7 @@ func isAlphaNum(ch byte) bool {
 }
 
 //test:disasm
-// main.inlNot code=5 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.inlNot code=5 frame=48 (2 slots: 1 params, 1 locals)
 //   Not temp0 = b
 //   ReturnScalar temp0
 func inlNot(b bool) bool {
@@ -112,7 +112,7 @@ func inlNot(b bool) bool {
 }
 
 //test:disasm_opt
-// main.testInlNot code=11 frame=120 (5 slots: 1 args, 0 locals, 4 temps)
+// main.testInlNot code=11 frame=120 (5 slots: 1 params, 4 locals)
 //   Move temp1 = b
 //   Not temp3 = temp1
 //   Move temp0 = temp3
@@ -122,7 +122,7 @@ func testInlNot(b bool) bool {
 }
 
 //test:disasm
-// main.inlMultiStmt code=14 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.inlMultiStmt code=14 frame=48 (2 slots: 1 params, 1 locals)
 //   JumpZero L0 b
 //   LoadScalarConst temp0 = 10
 //   ReturnScalar temp0
@@ -137,7 +137,7 @@ func inlMultiStmt(b bool) int {
 }
 
 //test:disasm_opt
-// main.testInlMultiStmt code=24 frame=120 (5 slots: 1 args, 0 locals, 4 temps)
+// main.testInlMultiStmt code=24 frame=120 (5 slots: 1 params, 4 locals)
 //   Move temp1 = b
 //   JumpZero L0 temp1
 //   LoadScalarConst temp3 = 10
@@ -153,10 +153,10 @@ func testInlMultiStmt(b bool) int {
 }
 
 //test:disasm
-// main.inlLocal code=7 frame=24 (1 slots: 0 args, 1 locals, 0 temps)
-//   LoadScalarConst loc = 10
-//   IntInc loc
-//   ReturnScalar loc
+// main.inlLocal code=7 frame=24 (1 slots: 0 params, 1 locals)
+//   LoadScalarConst temp0 = 10
+//   IntInc temp0
+//   ReturnScalar temp0
 func inlLocal() int {
 	loc := 10
 	loc++
@@ -164,7 +164,7 @@ func inlLocal() int {
 }
 
 //test:disasm_opt
-// main.testInlLocal code=17 frame=72 (3 slots: 0 args, 0 locals, 3 temps)
+// main.testInlLocal code=17 frame=72 (3 slots: 0 params, 3 locals)
 //   LoadScalarConst temp2 = 10
 //   IntInc temp2
 //   Move temp1 = temp2
@@ -176,21 +176,21 @@ func testInlLocal() int {
 }
 
 //test:disasm
-// main.inlSwitch code=36 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
-//   Move auto0 = x
-//   LoadScalarConst temp1 = 10
-//   ScalarEq temp0 = auto0 temp1
-//   JumpZero L0 temp0
+// main.inlSwitch code=36 frame=96 (4 slots: 1 params, 3 locals)
+//   Move temp0 = x
+//   LoadScalarConst temp2 = 10
+//   ScalarEq temp1 = temp0 temp2
+//   JumpZero L0 temp1
 //   ReturnOne
 // L0:
-//   LoadScalarConst temp1 = 20
-//   ScalarEq temp0 = auto0 temp1
-//   JumpZero L1 temp0
-//   LoadScalarConst temp0 = -1
-//   ReturnScalar temp0
+//   LoadScalarConst temp2 = 20
+//   ScalarEq temp1 = temp0 temp2
+//   JumpZero L1 temp1
+//   LoadScalarConst temp1 = -1
+//   ReturnScalar temp1
 // L1:
-//   LoadScalarConst temp0 = 100
-//   ReturnScalar temp0
+//   LoadScalarConst temp1 = 100
+//   ReturnScalar temp1
 func inlSwitch(x int) int {
 	switch x {
 	case 10:
@@ -203,24 +203,24 @@ func inlSwitch(x int) int {
 }
 
 //test:disasm_opt
-// main.testInlSwitch code=51 frame=192 (8 slots: 1 args, 0 locals, 7 temps)
+// main.testInlSwitch code=51 frame=168 (7 slots: 1 params, 6 locals)
 //   Move temp1 = x
-//   Move temp4 = temp1
-//   LoadScalarConst temp6 = 10
-//   ScalarEq temp5 = temp4 temp6
-//   JumpZero L0 temp5
+//   Move temp3 = temp1
+//   LoadScalarConst temp5 = 10
+//   ScalarEq temp4 = temp3 temp5
+//   JumpZero L0 temp4
 //   LoadScalarConst temp0 = 1
 //   Jump L1
 // L0:
-//   LoadScalarConst temp6 = 20
-//   ScalarEq temp5 = temp4 temp6
-//   JumpZero L2 temp5
-//   LoadScalarConst temp5 = -1
-//   Move temp0 = temp5
+//   LoadScalarConst temp5 = 20
+//   ScalarEq temp4 = temp3 temp5
+//   JumpZero L2 temp4
+//   LoadScalarConst temp4 = -1
+//   Move temp0 = temp4
 //   Jump L1
 // L2:
-//   LoadScalarConst temp5 = 100
-//   Move temp0 = temp5
+//   LoadScalarConst temp4 = 100
+//   Move temp0 = temp4
 // L1:
 //   ReturnScalar temp0
 func testInlSwitch(x int) int {
@@ -264,14 +264,13 @@ func noinline(x, y int) {
 //   ReturnVoid
 //
 //test:disasm_opt
-// main.testIntNeg code=27 frame=96 (4 slots: 0 args, 0 locals, 4 temps)
-//   LoadScalarConst temp0 = 3
-//   Move arg0 = temp0
+// main.testIntNeg code=24 frame=72 (3 slots: 0 params, 3 locals)
+//   LoadScalarConst arg0 = 3
 //   LoadScalarConst arg1 = -1
 //   CallVoid main.noinline()
 //   Zero temp1
-//   IntNeg temp3 = temp1
-//   Move temp0 = temp3
+//   IntNeg temp2 = temp1
+//   Move temp0 = temp2
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid

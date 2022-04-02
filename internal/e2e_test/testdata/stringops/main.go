@@ -2,44 +2,45 @@ package main
 
 //test:irdump
 // block0 [0]:
-//   LoadStrConst out = ""
-//   Len temp0.v0 = s
-//   LoadScalarConst temp1.v0 = 1
-//   IntSub64 i = temp0.v0 temp1.v0
+//   LoadStrConst temp0 = ""
+//   Len temp2.v0 = s
+//   LoadScalarConst temp3.v0 = 1
+//   IntSub64 temp1 = temp2.v0 temp3.v0
 //   Jump L2
 // block1 (L3) [0]:
 // block2 (L1) [0]:
-//   LoadScalarConst temp2.v0 = 1
-//   IntAdd64 temp1.v1 = i temp2.v0
-//   StrSlice temp0.v1 = s i temp1.v1
-//   Concat out = out temp0.v1
+//   LoadScalarConst temp4.v0 = 1
+//   IntAdd64 temp3.v1 = temp1 temp4.v0
+//   StrSlice temp2.v1 = s temp1 temp3.v1
+//   Concat temp0 = temp0 temp2.v1
 // block3 (L2) [0]:
-//   IntDec i
+//   IntDec temp1
 // block4 [0]:
-//   Zero temp1.v2
-//   IntGtEq temp0.v2 = i temp1.v2
-//   JumpNotZero L3 temp0.v2
-// block5 (L0) [0]:
-//   ReturnStr out
+//   Zero temp3.v2
+//   IntGtEq temp2.v2 = temp1 temp3.v2
+//   JumpNotZero L3 temp2.v2
+// block5 (L0) [1]:
+//   ReturnStr temp0
+//   VarKill temp0
 //
 //test:disasm_both
-// main.reverse code=46 frame=144 (6 slots: 1 args, 2 locals, 3 temps)
-//   LoadStrConst out = ""
-//   Len temp0 = s
-//   LoadScalarConst temp1 = 1
-//   IntSub64 i = temp0 temp1
+// main.reverse code=46 frame=144 (6 slots: 1 params, 5 locals)
+//   LoadStrConst temp0 = ""
+//   Len temp2 = s
+//   LoadScalarConst temp3 = 1
+//   IntSub64 temp1 = temp2 temp3
 //   Jump L0
 // L1:
-//   LoadScalarConst temp2 = 1
-//   IntAdd64 temp1 = i temp2
-//   StrSlice temp0 = s i temp1
-//   Concat out = out temp0
-//   IntDec i
+//   LoadScalarConst temp4 = 1
+//   IntAdd64 temp3 = temp1 temp4
+//   StrSlice temp2 = s temp1 temp3
+//   Concat temp0 = temp0 temp2
+//   IntDec temp1
 // L0:
-//   Zero temp1
-//   IntGtEq temp0 = i temp1
-//   JumpNotZero L1 temp0
-//   ReturnStr out
+//   Zero temp3
+//   IntGtEq temp2 = temp1 temp3
+//   JumpNotZero L1 temp2
+//   ReturnStr temp0
 func reverse(s string) string {
 	out := ""
 	for i := len(s) - 1; i >= 0; i-- {
@@ -189,9 +190,40 @@ func testIsIdent() {
 	println(isIdent("IDENT2_"))
 }
 
+//test:disasm_both
+// main.testStrSlice1 code=9 frame=72 (3 slots: 1 params, 2 locals)
+//   LoadScalarConst temp1 = 1
+//   StrSliceFrom temp0 = s temp1
+//   ReturnStr temp0
+func testStrSlice1(s string) string {
+	return s[1:]
+}
+
+//test:disasm_both
+// main.testStrSlice2 code=9 frame=72 (3 slots: 1 params, 2 locals)
+//   LoadScalarConst temp1 = 1
+//   StrSliceTo temp0 = s temp1
+//   ReturnStr temp0
+func testStrSlice2(s string) string {
+	return s[:1]
+}
+
+//test:disasm_both
+// main.testStrSlice3 code=13 frame=96 (4 slots: 1 params, 3 locals)
+//   LoadScalarConst temp1 = 1
+//   LoadScalarConst temp2 = 2
+//   StrSlice temp0 = s temp1 temp2
+//   ReturnStr temp0
+func testStrSlice3(s string) string {
+	return s[1:2]
+}
+
 func testBasicOps() {
 	s1 := "hello"
 	s2 := "world"
+	println(testStrSlice1(s1))
+	println(testStrSlice2(s1))
+	println(testStrSlice3(s1))
 	println(s1 < s2)
 	println(s1 > s2)
 	println(s2 < s1)

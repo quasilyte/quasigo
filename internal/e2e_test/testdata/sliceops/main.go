@@ -1,7 +1,7 @@
 package main
 
 //test:disasm_both
-// main.makeIntSlice1 code=15 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.makeIntSlice1 code=15 frame=48 (2 slots: 1 params, 1 locals)
 //   LoadScalarConst arg0 = 8
 //   Move arg1 = length
 //   Move arg2 = length
@@ -12,7 +12,7 @@ func makeIntSlice1(length int) []int {
 }
 
 //test:disasm_both
-// main.makeByteSlice1 code=15 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.makeByteSlice1 code=15 frame=48 (2 slots: 1 params, 1 locals)
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = length
 //   Move arg2 = length
@@ -23,7 +23,7 @@ func makeByteSlice1(length int) []byte {
 }
 
 //test:disasm_both
-// main.makeBoolSlice1 code=15 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.makeBoolSlice1 code=15 frame=48 (2 slots: 1 params, 1 locals)
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = length
 //   Move arg2 = length
@@ -34,7 +34,7 @@ func makeBoolSlice1(length int) []bool {
 }
 
 //test:disasm_both
-// main.makeIntSlice2 code=15 frame=72 (3 slots: 2 args, 0 locals, 1 temps)
+// main.makeIntSlice2 code=15 frame=72 (3 slots: 2 params, 1 locals)
 //   LoadScalarConst arg0 = 8
 //   Move arg1 = length
 //   Move arg2 = capacity
@@ -45,7 +45,7 @@ func makeIntSlice2(length, capacity int) []int {
 }
 
 //test:disasm_both
-// main.makeByteSlice2 code=15 frame=72 (3 slots: 2 args, 0 locals, 1 temps)
+// main.makeByteSlice2 code=15 frame=72 (3 slots: 2 params, 1 locals)
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = length
 //   Move arg2 = capacity
@@ -56,7 +56,7 @@ func makeByteSlice2(length, capacity int) []byte {
 }
 
 //test:disasm_both
-// main.makeBoolSlice2 code=15 frame=72 (3 slots: 2 args, 0 locals, 1 temps)
+// main.makeBoolSlice2 code=15 frame=72 (3 slots: 2 params, 1 locals)
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = length
 //   Move arg2 = capacity
@@ -67,7 +67,7 @@ func makeBoolSlice2(length, capacity int) []bool {
 }
 
 //test:disasm_both
-// main.intSliceLenCap code=19 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.intSliceLenCap code=19 frame=48 (2 slots: 1 params, 1 locals)
 //   Len temp0 = xs
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
@@ -81,7 +81,7 @@ func intSliceLenCap(xs []int) {
 }
 
 //test:disasm_both
-// main.byteSliceLenCap code=19 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.byteSliceLenCap code=19 frame=48 (2 slots: 1 params, 1 locals)
 //   Len temp0 = xs
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
@@ -95,7 +95,7 @@ func byteSliceLenCap(xs []byte) {
 }
 
 //test:disasm_both
-// main.boolSliceLenCap code=19 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.boolSliceLenCap code=19 frame=48 (2 slots: 1 params, 1 locals)
 //   Len temp0 = xs
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
@@ -109,7 +109,7 @@ func boolSliceLenCap(xs []bool) {
 }
 
 //test:disasm_both
-// main.intSliceIndexing code=8 frame=48 (2 slots: 2 args, 0 locals, 0 temps)
+// main.intSliceIndexing code=8 frame=48 (2 slots: 2 params, 0 locals)
 //   SliceIndexScalar64 arg0 = xs i
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
@@ -118,7 +118,7 @@ func intSliceIndexing(xs []int, i int) {
 }
 
 //test:disasm_both
-// main.byteSliceIndexing code=8 frame=48 (2 slots: 2 args, 0 locals, 0 temps)
+// main.byteSliceIndexing code=8 frame=48 (2 slots: 2 params, 0 locals)
 //   SliceIndexScalar8 arg0 = xs i
 //   CallVoidNative builtin.PrintByte()
 //   ReturnVoid
@@ -127,7 +127,7 @@ func byteSliceIndexing(xs []byte, i int) {
 }
 
 //test:disasm_both
-// main.boolSliceIndexing code=8 frame=48 (2 slots: 2 args, 0 locals, 0 temps)
+// main.boolSliceIndexing code=8 frame=48 (2 slots: 2 params, 0 locals)
 //   SliceIndexScalar8 arg0 = xs i
 //   CallVoidNative builtin.PrintBool()
 //   ReturnVoid
@@ -136,7 +136,7 @@ func boolSliceIndexing(xs []bool, i int) {
 }
 
 //test:disasm_both
-// main.intSliceAssign code=5 frame=72 (3 slots: 3 args, 0 locals, 0 temps)
+// main.intSliceAssign code=5 frame=72 (3 slots: 3 params, 0 locals)
 //   SliceSetScalar64 xs i value
 //   ReturnVoid
 func intSliceAssign(xs []int, i, value int) {
@@ -144,7 +144,7 @@ func intSliceAssign(xs []int, i, value int) {
 }
 
 //test:disasm_both
-// main.byteSliceAssign code=5 frame=72 (3 slots: 3 args, 0 locals, 0 temps)
+// main.byteSliceAssign code=5 frame=72 (3 slots: 3 params, 0 locals)
 //   SliceSetScalar8 xs i value
 //   ReturnVoid
 func byteSliceAssign(xs []byte, i int, value byte) {
@@ -152,7 +152,7 @@ func byteSliceAssign(xs []byte, i int, value byte) {
 }
 
 //test:disasm_both
-// main.boolSliceAssign code=5 frame=72 (3 slots: 3 args, 0 locals, 0 temps)
+// main.boolSliceAssign code=5 frame=72 (3 slots: 3 params, 0 locals)
 //   SliceSetScalar8 xs i value
 //   ReturnVoid
 func boolSliceAssign(xs []bool, i int, value bool) {
@@ -160,18 +160,18 @@ func boolSliceAssign(xs []bool, i int, value bool) {
 }
 
 //test:disasm_both
-// main.intSliceAppend code=12 frame=72 (3 slots: 2 args, 1 locals, 0 temps)
+// main.intSliceAppend code=12 frame=72 (3 slots: 2 params, 1 locals)
 //   Move arg0 = xs
 //   Move arg1 = value
-//   CallNative out = builtin.append64()
-//   Return out
+//   CallNative temp0 = builtin.append64()
+//   Return temp0
 func intSliceAppend(xs []int, value int) []int {
 	out := append(xs, value)
 	return out
 }
 
 //test:disasm_both
-// main.byteSliceAppend code=12 frame=48 (2 slots: 2 args, 0 locals, 0 temps)
+// main.byteSliceAppend code=12 frame=48 (2 slots: 2 params, 0 locals)
 //   Move arg0 = xs
 //   Move arg1 = value
 //   CallNative xs = builtin.append8()
@@ -182,7 +182,7 @@ func byteSliceAppend(xs []byte, value byte) []byte {
 }
 
 //test:disasm_both
-// main.boolSliceAppend code=12 frame=72 (3 slots: 2 args, 0 locals, 1 temps)
+// main.boolSliceAppend code=12 frame=72 (3 slots: 2 params, 1 locals)
 //   Move arg0 = xs
 //   Move arg1 = value
 //   CallNative temp0 = builtin.append8()

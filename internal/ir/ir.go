@@ -32,6 +32,10 @@ type Inst struct {
 	Arg3   InstArg
 }
 
+func (inst Inst) IsEmpty() bool {
+	return inst.Op == bytecode.OpInvalid && inst.Pseudo == OpUnset
+}
+
 func (inst *Inst) SetArg(i int, arg InstArg) {
 	switch i {
 	case 0:
@@ -71,11 +75,11 @@ func (inst Inst) IsPseudo() bool {
 type Func struct {
 	Name string
 
-	Code          []Inst
-	Blocks        []Block
-	NumParams     int
-	NumLocals     int
-	NumFrameSlots int
+	Code      []Inst
+	Blocks    []Block
+	NumParams int
+	NumLocals int
+	NumTemps  int
 
 	StrConstants    []string
 	ScalarConstants []uint64
@@ -84,14 +88,26 @@ type Func struct {
 	Env   *qruntime.Env
 }
 
+func (fn *Func) NewScalarConstant(v uint64) int {
+	for i := range fn.ScalarConstants {
+		if fn.ScalarConstants[i] == v {
+			return i
+		}
+	}
+	fn.ScalarConstants = append(fn.ScalarConstants, v)
+	return len(fn.ScalarConstants) - 1
+}
+
+func (fn *Func) NumFrameSlots() int {
+	return fn.NumParams + fn.NumLocals + fn.NumTemps
+}
+
 func (fn *Func) SlotIndex(slot Slot) uint8 {
 	switch slot.Kind {
 	case SlotCallArg:
-		return uint8(fn.NumFrameSlots) + slot.ID
-	case SlotLocal:
-		return uint8(fn.NumParams) + slot.ID
+		return uint8(fn.NumFrameSlots()) + slot.ID
 	case SlotTemp, SlotUniq:
-		return uint8(fn.NumParams) + uint8(fn.NumLocals) + slot.ID
+		return uint8(fn.NumParams) + slot.ID
 	default:
 		return slot.ID
 	}

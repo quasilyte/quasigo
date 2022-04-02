@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -156,7 +157,11 @@ func (r *Runner) runTest(t *testing.T, pkg *testPackage, goResult string, optimi
 	}
 	checkDisasm := false
 	checkIR := false
+	checkConstants := false
 	for _, f := range pkg.files {
+		if len(f.GetConstantsChecks(optimize)) != 0 {
+			checkConstants = true
+		}
 		if len(f.GetIRDumpChecks(optimize)) != 0 {
 			checkIR = true
 		}
@@ -199,6 +204,14 @@ func (r *Runner) runTest(t *testing.T, pkg *testPackage, goResult string, optimi
 		})
 	}
 
+	if checkConstants {
+		t.Run("constants"+suffix, func(t *testing.T) {
+			for _, f := range pkg.files {
+				r.checkConstants(t, f, env, f.GetConstantsChecks(optimize))
+			}
+		})
+	}
+
 	if pkg.typesPackage.Path() == "main" {
 		t.Run("exec"+suffix, func(t *testing.T) {
 			quasigoResult := r.runQuasigo(t, env)
@@ -225,6 +238,46 @@ func (r *Runner) checkIR(t *testing.T, f *testFile, irdump map[string]string, ch
 			t.Errorf("%s:%d: irdump mismatch (-have +want):\n%s", f.name, c.line, diff)
 			fmt.Println("For copy/paste:")
 			for _, l := range strings.Split(dump, "\n") {
+				if l == "" {
+					continue
+				}
+				fmt.Printf("// %s\n", l)
+			}
+			t.FailNow()
+		}
+	}
+}
+
+func (r *Runner) checkConstants(t *testing.T, f *testFile, env *testEnv, checks []disasmCheck) {
+	for _, c := range checks {
+		fn := env.handle.GetFunc(f.pkg.typesPackage.Path(), c.funcName)
+
+		var buf strings.Builder
+		buf.WriteString("  scalar constants: [")
+		for i, v := range fn.ScalarConstants() {
+			if i != 0 {
+				buf.WriteByte(' ')
+			}
+			buf.WriteString(strconv.FormatInt(int64(v), 10))
+		}
+		buf.WriteString("]\n")
+		buf.WriteString("  string constants: [")
+		for i, v := range fn.StringConstants() {
+			if i != 0 {
+				buf.WriteByte(' ')
+			}
+			buf.WriteByte('"')
+			buf.WriteString(v)
+			buf.WriteByte('"')
+		}
+		buf.WriteString("]\n")
+
+		have := splitLines(buf.String())
+		want := splitLines(c.expected)
+		if diff := cmp.Diff(have, want); diff != "" {
+			t.Errorf("%s:%d: constants mismatch (-have +want):\n%s", f.name, c.line, diff)
+			fmt.Println("For copy/paste:")
+			for _, l := range strings.Split(buf.String(), "\n") {
 				if l == "" {
 					continue
 				}
@@ -339,6 +392,10 @@ func (r *Runner) loadFuncComments(t *testing.T, fset *token.FileSet, f *testFile
 	var disasmOptLine int
 	var irdump strings.Builder
 	var irdumpLine int
+	var constants strings.Builder
+	var constantsLine int
+	var constantsOpt strings.Builder
+	var constantsOptLine int
 
 	var currentSection *strings.Builder
 	for _, c := range cg.List {
@@ -347,6 +404,14 @@ func (r *Runner) loadFuncComments(t *testing.T, fset *token.FileSet, f *testFile
 		}
 		s := strings.TrimSpace(strings.TrimPrefix(c.Text, "//"))
 		switch {
+		case strings.HasPrefix(s, "test:constants_opt"):
+			currentSection = &constantsOpt
+			constantsOptLine = fset.Position(c.Pos()).Line
+			continue
+		case strings.HasPrefix(s, "test:constants"):
+			currentSection = &constants
+			constantsLine = fset.Position(c.Pos()).Line
+			continue
 		case strings.HasPrefix(s, "test:irdump"):
 			currentSection = &irdump
 			irdumpLine = fset.Position(c.Pos()).Line
@@ -404,6 +469,20 @@ func (r *Runner) loadFuncComments(t *testing.T, fset *token.FileSet, f *testFile
 			expected: irdump.String(),
 		})
 	}
+	if constants.Len() != 0 {
+		f.constants = append(f.constants, disasmCheck{
+			line:     constantsLine,
+			funcName: funcName,
+			expected: constants.String(),
+		})
+	}
+	if constantsOpt.Len() != 0 {
+		f.constantsOpt = append(f.constantsOpt, disasmCheck{
+			line:     constantsOptLine,
+			funcName: funcName,
+			expected: constantsOpt.String(),
+		})
+	}
 }
 
 func (r *Runner) runGo(t *testing.T, main string) string {
@@ -452,12 +531,14 @@ type testPackage struct {
 }
 
 type testFile struct {
-	name      string
-	syntax    *ast.File
-	disasm    []disasmCheck
-	disasmOpt []disasmCheck
-	irdump    []disasmCheck
-	pkg       *testPackage
+	name         string
+	syntax       *ast.File
+	disasm       []disasmCheck
+	disasmOpt    []disasmCheck
+	irdump       []disasmCheck
+	constants    []disasmCheck
+	constantsOpt []disasmCheck
+	pkg          *testPackage
 }
 
 func (f *testFile) GetDisasmChecks(optimize bool) []disasmCheck {
@@ -472,6 +553,13 @@ func (f *testFile) GetIRDumpChecks(optimize bool) []disasmCheck {
 		return f.irdump
 	}
 	return nil
+}
+
+func (f *testFile) GetConstantsChecks(optimize bool) []disasmCheck {
+	if optimize {
+		return f.constantsOpt
+	}
+	return f.constants
 }
 
 type disasmCheck struct {

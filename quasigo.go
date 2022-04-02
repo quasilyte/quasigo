@@ -146,3 +146,9 @@ type Func struct {
 }
 
 func (fn Func) IsNil() bool { return fn.data == nil }
+
+// TODO: remove this. Only needed for testing.
+func (fn Func) ScalarConstants() []uint64 { return fn.data.ScalarConstants }
+
+// TODO: remove this. Only needed for testing.
+func (fn Func) StringConstants() []string { return fn.data.StrConstants }

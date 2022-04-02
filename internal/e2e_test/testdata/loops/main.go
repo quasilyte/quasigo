@@ -3,17 +3,17 @@ package main
 const one int = 1
 
 //test:disasm_both
-// main.cstyle1 code=25 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   Zero i
+// main.cstyle1 code=25 frame=72 (3 slots: 0 params, 3 locals)
+//   Zero temp0
 //   Jump L0
 // L1:
-//   Move arg0 = i
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   IntInc i
+//   IntInc temp0
 // L0:
-//   LoadScalarConst temp1 = 3
-//   IntLt temp0 = i temp1
-//   JumpNotZero L1 temp0
+//   LoadScalarConst temp2 = 3
+//   IntLt temp1 = temp0 temp2
+//   JumpNotZero L1 temp1
 //   ReturnVoid
 func cstyle1() {
 	for i := 0; i < 3; i++ {
@@ -24,19 +24,19 @@ func cstyle1() {
 // TODO: opt: remove dead store to i in the beginning of this func.
 //
 //test:disasm_both
-// main.cstyle2 code=34 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   LoadScalarConst i = 10
-//   Zero i
+// main.cstyle2 code=34 frame=72 (3 slots: 0 params, 3 locals)
+//   LoadScalarConst temp0 = 10
+//   Zero temp0
 //   Jump L0
 // L1:
-//   Move arg0 = i
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   IntInc i
+//   IntInc temp0
 // L0:
-//   LoadScalarConst temp1 = 3
-//   IntLt temp0 = i temp1
-//   JumpNotZero L1 temp0
-//   Move arg0 = i
+//   LoadScalarConst temp2 = 3
+//   IntLt temp1 = temp0 temp2
+//   JumpNotZero L1 temp1
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
 func cstyle2() {
@@ -48,25 +48,25 @@ func cstyle2() {
 }
 
 //test:disasm_both
-// main.cstyle3 code=45 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   Zero i
+// main.cstyle3 code=45 frame=72 (3 slots: 0 params, 3 locals)
+//   Zero temp0
 //   Jump L0
 // L3:
-//   Move arg0 = i
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst temp1 = 5
-//   IntGt temp0 = i temp1
-//   JumpZero L1 temp0
+//   LoadScalarConst temp2 = 5
+//   IntGt temp1 = temp0 temp2
+//   JumpZero L1 temp1
 //   Jump L2
 // L1:
 //   LoadStrConst arg0 = "after continue"
 //   CallVoidNative builtin.PrintString()
 // L2:
-//   IntInc i
+//   IntInc temp0
 // L0:
-//   LoadScalarConst temp1 = 10
-//   IntLt temp0 = i temp1
-//   JumpNotZero L3 temp0
+//   LoadScalarConst temp2 = 10
+//   IntLt temp1 = temp0 temp2
+//   JumpNotZero L3 temp1
 //   ReturnVoid
 func cstyle3() {
 	for i := 0; i < 10; i++ {
@@ -79,24 +79,24 @@ func cstyle3() {
 }
 
 //test:disasm_both
-// main.cstyle4 code=45 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   LoadScalarConst i = 10
+// main.cstyle4 code=45 frame=72 (3 slots: 0 params, 3 locals)
+//   LoadScalarConst temp0 = 10
 //   Jump L0
 // L3:
-//   Move arg0 = i
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst temp1 = 5
-//   IntLtEq temp0 = i temp1
-//   JumpZero L1 temp0
+//   LoadScalarConst temp2 = 5
+//   IntLtEq temp1 = temp0 temp2
+//   JumpZero L1 temp1
 //   Jump L2
 // L1:
 //   LoadStrConst arg0 = "after break"
 //   CallVoidNative builtin.PrintString()
-//   IntDec i
+//   IntDec temp0
 // L0:
-//   Zero temp1
-//   IntGtEq temp0 = i temp1
-//   JumpNotZero L3 temp0
+//   Zero temp2
+//   IntGtEq temp1 = temp0 temp2
+//   JumpNotZero L3 temp1
 // L2:
 //   ReturnVoid
 func cstyle4() {
@@ -111,19 +111,19 @@ func cstyle4() {
 }
 
 //test:disasm_both
-// main.cstyle5 code=35 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   LoadScalarConst i = 10
+// main.cstyle5 code=35 frame=72 (3 slots: 0 params, 3 locals)
+//   LoadScalarConst temp0 = 10
 // L2:
-//   Move arg0 = i
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst temp1 = 5
-//   IntLtEq temp0 = i temp1
-//   JumpZero L0 temp0
+//   LoadScalarConst temp2 = 5
+//   IntLtEq temp1 = temp0 temp2
+//   JumpZero L0 temp1
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"
 //   CallVoidNative builtin.PrintString()
-//   IntDec i
+//   IntDec temp0
 //   Jump L2
 // L1:
 //   ReturnVoid
@@ -139,20 +139,20 @@ func cstyle5() {
 }
 
 //test:disasm_both
-// main.cstyle6 code=37 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
+// main.cstyle6 code=37 frame=96 (4 slots: 1 params, 3 locals)
 //   IntDec n
-//   LoadScalarConst i = 10
+//   LoadScalarConst temp0 = 10
 // L2:
-//   Move arg0 = i
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst temp1 = 5
-//   IntLtEq temp0 = i temp1
-//   JumpZero L0 temp0
+//   LoadScalarConst temp2 = 5
+//   IntLtEq temp1 = temp0 temp2
+//   JumpZero L0 temp1
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"
 //   CallVoidNative builtin.PrintString()
-//   IntDec i
+//   IntDec temp0
 //   Jump L2
 // L1:
 //   ReturnVoid
@@ -168,15 +168,15 @@ func cstyle6(n int) {
 }
 
 //test:disasm_both
-// main.cstyle7 code=34 frame=72 (3 slots: 0 args, 1 locals, 2 temps)
-//   Zero i
+// main.cstyle7 code=34 frame=72 (3 slots: 0 params, 3 locals)
+//   Zero temp0
 // L2:
-//   IntInc i
-//   Move arg0 = i
+//   IntInc temp0
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst temp1 = 5
-//   ScalarEq temp0 = i temp1
-//   JumpZero L0 temp0
+//   LoadScalarConst temp2 = 5
+//   ScalarEq temp1 = temp0 temp2
+//   JumpZero L0 temp1
 //   Jump L1
 // L0:
 //   LoadStrConst arg0 = "after break"
@@ -195,8 +195,52 @@ func cstyle7() {
 	}
 }
 
+//test:irdump
+// block0 (L1) [0]:
+//   LoadScalarConst temp0 = -5
+// block1 [0]:
+//   Zero temp2.v0
+//   IntGt temp1.v0 = temp0 temp2.v0
+//   JumpZero L2 temp1.v0
+// block2 [0]:
+//   Jump L0
+// block3 (L2) [0]:
+//   IntInc temp0
+//   Move arg0 = temp0
+//   CallVoidNative builtin.PrintInt
+//   Jump L1
+// block4 (L0) [0]:
+//   ReturnVoid
+//
+//test:disasm_both
+// main.while1 code=28 frame=72 (3 slots: 0 params, 3 locals)
+//   LoadScalarConst temp0 = -5
+// L2:
+//   Zero temp2
+//   IntGt temp1 = temp0 temp2
+//   JumpZero L0 temp1
+//   Jump L1
+// L0:
+//   IntInc temp0
+//   Move arg0 = temp0
+//   CallVoidNative builtin.PrintInt()
+//   Jump L2
+// L1:
+//   ReturnVoid
+func while1() {
+	j := -5
+	for {
+		if j > 0 {
+			break
+		}
+		j++
+		println(j)
+	}
+}
+
 func testWhile() {
 	// While-style loops.
+	while1()
 	{
 		i := 0
 		for i < 5 {

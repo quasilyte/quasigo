@@ -16,11 +16,11 @@ import (
 
 func (cl *compiler) compileTempExpr(e ast.Expr) ir.Slot {
 	if v, ok := e.(*ast.Ident); ok {
+		if i := cl.scope.Lookup(v.Name); i != -1 {
+			return ir.NewTempSlot(uint8(i))
+		}
 		if p, ok := cl.params[v.Name]; ok {
 			return p.i
-		}
-		if l, ok := cl.locals[v.Name]; ok {
-			return l.i
 		}
 	}
 	temp := cl.allocTemp()
@@ -190,6 +190,8 @@ func (cl *compiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 
 	case token.QUO:
 		cl.compileIntBinaryOp(dst, e, bytecode.OpIntDiv, typ)
+	case token.REM:
+		cl.compileIntBinaryOp(dst, e, bytecode.OpIntMod, typ)
 
 	default:
 		panic(cl.errorf(e, "can't compile binary %s yet", e.Op))
@@ -309,15 +311,28 @@ func (cl *compiler) compileIntConv(dst ir.Slot, call *ast.CallExpr) {
 func (cl *compiler) compileByteConv(dst ir.Slot, call *ast.CallExpr) {
 	x := call.Args[0]
 	typ := cl.ctx.Types.TypeOf(x)
+	xslot := cl.compileTempExpr(x)
 	switch {
 	case typeIsByte(typ):
-		xslot := cl.compileTempExpr(x)
 		cl.emit2(bytecode.OpMove, dst, xslot)
 	case typeIsInt(typ):
-		xslot := cl.compileTempExpr(x)
 		cl.emit2(bytecode.OpMove8, dst, xslot)
 	default:
 		panic(cl.errorf(call.Args[0], "can't convert %s to byte", typ))
+	}
+}
+
+func (cl *compiler) compileStringConv(dst ir.Slot, call *ast.CallExpr) {
+	x := call.Args[0]
+	typ := cl.ctx.Types.TypeOf(x)
+	cl.compileCallArgs(nil, call.Args, nil)
+	if typeIsByteSlice(typ) {
+		key := qruntime.FuncKey{Qualifier: "builtin", Name: "bytesToString"}
+		if !cl.compileNativeCall(dst, key) {
+			panic(cl.errorf(call.Fun, "builtin.bytesToString native func is not registered"))
+		}
+	} else {
+		panic(cl.errorf(call.Args[0], "can't convert %s to string", typ))
 	}
 }
 
@@ -336,6 +351,9 @@ func (cl *compiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
 			return
 		case "byte":
 			cl.compileByteConv(dst, call)
+			return
+		case "string":
+			cl.compileStringConv(dst, call)
 			return
 		}
 	}
@@ -632,12 +650,12 @@ func (cl *compiler) compileIdent(dst ir.Slot, ident *ast.Ident) {
 		return
 	}
 
-	if p, ok := cl.params[ident.String()]; ok {
-		cl.emit2(bytecode.OpMove, dst, p.i)
+	if i := cl.scope.Lookup(ident.String()); i != -1 {
+		cl.emit2(bytecode.OpMove, dst, ir.NewTempSlot(uint8(i)))
 		return
 	}
-	if l, ok := cl.locals[ident.String()]; ok {
-		cl.emit2(bytecode.OpMove, dst, l.i)
+	if p, ok := cl.params[ident.String()]; ok {
+		cl.emit2(bytecode.OpMove, dst, p.i)
 		return
 	}
 

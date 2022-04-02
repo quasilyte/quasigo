@@ -28,3 +28,8 @@ func nativeAppend64(ctx NativeCallContext) {
 	value := getslot(ctx.slotptr, 1).Scalar
 	ctx.env.result.setSlice64(append(slice, value))
 }
+
+func nativeBytesToString(ctx NativeCallContext) {
+	slice := ctx.ByteSliceArg(0)
+	ctx.SetStringResult(string(slice))
+}

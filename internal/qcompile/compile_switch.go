@@ -48,16 +48,20 @@ func (cl *compiler) compileSwitchStmt(stmt *ast.SwitchStmt) {
 		panic(cl.errorf(stmt.Tag, "can't compile switch over a value of type %s", tagType))
 	}
 
-	scl.tagslot = cl.allocAutoLocal()
-	defer func() { cl.autoLocalSeq-- }()
-	cl.CompileExpr(scl.tagslot, stmt.Tag)
+	cl.scope.Enter()
 
+	cl.scope.PushVar("auto$switchtag")
+	scl.tagslot = cl.allocTemp()
+
+	cl.CompileExpr(scl.tagslot, stmt.Tag)
 	labelBreak := cl.newLabel()
 	prevBreakTarget := cl.breakTarget
 	cl.breakTarget = labelBreak
 	scl.compile(stmt)
 	cl.bindLabel(cl.breakTarget)
 	cl.breakTarget = prevBreakTarget
+
+	cl.killScopeVars(cl.scope.Leave())
 }
 
 func (cl switchCompiler) compile(stmt *ast.SwitchStmt) {

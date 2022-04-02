@@ -67,6 +67,7 @@ var opcodePrototypes = []opcodeProto{
 	{"IntMul64", "op dst:wslot x:rslot y:rslot"},
 	{"IntXor", "op dst:wslot x:rslot y:rslot"},
 	{"IntDiv", "op dst:wslot x:rslot y:rslot"},
+	{"IntMod", "op dst:wslot x:rslot y:rslot"},
 
 	{"IntInc", "op x:rwslot"},
 	{"IntDec", "op x:rwslot"},
