@@ -6,7 +6,6 @@ type SlotKind uint8
 const (
 	SlotCallArg SlotKind = iota
 	SlotParam
-	SlotLocal
 	SlotTemp
 	SlotUniq
 	SlotDiscard
@@ -19,7 +18,6 @@ type Slot struct {
 
 func NewCallArgSlot(id uint8) Slot { return Slot{ID: id, Kind: SlotCallArg} }
 func NewParamSlot(id uint8) Slot   { return Slot{ID: id, Kind: SlotParam} }
-func NewLocalSlot(id uint8) Slot   { return Slot{ID: id, Kind: SlotLocal} }
 func NewTempSlot(id uint8) Slot    { return Slot{ID: id, Kind: SlotTemp} }
 func NewUniqSlot(id uint8) Slot    { return Slot{ID: id, Kind: SlotUniq} }
 
@@ -29,6 +27,5 @@ func (s Slot) ToInstArg() InstArg {
 
 func (s Slot) IsCallArg() bool { return s.Kind == SlotCallArg }
 func (s Slot) IsParam() bool   { return s.Kind == SlotParam }
-func (s Slot) IsLocal() bool   { return s.Kind == SlotLocal }
 func (s Slot) IsTemp() bool    { return s.Kind == SlotTemp }
 func (s Slot) IsUniq() bool    { return s.Kind == SlotUniq }

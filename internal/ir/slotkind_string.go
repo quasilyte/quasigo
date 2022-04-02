@@ -10,15 +10,14 @@ func _() {
 	var x [1]struct{}
 	_ = x[SlotCallArg-0]
 	_ = x[SlotParam-1]
-	_ = x[SlotLocal-2]
-	_ = x[SlotTemp-3]
-	_ = x[SlotUniq-4]
-	_ = x[SlotDiscard-5]
+	_ = x[SlotTemp-2]
+	_ = x[SlotUniq-3]
+	_ = x[SlotDiscard-4]
 }
 
-const _SlotKind_name = "CallArgParamLocalTempUniqDiscard"
+const _SlotKind_name = "CallArgParamTempUniqDiscard"
 
-var _SlotKind_index = [...]uint8{0, 7, 12, 17, 21, 25, 32}
+var _SlotKind_index = [...]uint8{0, 7, 12, 16, 20, 27}
 
 func (i SlotKind) String() string {
 	if i >= SlotKind(len(_SlotKind_index)-1) {

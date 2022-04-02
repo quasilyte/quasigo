@@ -50,33 +50,34 @@ func _() {
 	_ = x[OpIntMul64-39]
 	_ = x[OpIntXor-40]
 	_ = x[OpIntDiv-41]
-	_ = x[OpIntInc-42]
-	_ = x[OpIntDec-43]
-	_ = x[OpJump-44]
-	_ = x[OpJumpZero-45]
-	_ = x[OpJumpNotZero-46]
-	_ = x[OpJumpTable-47]
-	_ = x[OpCall-48]
-	_ = x[OpCallRecur-49]
-	_ = x[OpCallVoid-50]
-	_ = x[OpCallNative-51]
-	_ = x[OpCallVoidNative-52]
-	_ = x[OpPushVariadicBoolArg-53]
-	_ = x[OpPushVariadicScalarArg-54]
-	_ = x[OpPushVariadicStrArg-55]
-	_ = x[OpPushVariadicInterfaceArg-56]
-	_ = x[OpVariadicReset-57]
-	_ = x[OpReturnVoid-58]
-	_ = x[OpReturnZero-59]
-	_ = x[OpReturnOne-60]
-	_ = x[OpReturnStr-61]
-	_ = x[OpReturnScalar-62]
-	_ = x[OpReturn-63]
+	_ = x[OpIntMod-42]
+	_ = x[OpIntInc-43]
+	_ = x[OpIntDec-44]
+	_ = x[OpJump-45]
+	_ = x[OpJumpZero-46]
+	_ = x[OpJumpNotZero-47]
+	_ = x[OpJumpTable-48]
+	_ = x[OpCall-49]
+	_ = x[OpCallRecur-50]
+	_ = x[OpCallVoid-51]
+	_ = x[OpCallNative-52]
+	_ = x[OpCallVoidNative-53]
+	_ = x[OpPushVariadicBoolArg-54]
+	_ = x[OpPushVariadicScalarArg-55]
+	_ = x[OpPushVariadicStrArg-56]
+	_ = x[OpPushVariadicInterfaceArg-57]
+	_ = x[OpVariadicReset-58]
+	_ = x[OpReturnVoid-59]
+	_ = x[OpReturnZero-60]
+	_ = x[OpReturnOne-61]
+	_ = x[OpReturnStr-62]
+	_ = x[OpReturnScalar-63]
+	_ = x[OpReturn-64]
 }
 
-const _Op_name = "InvalidLoadScalarConstLoadStrConstZeroMoveMove8MoveResult2NotIsNilIsNotNilIsNilInterfaceIsNotNilInterfaceLenCapStrSliceStrSliceFromStrSliceToStrIndexSliceIndexScalar8SliceIndexScalar64SliceSetScalar8SliceSetScalar64ConcatStrEqStrNotEqStrGtStrLtIntNegScalarEqScalarNotEqIntGtIntGtEqIntLtIntLtEqIntAdd8IntAdd64IntSub8IntSub64IntMul8IntMul64IntXorIntDivIntIncIntDecJumpJumpZeroJumpNotZeroJumpTableCallCallRecurCallVoidCallNativeCallVoidNativePushVariadicBoolArgPushVariadicScalarArgPushVariadicStrArgPushVariadicInterfaceArgVariadicResetReturnVoidReturnZeroReturnOneReturnStrReturnScalarReturn"
+const _Op_name = "InvalidLoadScalarConstLoadStrConstZeroMoveMove8MoveResult2NotIsNilIsNotNilIsNilInterfaceIsNotNilInterfaceLenCapStrSliceStrSliceFromStrSliceToStrIndexSliceIndexScalar8SliceIndexScalar64SliceSetScalar8SliceSetScalar64ConcatStrEqStrNotEqStrGtStrLtIntNegScalarEqScalarNotEqIntGtIntGtEqIntLtIntLtEqIntAdd8IntAdd64IntSub8IntSub64IntMul8IntMul64IntXorIntDivIntModIntIncIntDecJumpJumpZeroJumpNotZeroJumpTableCallCallRecurCallVoidCallNativeCallVoidNativePushVariadicBoolArgPushVariadicScalarArgPushVariadicStrArgPushVariadicInterfaceArgVariadicResetReturnVoidReturnZeroReturnOneReturnStrReturnScalarReturn"
 
-var _Op_index = [...]uint16{0, 7, 22, 34, 38, 42, 47, 58, 61, 66, 74, 88, 105, 108, 111, 119, 131, 141, 149, 166, 184, 199, 215, 221, 226, 234, 239, 244, 250, 258, 269, 274, 281, 286, 293, 300, 308, 315, 323, 330, 338, 344, 350, 356, 362, 366, 374, 385, 394, 398, 407, 415, 425, 439, 458, 479, 497, 521, 534, 544, 554, 563, 572, 584, 590}
+var _Op_index = [...]uint16{0, 7, 22, 34, 38, 42, 47, 58, 61, 66, 74, 88, 105, 108, 111, 119, 131, 141, 149, 166, 184, 199, 215, 221, 226, 234, 239, 244, 250, 258, 269, 274, 281, 286, 293, 300, 308, 315, 323, 330, 338, 344, 350, 356, 362, 368, 372, 380, 391, 400, 404, 413, 421, 431, 445, 464, 485, 503, 527, 540, 550, 560, 569, 578, 590, 596}
 
 func (i Op) String() string {
 	if i >= Op(len(_Op_index)-1) {

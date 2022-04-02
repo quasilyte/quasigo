@@ -24,8 +24,6 @@ func Dump(fn *Func) string {
 			return fmt.Sprintf("arg%d", slot.ID)
 		case SlotParam:
 			return fn.Debug.SlotNames[fn.SlotIndex(slot)]
-		case SlotLocal:
-			return fn.Debug.SlotNames[fn.SlotIndex(slot)]
 		case SlotTemp:
 			return fmt.Sprintf("temp%d", slot.ID)
 		case SlotUniq:

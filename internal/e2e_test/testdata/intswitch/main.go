@@ -1,28 +1,57 @@
 package main
 
+//test:irdump
+// block0 [0]:
+//   Move temp0 = x
+//   LoadScalarConst temp2.v0 = 10
+//   ScalarEq temp1.v0 = temp0 temp2.v0
+//   JumpZero L2 temp1.v0
+// block1 [0]:
+//   LoadStrConst temp1.v1 = "ten"
+//   ReturnStr temp1.v1
+// block2 (L2) [0]:
+//   LoadScalarConst temp2.v1 = 20
+//   ScalarEq temp1.v2 = temp0 temp2.v1
+//   JumpZero L3 temp1.v2
+// block3 [0]:
+//   LoadStrConst temp1.v3 = "twenty"
+//   ReturnStr temp1.v3
+// block4 (L3) [0]:
+//   LoadScalarConst temp2.v2 = 30
+//   ScalarEq temp1.v4 = temp0 temp2.v2
+//   JumpZero L4 temp1.v4
+// block5 [0]:
+//   LoadStrConst temp1.v5 = "thirty"
+//   ReturnStr temp1.v5
+// block6 (L4) [0]:
+//   LoadStrConst temp1.v6 = "?"
+//   ReturnStr temp1.v6
+// block7 (L1) [0]:
+// block8 (L0) [0]:
+//
 //test:disasm
-// main.test3withDefault code=56 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
-//   Move auto0 = x
-//   LoadScalarConst temp1 = 10
-//   ScalarEq temp0 = auto0 temp1
-//   JumpZero L0 temp0
-//   LoadStrConst temp0 = "ten"
-//   ReturnStr temp0
+// main.test3withDefault code=56 frame=96 (4 slots: 1 params, 3 locals)
+//   Move temp0 = x
+//   LoadScalarConst temp2 = 10
+//   ScalarEq temp1 = temp0 temp2
+//   JumpZero L0 temp1
+//   LoadStrConst temp1 = "ten"
+//   ReturnStr temp1
 // L0:
-//   LoadScalarConst temp1 = 20
-//   ScalarEq temp0 = auto0 temp1
-//   JumpZero L1 temp0
-//   LoadStrConst temp0 = "twenty"
-//   ReturnStr temp0
+//   LoadScalarConst temp2 = 20
+//   ScalarEq temp1 = temp0 temp2
+//   JumpZero L1 temp1
+//   LoadStrConst temp1 = "twenty"
+//   ReturnStr temp1
 // L1:
-//   LoadScalarConst temp1 = 30
-//   ScalarEq temp0 = auto0 temp1
-//   JumpZero L2 temp0
-//   LoadStrConst temp0 = "thirty"
-//   ReturnStr temp0
+//   LoadScalarConst temp2 = 30
+//   ScalarEq temp1 = temp0 temp2
+//   JumpZero L2 temp1
+//   LoadStrConst temp1 = "thirty"
+//   ReturnStr temp1
 // L2:
-//   LoadStrConst temp0 = "?"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "?"
+//   ReturnStr temp1
 func test3withDefault(x int) string {
 	switch x {
 	case 10:
@@ -71,82 +100,82 @@ func test5noDefault(x int) string {
 }
 
 //test:disasm
-// main.test10withDefault code=202 frame=96 (4 slots: 1 args, 1 locals, 2 temps)
-//   Move auto0 = x
-//   Zero temp1
-//   IntLt temp0 = auto0 temp1
-//   JumpNotZero L0 temp0
-//   LoadScalarConst temp1 = 90
-//   IntGt temp0 = auto0 temp1
-//   JumpNotZero L0 temp0
-//   LoadScalarConst temp1 = 4
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L1 temp0
-//   IntGt temp0 = auto0 temp1
-//   JumpNotZero L2 temp0
-//   Zero temp1
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L3 temp0
-//   LoadScalarConst temp1 = 1
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L4 temp0
-//   LoadScalarConst temp1 = 2
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L5 temp0
-//   LoadScalarConst temp1 = 3
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L6 temp0
+// main.test10withDefault code=202 frame=96 (4 slots: 1 params, 3 locals)
+//   Move temp0 = x
+//   Zero temp2
+//   IntLt temp1 = temp0 temp2
+//   JumpNotZero L0 temp1
+//   LoadScalarConst temp2 = 90
+//   IntGt temp1 = temp0 temp2
+//   JumpNotZero L0 temp1
+//   LoadScalarConst temp2 = 4
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L1 temp1
+//   IntGt temp1 = temp0 temp2
+//   JumpNotZero L2 temp1
+//   Zero temp2
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L3 temp1
+//   LoadScalarConst temp2 = 1
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L4 temp1
+//   LoadScalarConst temp2 = 2
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L5 temp1
+//   LoadScalarConst temp2 = 3
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L6 temp1
 //   Jump L0
 // L2:
-//   LoadScalarConst temp1 = 5
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L7 temp0
-//   LoadScalarConst temp1 = 6
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L8 temp0
-//   LoadScalarConst temp1 = 7
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L9 temp0
-//   LoadScalarConst temp1 = 8
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L10 temp0
-//   LoadScalarConst temp1 = 90
-//   ScalarEq temp0 = auto0 temp1
-//   JumpNotZero L11 temp0
+//   LoadScalarConst temp2 = 5
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L7 temp1
+//   LoadScalarConst temp2 = 6
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L8 temp1
+//   LoadScalarConst temp2 = 7
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L9 temp1
+//   LoadScalarConst temp2 = 8
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L10 temp1
+//   LoadScalarConst temp2 = 90
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L11 temp1
 //   Jump L0
 // L3:
-//   LoadStrConst temp0 = "0"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "0"
+//   ReturnStr temp1
 // L4:
-//   LoadStrConst temp0 = "1"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "1"
+//   ReturnStr temp1
 // L5:
-//   LoadStrConst temp0 = "2"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "2"
+//   ReturnStr temp1
 // L6:
-//   LoadStrConst temp0 = "3"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "3"
+//   ReturnStr temp1
 // L1:
-//   LoadStrConst temp0 = "4"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "4"
+//   ReturnStr temp1
 // L7:
-//   LoadStrConst temp0 = "5"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "5"
+//   ReturnStr temp1
 // L8:
-//   LoadStrConst temp0 = "6"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "6"
+//   ReturnStr temp1
 // L9:
-//   LoadStrConst temp0 = "7"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "7"
+//   ReturnStr temp1
 // L10:
-//   LoadStrConst temp0 = "8"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "8"
+//   ReturnStr temp1
 // L11:
-//   LoadStrConst temp0 = "90"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "90"
+//   ReturnStr temp1
 // L0:
-//   LoadStrConst temp0 = "?"
-//   ReturnStr temp0
+//   LoadStrConst temp1 = "?"
+//   ReturnStr temp1
 func test10withDefault(x int) string {
 	switch x {
 	case 0:
@@ -175,16 +204,16 @@ func test10withDefault(x int) string {
 }
 
 //test:disasm
-// main.test10noDefault code=121 frame=120 (5 slots: 1 args, 2 locals, 2 temps)
-//   LoadStrConst res = "?"
-//   Move auto0 = x
-//   Zero temp1
-//   IntLt temp0 = auto0 temp1
-//   JumpNotZero L0 temp0
-//   LoadScalarConst temp1 = 9
-//   IntGt temp0 = auto0 temp1
-//   JumpNotZero L0 temp0
-//   JumpTable auto0
+// main.test10noDefault code=121 frame=120 (5 slots: 1 params, 4 locals)
+//   LoadStrConst temp0 = "?"
+//   Move temp1 = x
+//   Zero temp3
+//   IntLt temp2 = temp1 temp3
+//   JumpNotZero L0 temp2
+//   LoadScalarConst temp3 = 9
+//   IntGt temp2 = temp1 temp3
+//   JumpNotZero L0 temp2
+//   JumpTable temp1
 //   Jump L1
 //   Jump L2
 //   Jump L3
@@ -196,37 +225,37 @@ func test10withDefault(x int) string {
 //   Jump L9
 //   Jump L10
 // L1:
-//   LoadStrConst res = "0"
+//   LoadStrConst temp0 = "0"
 //   Jump L0
 // L2:
-//   LoadStrConst res = "1"
+//   LoadStrConst temp0 = "1"
 //   Jump L0
 // L3:
-//   LoadStrConst res = "2"
+//   LoadStrConst temp0 = "2"
 //   Jump L0
 // L4:
-//   LoadStrConst res = "3"
+//   LoadStrConst temp0 = "3"
 //   Jump L0
 // L5:
-//   LoadStrConst res = "4"
+//   LoadStrConst temp0 = "4"
 //   Jump L0
 // L6:
-//   LoadStrConst res = "5"
+//   LoadStrConst temp0 = "5"
 //   Jump L0
 // L7:
-//   LoadStrConst res = "6"
+//   LoadStrConst temp0 = "6"
 //   Jump L0
 // L8:
-//   LoadStrConst res = "7"
+//   LoadStrConst temp0 = "7"
 //   Jump L0
 // L9:
-//   LoadStrConst res = "8"
+//   LoadStrConst temp0 = "8"
 //   Jump L0
 // L10:
-//   LoadStrConst res = "9"
+//   LoadStrConst temp0 = "9"
 //   Jump L0
 // L0:
-//   ReturnStr res
+//   ReturnStr temp0
 func test10noDefault(x int) string {
 	res := "?"
 	switch x {

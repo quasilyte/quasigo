@@ -18,11 +18,8 @@ func Func(env *qruntime.Env, fn *qruntime.Func) string {
 	}
 
 	numSlots := fn.FrameSize / int(qruntime.SizeofSlot)
-	numLocals := int(fn.NumLocals)
-	numArgs := len(dbg.SlotNames) - numLocals
-	numTemps := numSlots - numArgs - numLocals
-	fmt.Fprintf(&out, "%s code=%d frame=%d (%d slots: %d args, %d locals, %d temps)\n",
-		fn.Name, len(fn.Code), fn.FrameSize, numSlots, numArgs, numLocals, numTemps)
+	fmt.Fprintf(&out, "%s code=%d frame=%d (%d slots: %d params, %d locals)\n",
+		fn.Name, len(fn.Code), fn.FrameSize, numSlots, fn.NumParams, fn.NumTemps)
 
 	slotName := func(index int) string {
 		if index < len(dbg.SlotNames) {

@@ -3,21 +3,20 @@ package main
 const one int = 1
 
 //test:disasm
-// main.constexpr1 code=25 frame=48 (2 slots: 0 args, 1 locals, 1 temps)
-//   LoadScalarConst x = 1
-//   Move arg0 = x
+// main.constexpr1 code=25 frame=48 (2 slots: 0 params, 2 locals)
+//   LoadScalarConst temp0 = 1
+//   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst arg0 = 1
 //   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst temp0 = 3
-//   Move arg0 = temp0
+//   LoadScalarConst temp1 = 3
+//   Move arg0 = temp1
 //   CallVoidNative builtin.PrintInt()
 //   ReturnVoid
 //
 //test:disasm_opt
-// main.constexpr1 code=22 frame=24 (1 slots: 0 args, 1 locals, 0 temps)
-//   LoadScalarConst x = 1
-//   Move arg0 = x
+// main.constexpr1 code=19 frame=0 (0 slots: 0 params, 0 locals)
+//   LoadScalarConst arg0 = 1
 //   CallVoidNative builtin.PrintInt()
 //   LoadScalarConst arg0 = 1
 //   CallVoidNative builtin.PrintInt()
@@ -32,7 +31,7 @@ func constexpr1() {
 }
 
 //test:disasm_both
-// main.intnegvar code=5 frame=48 (2 slots: 1 args, 0 locals, 1 temps)
+// main.intnegvar code=5 frame=48 (2 slots: 1 params, 1 locals)
 //   IntNeg temp0 = x
 //   ReturnScalar temp0
 func intnegvar(x int) int {
@@ -40,7 +39,7 @@ func intnegvar(x int) int {
 }
 
 //test:disasm_both
-// main.intnegconst code=5 frame=24 (1 slots: 0 args, 0 locals, 1 temps)
+// main.intnegconst code=5 frame=24 (1 slots: 0 params, 1 locals)
 //   LoadScalarConst temp0 = -50
 //   ReturnScalar temp0
 func intnegconst() int {

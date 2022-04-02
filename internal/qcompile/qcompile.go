@@ -62,7 +62,6 @@ func (c *Compiler) CompileFunc(ctx *Context, fn *ast.FuncDecl) (compiled *qrunti
 
 		strConstantsPool:    make(map[string]int),
 		scalarConstantsPool: make(map[uint64]int),
-		locals:              make(map[string]frameSlotInfo),
 
 		patternCompiler: &p,
 	}

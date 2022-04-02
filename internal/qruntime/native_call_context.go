@@ -13,6 +13,10 @@ func (ncc NativeCallContext) ByteArg(index int) byte {
 	return getslot(ncc.slotptr, byte(index)).Byte()
 }
 
+func (ncc NativeCallContext) ByteSliceArg(index int) []byte {
+	return getslot(ncc.slotptr, byte(index)).ByteSlice()
+}
+
 func (ncc NativeCallContext) IntArg(index int) int {
 	return getslot(ncc.slotptr, byte(index)).Int()
 }

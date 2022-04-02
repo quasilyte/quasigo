@@ -3,7 +3,6 @@ package qcompile
 import (
 	"fmt"
 	"go/ast"
-	"go/token"
 	"go/types"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
@@ -21,6 +20,7 @@ type compiler struct {
 
 	currentFunc ir.Func
 	optimizer   qopt.Optimizer
+	scope       scope
 
 	fnName  *ast.Ident
 	fnKey   qruntime.FuncKey
@@ -32,12 +32,9 @@ type compiler struct {
 	hasCalls bool
 	hasLoops bool
 
-	locals       map[string]frameSlotInfo
-	autoLocalSeq int
-	numAutoLocal int
-	tempSeq      int
-	numTemp      int
-	inTempBlock  bool
+	tempSeq     int
+	numTemp     int
+	inTempBlock bool
 
 	strConstantsPool    map[string]int
 	scalarConstantsPool map[uint64]int
@@ -84,7 +81,7 @@ func (cl *compiler) buildIR(fn *ast.FuncDecl) *ir.Func {
 	}
 
 	dbg := qruntime.FuncDebugInfo{
-		SlotNames: make([]string, 0, len(cl.params)+len(cl.locals)),
+		SlotNames: make([]string, 0, len(cl.params)),
 	}
 	cl.hasCalls = false
 	cl.fnName = fn.Name
@@ -104,22 +101,16 @@ func (cl *compiler) buildIR(fn *ast.FuncDecl) *ir.Func {
 		dbg.SlotNames = append(dbg.SlotNames, paramName)
 	}
 
-	cl.collectLocals(&dbg, fn.Body)
-
 	cl.compileStmt(fn.Body)
 	if cl.retType == voidType {
 		cl.emitOp(bytecode.OpReturnVoid)
 	}
 
-	for i := 0; i < cl.numAutoLocal; i++ {
-		dbg.SlotNames = append(dbg.SlotNames, fmt.Sprintf("auto%d", i))
-	}
 	cl.currentFunc = ir.Func{
 		Name:            cl.fnKey.String(),
 		Code:            cl.code,
 		NumParams:       len(cl.params),
-		NumLocals:       len(cl.locals) + cl.numAutoLocal,
-		NumFrameSlots:   len(cl.params) + len(cl.locals) + cl.numAutoLocal + cl.numTemp,
+		NumTemps:        cl.numTemp,
 		StrConstants:    cl.strConstants,
 		ScalarConstants: cl.scalarConstants,
 		Debug:           dbg,
@@ -149,8 +140,8 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		panic(cl.errorf(fn.Name, "unexpected result: 0-sized bytecode"))
 	}
 
-	if cl.autoLocalSeq != 0 {
-		panic("internal error: leaking auto locals?")
+	if len(cl.scope.vars) != 0 || len(cl.scope.depths) != 0 {
+		panic("internal error: lexical scope is not empty")
 	}
 
 	compiled := &qruntime.Func{
@@ -159,10 +150,10 @@ func (cl *compiler) compileFunc(fn *ast.FuncDecl) *qruntime.Func {
 		StrConstants:    irFunc.StrConstants,
 		ScalarConstants: irFunc.ScalarConstants,
 		Name:            irFunc.Name,
-		FrameSize:       int(qruntime.SizeofSlot) * irFunc.NumFrameSlots,
-		FrameSlots:      byte(irFunc.NumFrameSlots),
+		FrameSize:       int(qruntime.SizeofSlot) * irFunc.NumFrameSlots(),
+		FrameSlots:      byte(irFunc.NumFrameSlots()),
 		NumParams:       byte(len(cl.params)),
-		NumLocals:       byte(len(cl.locals) + cl.numAutoLocal),
+		NumTemps:        byte(irFunc.NumTemps),
 		CanInline:       cl.canInline(irFunc),
 	}
 	cl.ctx.Env.Debug.Funcs[compiled] = irFunc.Debug
@@ -173,42 +164,9 @@ func (cl *compiler) canInline(fn *ir.Func) bool {
 	return cl.ctx.Static &&
 		!cl.hasCalls && !cl.hasLoops &&
 		cl.numLabels <= 6 &&
-		fn.NumFrameSlots <= 16 &&
+		fn.NumFrameSlots() <= 16 &&
 		len(fn.ScalarConstants) <= 8 &&
 		len(fn.StrConstants) <= 8
-}
-
-func (cl *compiler) collectLocals(dbg *qruntime.FuncDebugInfo, body *ast.BlockStmt) {
-	ast.Inspect(body, func(n ast.Node) bool {
-		assign, ok := n.(*ast.AssignStmt)
-		if !ok || assign.Tok != token.DEFINE {
-			return true
-		}
-		for _, lhs := range assign.Lhs {
-			lhs, ok := lhs.(*ast.Ident)
-			if !ok {
-				continue
-			}
-			def, ok := cl.ctx.Types.Defs[lhs].(*types.Var)
-			if !ok || def == nil {
-				continue
-			}
-			if _, ok := cl.locals[lhs.String()]; ok {
-				panic(cl.errorf(lhs, "%s variable shadowing is not allowed", lhs))
-			}
-			typ := cl.ctx.Types.TypeOf(lhs)
-			if !cl.isSupportedType(typ) {
-				panic(cl.errorUnsupportedType(lhs, typ, lhs.String()+" local variable"))
-			}
-			id := len(cl.locals)
-			cl.locals[lhs.Name] = frameSlotInfo{
-				i: ir.NewLocalSlot(uint8(id)),
-				v: def,
-			}
-			dbg.SlotNames = append(dbg.SlotNames, lhs.Name)
-		}
-		return true
-	})
 }
 
 func (cl *compiler) emitVarKill(id int) {
@@ -421,20 +379,38 @@ func (cl *compiler) internStrConstant(s string) int {
 	return id
 }
 
+func (cl *compiler) defineOrLookupVar(e ast.Expr, varname string, define bool) ir.Slot {
+	if !define {
+		return cl.getNamedSlot(e, varname)
+	}
+
+	// Can re-define a variable only if it's not from a current scope level.
+	if i := cl.scope.LookupInCurrent(varname); i != -1 {
+		return ir.NewTempSlot(uint8(i))
+	}
+	// Can re-define a parameter only if it's not a root function scope.
+	if cl.scope.NumLevels() == 1 {
+		if p, ok := cl.params[varname]; ok {
+			return p.i
+		}
+	}
+
+	slot := cl.allocTemp()
+	cl.scope.PushVar(varname)
+	return slot
+}
+
 func (cl *compiler) getNamedSlot(v ast.Expr, varname string) ir.Slot {
+	if i := cl.scope.Lookup(varname); i != -1 {
+		return ir.NewTempSlot(uint8(i))
+	}
 	if p, ok := cl.params[varname]; ok {
 		return p.i
-	}
-	if l, ok := cl.locals[varname]; ok {
-		return l.i
 	}
 	panic(cl.errorf(v, "%s is not a writeable local variable", varname))
 }
 
 func (cl *compiler) beginTempBlock() {
-	if cl.tempSeq != 0 {
-		cl.fatalf("beginTempBlock with non-zero temp seq")
-	}
 	if cl.inTempBlock {
 		cl.fatalf("nested beginTempBlock call")
 	}
@@ -445,11 +421,15 @@ func (cl *compiler) endTempBlock() {
 	if !cl.inTempBlock {
 		cl.fatalf("endTempBlock without beginTempBlock")
 	}
-	for cl.tempSeq > 0 {
+	cl.killScopeVars(cl.tempSeq - cl.scope.NumLiveVars())
+	cl.inTempBlock = false
+}
+
+func (cl *compiler) killScopeVars(num int) {
+	for i := 0; i < num; i++ {
 		cl.tempSeq--
 		cl.emitVarKill(cl.tempSeq)
 	}
-	cl.inTempBlock = false
 }
 
 func (cl *compiler) trackTemp(id int) {
@@ -463,15 +443,6 @@ func (cl *compiler) allocTemp() ir.Slot {
 	cl.tempSeq++
 	cl.trackTemp(id)
 	return ir.NewTempSlot(uint8(id))
-}
-
-func (cl *compiler) allocAutoLocal() ir.Slot {
-	id := cl.autoLocalSeq + len(cl.locals)
-	cl.autoLocalSeq++
-	if cl.numAutoLocal < cl.autoLocalSeq {
-		cl.numAutoLocal = cl.autoLocalSeq
-	}
-	return ir.NewLocalSlot(uint8(id))
 }
 
 func (cl *compiler) isSimpleExpr(e ast.Expr) bool {
