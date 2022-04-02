@@ -80,7 +80,11 @@ func (cl *funcCompiler) compileUnaryExpr(dst ir.Slot, e *ast.UnaryExpr) {
 		cl.compileUnaryOp(dst, bytecode.OpNot, e.X)
 
 	case token.SUB:
-		cl.compileUnaryOp(dst, bytecode.OpIntNeg, e.X)
+		if typeIsFloat(cl.ctx.Types.TypeOf(e.X)) {
+			cl.compileUnaryOp(dst, bytecode.OpFloatNeg, e.X)
+		} else {
+			cl.compileUnaryOp(dst, bytecode.OpIntNeg, e.X)
+		}
 
 	default:
 		panic(cl.errorf(e, "can't compile unary %s yet", e.Op))
@@ -134,6 +138,8 @@ func (cl *funcCompiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 		switch {
 		case typeIsByte(typ) || typeIsInt(typ):
 			cl.compileBinaryOp(dst, bytecode.OpIntGt, e)
+		case typeIsFloat(typ):
+			cl.compileBinaryOp(dst, bytecode.OpFloatGt, e)
 		case typeIsString(typ):
 			cl.compileBinaryOp(dst, bytecode.OpStrGt, e)
 		default:
@@ -143,6 +149,8 @@ func (cl *funcCompiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 		switch {
 		case typeIsByte(typ) || typeIsInt(typ):
 			cl.compileBinaryOp(dst, bytecode.OpIntLt, e)
+		case typeIsFloat(typ):
+			cl.compileBinaryOp(dst, bytecode.OpFloatLt, e)
 		case typeIsString(typ):
 			cl.compileBinaryOp(dst, bytecode.OpStrLt, e)
 		default:
@@ -161,6 +169,8 @@ func (cl *funcCompiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 			cl.compileBinaryOp(dst, bytecode.OpIntAdd8, e)
 		case typeIsInt(typ):
 			cl.compileBinaryOp(dst, bytecode.OpIntAdd64, e)
+		case typeIsFloat(typ):
+			cl.compileBinaryOp(dst, bytecode.OpFloatAdd64, e)
 		default:
 			panic(cl.errorf(e, "+ is not implemented for %s bytecode.Operands", typ))
 		}
@@ -171,6 +181,8 @@ func (cl *funcCompiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 			cl.compileBinaryOp(dst, bytecode.OpIntSub8, e)
 		case typeIsInt(typ):
 			cl.compileBinaryOp(dst, bytecode.OpIntSub64, e)
+		case typeIsFloat(typ):
+			cl.compileBinaryOp(dst, bytecode.OpFloatSub64, e)
 		default:
 			panic(cl.errorf(e, "- is not implemented for %s bytecode.Operands", typ))
 		}
@@ -184,12 +196,15 @@ func (cl *funcCompiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 			cl.compileBinaryOp(dst, bytecode.OpIntMul8, e)
 		case typeIsInt(typ):
 			cl.compileBinaryOp(dst, bytecode.OpIntMul64, e)
+		case typeIsFloat(typ):
+			cl.compileBinaryOp(dst, bytecode.OpFloatMul64, e)
 		default:
 			panic(cl.errorf(e, "* is not implemented for %s bytecode.Operands", typ))
 		}
 
 	case token.QUO:
-		cl.compileIntBinaryOp(dst, e, bytecode.OpIntDiv, typ)
+		op := pickOp(typeIsFloat(typ), bytecode.OpFloatDiv64, bytecode.OpIntDiv)
+		cl.compileBinaryOp(dst, op, e)
 	case token.REM:
 		cl.compileIntBinaryOp(dst, e, bytecode.OpIntMod, typ)
 
@@ -264,7 +279,7 @@ func (cl *funcCompiler) compileIndexExpr(dst ir.Slot, e *ast.IndexExpr) {
 	case typeIsSlice(typ):
 		elemType := typ.Underlying().(*types.Slice).Elem()
 		switch {
-		case typeIsInt(elemType):
+		case typeIsInt(elemType), typeIsFloat(elemType):
 			op = bytecode.OpSliceIndexScalar64
 		case typeIsBool(elemType), typeIsByte(elemType):
 			op = bytecode.OpSliceIndexScalar8
@@ -322,6 +337,18 @@ func (cl *funcCompiler) compileByteConv(dst ir.Slot, call *ast.CallExpr) {
 	}
 }
 
+func (cl *funcCompiler) compileFloatConv(dst ir.Slot, call *ast.CallExpr) {
+	x := call.Args[0]
+	typ := cl.ctx.Types.TypeOf(x)
+	xslot := cl.compileTempExpr(x)
+	switch {
+	case typeIsInt(typ):
+		cl.emit2(bytecode.OpConvIntToFloat, dst, xslot)
+	default:
+		panic(cl.errorf(call.Args[0], "can't convert %s to float", typ))
+	}
+}
+
 func (cl *funcCompiler) compileStringConv(dst ir.Slot, call *ast.CallExpr) {
 	x := call.Args[0]
 	typ := cl.ctx.Types.TypeOf(x)
@@ -351,6 +378,9 @@ func (cl *funcCompiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
 			return
 		case "byte":
 			cl.compileByteConv(dst, call)
+			return
+		case "float64":
+			cl.compileFloatConv(dst, call)
 			return
 		case "string":
 			cl.compileStringConv(dst, call)
@@ -432,6 +462,8 @@ func (cl *funcCompiler) compileBuiltinCall(dst ir.Slot, fn *ast.Ident, call *ast
 			funcName = "PrintByte"
 		case typeIsInt(argType):
 			funcName = "PrintInt"
+		case typeIsFloat(argType):
+			funcName = "PrintFloat"
 		case typeIsString(argType):
 			funcName = "PrintString"
 		case typeIsBool(argType):
@@ -675,6 +707,13 @@ func (cl *funcCompiler) compileConstantValue(dst ir.Slot, source ast.Expr, cv co
 		}
 		cl.emit(cl.moveInt(dst, int(v)))
 
+	case constant.Float:
+		v, exact := constant.Float64Val(cv)
+		if !exact {
+			panic(cl.errorf(source, "non-exact float value"))
+		}
+		cl.emit(cl.moveFloat(dst, v))
+
 	case constant.String:
 		v := constant.StringVal(cv)
 		id := cl.internStrConstant(v)
@@ -686,9 +725,6 @@ func (cl *funcCompiler) compileConstantValue(dst ir.Slot, source ast.Expr, cv co
 
 	case constant.Complex:
 		panic(cl.errorf(source, "can't compile complex number constants yet"))
-
-	case constant.Float:
-		panic(cl.errorf(source, "can't compile float constants yet"))
 
 	default:
 		panic(cl.errorf(source, "unexpected constant %v", cv))

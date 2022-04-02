@@ -122,6 +122,8 @@ func sqrt(x int) int {
 	return result
 }
 
+func evalA(i, j int) int { return ((i+j)*(i+j+1)/2 + i + 1) }
+
 func testMax() {
 	println(max(0, 0))
 	println(max(4, 0))
@@ -154,8 +156,17 @@ func testSqrt() {
 	println(sqrt(9999))
 }
 
+func testEvalA() {
+	for i := -10; i < 25; i++ {
+		for j := -10; j < 25; j++ {
+			println(evalA(i, j))
+		}
+	}
+}
+
 func main() {
 	testMax()
 	testGCD()
 	testSqrt()
+	testEvalA()
 }

@@ -159,10 +159,12 @@ func (cl *funcCompiler) compileAssignIndex(e *ast.IndexExpr, assign *ast.AssignS
 	elemType := typ.Underlying().(*types.Slice).Elem()
 	var op bytecode.Op
 	switch {
-	case typeIsInt(elemType):
+	case typeIsInt(elemType), typeIsFloat(elemType):
 		op = bytecode.OpSliceSetScalar64
 	case typeIsBool(elemType), typeIsByte(elemType):
 		op = bytecode.OpSliceSetScalar8
+	default:
+		panic(cl.errorf(assign, "can't assign %s element type", elemType))
 	}
 	cl.beginTempBlock()
 	valueslot := cl.compileTempExpr(assign.Rhs[0])
@@ -204,11 +206,20 @@ func (cl *funcCompiler) compileAssignStmt(assign *ast.AssignStmt) {
 				op = bytecode.OpConcat
 			case typeIsByte(typ):
 				op = bytecode.OpIntAdd8
+			case typeIsFloat(typ):
+				op = bytecode.OpFloatAdd64
 			default:
 				op = bytecode.OpIntAdd64
 			}
 		case token.SUB_ASSIGN:
-			op = pickOp(typeIsByte(typ), bytecode.OpIntSub8, bytecode.OpIntSub64)
+			switch {
+			case typeIsByte(typ):
+				op = bytecode.OpIntSub8
+			case typeIsFloat(typ):
+				op = bytecode.OpFloatSub64
+			default:
+				op = bytecode.OpIntSub64
+			}
 		}
 		if op != bytecode.OpInvalid {
 			cl.compileAssignOp(op, assign)

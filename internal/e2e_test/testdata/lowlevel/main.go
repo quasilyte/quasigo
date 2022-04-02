@@ -23,6 +23,14 @@ func returnZeroByte() byte {
 }
 
 //test:disasm_both
+// main.returnZeroFloat code=4 frame=24 (1 slots: 0 params, 1 locals)
+//   Zero temp0
+//   ReturnScalar temp0
+func returnZeroFloat() float64 {
+	return 0
+}
+
+//test:disasm_both
 // main.returnOne code=1 frame=0 (0 slots: 0 params, 0 locals)
 //   ReturnOne
 func returnOne() int {
@@ -53,6 +61,7 @@ func returnTrue() bool {
 func main() {
 	println(returnZero())
 	println(returnZeroByte())
+	println(returnZeroFloat())
 	println(returnOne())
 	println(returnOneByte())
 	println(returnFalse())

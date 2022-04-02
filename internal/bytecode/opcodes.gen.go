@@ -196,6 +196,36 @@ const (
 
 	// Encoding: 0x40 x:u8 (width=2)
 	OpReturn Op = 64
+
+	// Encoding: 0x41 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatAdd64 Op = 65
+
+	// Encoding: 0x42 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatSub64 Op = 66
+
+	// Encoding: 0x43 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatMul64 Op = 67
+
+	// Encoding: 0x44 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatDiv64 Op = 68
+
+	// Encoding: 0x45 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatGt Op = 69
+
+	// Encoding: 0x46 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatGtEq Op = 70
+
+	// Encoding: 0x47 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatLt Op = 71
+
+	// Encoding: 0x48 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatLtEq Op = 72
+
+	// Encoding: 0x49 dst:u8 x:u8 (width=3)
+	OpFloatNeg Op = 73
+
+	// Encoding: 0x4a dst:u8 x:u8 (width=3)
+	OpConvIntToFloat Op = 74
 )
 
 var opcodeInfoTable = [256]OpcodeInfo{
@@ -653,5 +683,83 @@ var opcodeInfoTable = [256]OpcodeInfo{
 		Flags: 0,
 		Args: []Argument{
 			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
+	},
+	OpFloatAdd64: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpFloatSub64: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpFloatMul64: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpFloatDiv64: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpFloatGt: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpFloatGtEq: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpFloatLt: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpFloatLtEq: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpFloatNeg: {
+		Width: 3,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
+	},
+	OpConvIntToFloat: {
+		Width: 3,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
 	},
 }
