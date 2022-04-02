@@ -120,6 +120,11 @@ var benchmarksNoAlloc = []*benchTestCase{
 	},
 
 	{
+		name: `Sqrt1000`,
+		src:  `return sqrt(1000)`,
+	},
+
+	{
 		name: `CallRecur5`,
 		src:  `return recur(5)`,
 	},
@@ -214,31 +219,54 @@ func BenchmarkEval(b *testing.B) {
 func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, quasigo.Func) {
 	makePackageSource := func(body string) string {
 		return `
-		  package ` + testPackage + `
-		  import "fmt"
-		  var _ = fmt.Sprintf
-		  func fn0() bool { return false }
-		  func fn1(x int) bool { return false }
-		  func fn2(x, y int) bool { return false }
+package ` + testPackage + `
+import "fmt"
+var _ = fmt.Sprintf
+func fn0() bool { return false }
+func fn1(x int) bool { return false }
+func fn2(x, y int) bool { return false }
 
-		  func recur(x int) bool {
-			  if x == 0 {
-				  return true
-			  }
-			  return recur(x - 1)
-		  }
-		  
-		  func _nestedcall4(x int) bool { return false }
-		  func _nestedcall3(x int) bool { return _nestedcall4(x) }
-		  func _nestedcall2(x int) bool { return _nestedcall3(x) }
-		  func _nestedcall1(x int) bool { return _nestedcall2(x) }
-		  func nestedcall(x int) bool { return _nestedcall1(x) }
+func recur(x int) bool {
+	if x == 0 {
+		return true
+	}
+	return recur(x - 1)
+}
 
-		  func f(` + paramsSig + `) interface{} {
-			  ` + body + `
-		  }
-		  func imul(x, y int) int
-		  `
+func sqrt(x int) int {
+	if x == 0 || x == 1 {
+		return x
+	}
+	start := 1
+	end := x / 2
+	result := 0
+	for start <= end {
+		mid := (start + end) / 2
+		sqr := mid * mid
+		if sqr == x {
+			return mid
+		}
+		if sqr <= x {
+			start = mid + 1
+			result = mid
+		} else {
+			end = mid - 1
+		}
+	}
+	return result
+}
+
+func _nestedcall4(x int) bool { return false }
+func _nestedcall3(x int) bool { return _nestedcall4(x) }
+func _nestedcall2(x int) bool { return _nestedcall3(x) }
+func _nestedcall1(x int) bool { return _nestedcall2(x) }
+func nestedcall(x int) bool { return _nestedcall1(x) }
+
+func f(` + paramsSig + `) interface{} {
+	` + body + `
+}
+func imul(x, y int) int
+`
 	}
 
 	env := quasigo.NewEnv()
@@ -253,7 +281,7 @@ func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, qu
 	if err != nil {
 		t.Fatalf("parse %s: %v", bodySrc, err)
 	}
-	compiled, err := testutil.CompileTestFile(env, "f", testPackage, parsed)
+	compiled, err := testutil.CompileOptTestFile(env, "f", testPackage, parsed)
 	if err != nil {
 		t.Fatalf("compile %s: %v", bodySrc, err)
 	}
