@@ -10,6 +10,8 @@ import (
 	"github.com/quasilyte/quasigo/stdlib/qfmt"
 )
 
+const testPackage = "testpkg"
+
 type benchTestCase struct {
 	name   string
 	src    string
