@@ -61,6 +61,67 @@ func max(a, b int) int {
 	return b
 }
 
+//test:disasm_both
+// main.sqrt code=101 frame=168 (7 slots: 1 params, 6 locals)
+//   Zero temp1
+//   ScalarEq temp0 = x temp1
+//   JumpNotZero L0 temp0
+//   LoadScalarConst temp2 = 1
+//   ScalarEq temp0 = x temp2
+// L0:
+//   JumpZero L1 temp0
+//   ReturnScalar x
+// L1:
+//   LoadScalarConst temp0 = 1
+//   LoadScalarConst temp2 = 2
+//   IntDiv temp1 = x temp2
+//   Zero temp2
+//   Jump L2
+// L5:
+//   IntAdd64 temp4 = temp0 temp1
+//   LoadScalarConst temp5 = 2
+//   IntDiv temp3 = temp4 temp5
+//   IntMul64 temp4 = temp3 temp3
+//   ScalarEq temp5 = temp4 x
+//   JumpZero L3 temp5
+//   ReturnScalar temp3
+// L3:
+//   IntLtEq temp5 = temp4 x
+//   JumpZero L4 temp5
+//   LoadScalarConst temp5 = 1
+//   IntAdd64 temp0 = temp3 temp5
+//   Move temp2 = temp3
+//   Jump L2
+// L4:
+//   LoadScalarConst temp5 = 1
+//   IntSub64 temp1 = temp3 temp5
+// L2:
+//   IntLtEq temp3 = temp0 temp1
+//   JumpNotZero L5 temp3
+//   ReturnScalar temp2
+func sqrt(x int) int {
+	if x == 0 || x == 1 {
+		return x
+	}
+	start := 1
+	end := x / 2
+	result := 0
+	for start <= end {
+		mid := (start + end) / 2
+		sqr := mid * mid
+		if sqr == x {
+			return mid
+		}
+		if sqr <= x {
+			start = mid + 1
+			result = mid
+		} else {
+			end = mid - 1
+		}
+	}
+	return result
+}
+
 func testMax() {
 	println(max(0, 0))
 	println(max(4, 0))
@@ -77,7 +138,24 @@ func testGCD() {
 	}
 }
 
+func testSqrt() {
+	println(sqrt(0))
+	println(sqrt(1))
+	println(sqrt(10))
+	println(sqrt(15))
+	println(sqrt(219))
+	println(sqrt(2000))
+	println(sqrt(36))
+	println(sqrt(48))
+	println(sqrt(81))
+	println(sqrt(1024))
+	println(sqrt(1025))
+	println(sqrt(8321))
+	println(sqrt(9999))
+}
+
 func main() {
 	testMax()
 	testGCD()
+	testSqrt()
 }
