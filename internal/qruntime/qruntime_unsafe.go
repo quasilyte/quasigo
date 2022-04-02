@@ -1,6 +1,7 @@
 package qruntime
 
 import (
+	"math"
 	"unsafe"
 )
 
@@ -105,11 +106,17 @@ func (slot *Slot) SetInt(v int) {
 	slot.Scalar = uint64(v)
 }
 
+func (slot *Slot) SetFloat(v float64) {
+	slot.Scalar = math.Float64bits(v)
+}
+
 func (slot *Slot) SetByte(v byte) {
 	slot.Scalar = uint64(v)
 }
 
 func (slot Slot) Int() int { return int(slot.Scalar) }
+
+func (slot Slot) Float() float64 { return math.Float64frombits(slot.Scalar) }
 
 func (slot Slot) Byte() byte { return byte(slot.Scalar) }
 

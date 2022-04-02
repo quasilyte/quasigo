@@ -73,11 +73,21 @@ func _() {
 	_ = x[OpReturnStr-62]
 	_ = x[OpReturnScalar-63]
 	_ = x[OpReturn-64]
+	_ = x[OpFloatAdd64-65]
+	_ = x[OpFloatSub64-66]
+	_ = x[OpFloatMul64-67]
+	_ = x[OpFloatDiv64-68]
+	_ = x[OpFloatGt-69]
+	_ = x[OpFloatGtEq-70]
+	_ = x[OpFloatLt-71]
+	_ = x[OpFloatLtEq-72]
+	_ = x[OpFloatNeg-73]
+	_ = x[OpConvIntToFloat-74]
 }
 
-const _Op_name = "InvalidLoadScalarConstLoadStrConstZeroMoveMove8MoveResult2NotIsNilIsNotNilIsNilInterfaceIsNotNilInterfaceLenCapStrSliceStrSliceFromStrSliceToStrIndexSliceIndexScalar8SliceIndexScalar64SliceSetScalar8SliceSetScalar64ConcatStrEqStrNotEqStrGtStrLtIntNegScalarEqScalarNotEqIntGtIntGtEqIntLtIntLtEqIntAdd8IntAdd64IntSub8IntSub64IntMul8IntMul64IntXorIntDivIntModIntIncIntDecJumpJumpZeroJumpNotZeroJumpTableCallCallRecurCallVoidCallNativeCallVoidNativePushVariadicBoolArgPushVariadicScalarArgPushVariadicStrArgPushVariadicInterfaceArgVariadicResetReturnVoidReturnZeroReturnOneReturnStrReturnScalarReturn"
+const _Op_name = "InvalidLoadScalarConstLoadStrConstZeroMoveMove8MoveResult2NotIsNilIsNotNilIsNilInterfaceIsNotNilInterfaceLenCapStrSliceStrSliceFromStrSliceToStrIndexSliceIndexScalar8SliceIndexScalar64SliceSetScalar8SliceSetScalar64ConcatStrEqStrNotEqStrGtStrLtIntNegScalarEqScalarNotEqIntGtIntGtEqIntLtIntLtEqIntAdd8IntAdd64IntSub8IntSub64IntMul8IntMul64IntXorIntDivIntModIntIncIntDecJumpJumpZeroJumpNotZeroJumpTableCallCallRecurCallVoidCallNativeCallVoidNativePushVariadicBoolArgPushVariadicScalarArgPushVariadicStrArgPushVariadicInterfaceArgVariadicResetReturnVoidReturnZeroReturnOneReturnStrReturnScalarReturnFloatAdd64FloatSub64FloatMul64FloatDiv64FloatGtFloatGtEqFloatLtFloatLtEqFloatNegConvIntToFloat"
 
-var _Op_index = [...]uint16{0, 7, 22, 34, 38, 42, 47, 58, 61, 66, 74, 88, 105, 108, 111, 119, 131, 141, 149, 166, 184, 199, 215, 221, 226, 234, 239, 244, 250, 258, 269, 274, 281, 286, 293, 300, 308, 315, 323, 330, 338, 344, 350, 356, 362, 368, 372, 380, 391, 400, 404, 413, 421, 431, 445, 464, 485, 503, 527, 540, 550, 560, 569, 578, 590, 596}
+var _Op_index = [...]uint16{0, 7, 22, 34, 38, 42, 47, 58, 61, 66, 74, 88, 105, 108, 111, 119, 131, 141, 149, 166, 184, 199, 215, 221, 226, 234, 239, 244, 250, 258, 269, 274, 281, 286, 293, 300, 308, 315, 323, 330, 338, 344, 350, 356, 362, 368, 372, 380, 391, 400, 404, 413, 421, 431, 445, 464, 485, 503, 527, 540, 550, 560, 569, 578, 590, 596, 606, 616, 626, 636, 643, 652, 659, 668, 676, 690}
 
 func (i Op) String() string {
 	if i >= Op(len(_Op_index)-1) {

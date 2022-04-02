@@ -95,6 +95,20 @@ var opcodePrototypes = []opcodeProto{
 	{"ReturnStr", "op x:rslot"},
 	{"ReturnScalar", "op x:rslot"},
 	{"Return", "op x:rslot"},
+
+	{"FloatAdd64", "op dst:wslot x:rslot y:rslot"},
+	{"FloatSub64", "op dst:wslot x:rslot y:rslot"},
+	{"FloatMul64", "op dst:wslot x:rslot y:rslot"},
+	{"FloatDiv64", "op dst:wslot x:rslot y:rslot"},
+
+	{"FloatGt", "op dst:wslot x:rslot y:rslot"},
+	{"FloatGtEq", "op dst:wslot x:rslot y:rslot"},
+	{"FloatLt", "op dst:wslot x:rslot y:rslot"},
+	{"FloatLtEq", "op dst:wslot x:rslot y:rslot"},
+
+	{"FloatNeg", "op dst:wslot x:rslot"},
+
+	{"ConvIntToFloat", "op dst:wslot x:rslot"},
 }
 
 type opcodeProto struct {

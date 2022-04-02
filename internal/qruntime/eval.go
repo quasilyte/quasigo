@@ -341,6 +341,50 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			env.result = *getslot(slotptr, srcslot)
 			return
 
+		case bytecode.OpFloatAdd64:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetFloat(getslot(slotptr, xslot).Float() + getslot(slotptr, yslot).Float())
+			pc += 4
+		case bytecode.OpFloatSub64:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetFloat(getslot(slotptr, xslot).Float() - getslot(slotptr, yslot).Float())
+			pc += 4
+		case bytecode.OpFloatMul64:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetFloat(getslot(slotptr, xslot).Float() * getslot(slotptr, yslot).Float())
+			pc += 4
+		case bytecode.OpFloatDiv64:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetFloat(getslot(slotptr, xslot).Float() / getslot(slotptr, yslot).Float())
+			pc += 4
+
+		case bytecode.OpFloatGt:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Float() > getslot(slotptr, yslot).Float())
+			pc += 4
+		case bytecode.OpFloatGtEq:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Float() >= getslot(slotptr, yslot).Float())
+			pc += 4
+		case bytecode.OpFloatLt:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Float() < getslot(slotptr, yslot).Float())
+			pc += 4
+		case bytecode.OpFloatLtEq:
+			dstslot, xslot, yslot := unpack8x3(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetBool(getslot(slotptr, xslot).Float() <= getslot(slotptr, yslot).Float())
+			pc += 4
+
+		case bytecode.OpFloatNeg:
+			dstslot, xslot := unpack8x2(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetFloat(-getslot(slotptr, xslot).Float())
+			pc += 3
+
+		case bytecode.OpConvIntToFloat:
+			dstslot, xslot := unpack8x2(codeptr, pc+1)
+			getslot(slotptr, dstslot).SetFloat(float64(getslot(slotptr, xslot).Int()))
+			pc += 3
+
 		default:
 			panic(fmt.Sprintf("malformed bytecode: unexpected %s found", op))
 		}

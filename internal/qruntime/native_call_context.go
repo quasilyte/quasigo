@@ -21,6 +21,10 @@ func (ncc NativeCallContext) IntArg(index int) int {
 	return getslot(ncc.slotptr, byte(index)).Int()
 }
 
+func (ncc NativeCallContext) FloatArg(index int) float64 {
+	return getslot(ncc.slotptr, byte(index)).Float()
+}
+
 func (ncc NativeCallContext) StringArg(index int) string {
 	return getslot(ncc.slotptr, byte(index)).String()
 }
@@ -35,6 +39,9 @@ func (ncc NativeCallContext) VariadicArg() []interface{} {
 
 func (ncc NativeCallContext) SetIntResult(v int)  { ncc.env.result.SetInt(v) }
 func (ncc NativeCallContext) SetIntResult2(v int) { ncc.env.result2.SetInt(v) }
+
+func (ncc NativeCallContext) SetFloatResult(v float64)  { ncc.env.result.SetFloat(v) }
+func (ncc NativeCallContext) SetFloatResult2(v float64) { ncc.env.result2.SetFloat(v) }
 
 func (ncc NativeCallContext) SetBoolResult(v bool)  { ncc.env.result.SetBool(v) }
 func (ncc NativeCallContext) SetBoolResult2(v bool) { ncc.env.result2.SetBool(v) }

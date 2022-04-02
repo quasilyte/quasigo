@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
+	"math"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
 	"github.com/quasilyte/quasigo/internal/ir"
@@ -303,9 +304,8 @@ func (cl *funcCompiler) isSupportedType(typ types.Type) bool {
 
 	case *types.Basic:
 		// 2. Some of the basic types are supported.
-		// TODO: float64.
 		switch typ.Kind() {
-		case types.Bool, types.Int, types.String, types.Uint8:
+		case types.Bool, types.Int, types.String, types.Uint8, types.Float64:
 			return true
 		default:
 			return false
@@ -336,6 +336,18 @@ func (cl *funcCompiler) moveBool(dst ir.Slot, v bool) ir.Inst {
 	return ir.Inst{Op: bytecode.OpZero, Arg0: dst.ToInstArg()}
 }
 
+func (cl *funcCompiler) moveFloat(dst ir.Slot, v float64) ir.Inst {
+	if v != 0 {
+		id := cl.internFloatConstant(v)
+		return ir.Inst{
+			Op:   bytecode.OpLoadScalarConst,
+			Arg0: dst.ToInstArg(),
+			Arg1: ir.InstArg(id),
+		}
+	}
+	return ir.Inst{Op: bytecode.OpZero, Arg0: dst.ToInstArg()}
+}
+
 func (cl *funcCompiler) moveInt(dst ir.Slot, v int) ir.Inst {
 	if v != 0 {
 		id := cl.internIntConstant(v)
@@ -357,6 +369,10 @@ func (cl *funcCompiler) internBoolConstant(v bool) int {
 
 func (cl *funcCompiler) internIntConstant(v int) int {
 	return cl.internScalarConstant(uint64(v))
+}
+
+func (cl *funcCompiler) internFloatConstant(v float64) int {
+	return cl.internScalarConstant(math.Float64bits(v))
 }
 
 func (cl *funcCompiler) internScalarConstant(v uint64) int {
