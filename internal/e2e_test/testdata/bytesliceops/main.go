@@ -1,5 +1,36 @@
 package main
 
+func printBytes(b []byte) {
+	// TODO: use range stmt.
+	for i := 0; i < len(b); i++ {
+		println(b[i])
+	}
+}
+
+//test:disasm_both
+// main.slicingBytesFromTo code=7 frame=96 (4 slots: 3 params, 1 locals)
+//   BytesSlice temp0 = b from to
+//   Return temp0
+func slicingBytesFromTo(b []byte, from, to int) []byte {
+	return b[from:to]
+}
+
+//test:disasm_both
+// main.slicingBytesFrom code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   BytesSliceFrom temp0 = b from
+//   Return temp0
+func slicingBytesFrom(b []byte, from int) []byte {
+	return b[from:]
+}
+
+//test:disasm_both
+// main.slicingBytesTo code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   BytesSliceTo temp0 = b to
+//   Return temp0
+func slicingBytesTo(b []byte, to int) []byte {
+	return b[:to]
+}
+
 //test:disasm_opt
 // main.stringReverse code=65 frame=144 (6 slots: 1 params, 5 locals)
 //   Len temp2 = s
@@ -227,8 +258,26 @@ func testToLower() {
 	println(tolower("HELLO, WORLD!"))
 }
 
+func testSlicing() {
+	b := make([]byte, 5)
+	for i := 0; i < len(b); i++ {
+		b[i] = byte(i+10) * 2
+	}
+	printBytes(b)
+	printBytes(b[:])
+	printBytes(b[0:])
+	printBytes(b[:len(b)])
+	printBytes(b[:len(b)-1])
+	printBytes(b[1:])
+	printBytes(b[:1])
+	printBytes(slicingBytesFromTo(b, 1, 3))
+	printBytes(slicingBytesFrom(b, 1))
+	printBytes(slicingBytesTo(b, 3))
+}
+
 func main() {
 	testStringReverse()
 	testRemoveChar()
 	testToLower()
+	testSlicing()
 }

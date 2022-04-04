@@ -62,170 +62,191 @@ const (
 	// Encoding: 0x13 dst:u8 slice:u8 index:u8 (width=4)
 	OpSliceIndexScalar64 Op = 19
 
-	// Encoding: 0x14 slice:u8 index:u8 value:u8 (width=4)
-	OpSliceSetScalar8 Op = 20
+	// Encoding: 0x14 dst:u8 str:u8 from:u8 to:u8 (width=5)
+	OpBytesSlice Op = 20
 
-	// Encoding: 0x15 slice:u8 index:u8 value:u8 (width=4)
-	OpSliceSetScalar64 Op = 21
+	// Encoding: 0x15 dst:u8 str:u8 from:u8 (width=4)
+	OpBytesSliceFrom Op = 21
 
-	// Encoding: 0x16 dst:u8 s1:u8 s2:u8 (width=4)
-	OpConcat Op = 22
+	// Encoding: 0x16 dst:u8 str:u8 to:u8 (width=4)
+	OpBytesSliceTo Op = 22
 
-	// Encoding: 0x17 dst:u8 s1:u8 s2:u8 (width=4)
-	OpStrEq Op = 23
+	// Encoding: 0x17 slice:u8 index:u8 value:u8 (width=4)
+	OpSliceSetScalar8 Op = 23
 
-	// Encoding: 0x18 dst:u8 s1:u8 s2:u8 (width=4)
-	OpStrNotEq Op = 24
+	// Encoding: 0x18 slice:u8 index:u8 value:u8 (width=4)
+	OpSliceSetScalar64 Op = 24
 
 	// Encoding: 0x19 dst:u8 s1:u8 s2:u8 (width=4)
-	OpStrGt Op = 25
+	OpConcat Op = 25
 
 	// Encoding: 0x1a dst:u8 s1:u8 s2:u8 (width=4)
-	OpStrLt Op = 26
+	OpStrEq Op = 26
 
-	// Encoding: 0x1b dst:u8 x:u8 (width=3)
-	OpIntNeg Op = 27
+	// Encoding: 0x1b dst:u8 s1:u8 s2:u8 (width=4)
+	OpStrNotEq Op = 27
 
-	// Encoding: 0x1c dst:u8 x:u8 y:u8 (width=4)
-	OpScalarEq Op = 28
+	// Encoding: 0x1c dst:u8 s1:u8 s2:u8 (width=4)
+	OpStrGt Op = 28
 
-	// Encoding: 0x1d dst:u8 x:u8 y:u8 (width=4)
-	OpScalarNotEq Op = 29
+	// Encoding: 0x1d dst:u8 s1:u8 s2:u8 (width=4)
+	OpStrLt Op = 29
 
-	// Encoding: 0x1e dst:u8 x:u8 y:u8 (width=4)
-	OpIntGt Op = 30
+	// Encoding: 0x1e dst:u8 x:u8 (width=3)
+	OpIntNeg Op = 30
 
-	// Encoding: 0x1f dst:u8 x:u8 y:u8 (width=4)
-	OpIntGtEq Op = 31
+	// Encoding: 0x1f dst:u8 x:u8 (width=3)
+	OpIntBitwiseNot Op = 31
 
 	// Encoding: 0x20 dst:u8 x:u8 y:u8 (width=4)
-	OpIntLt Op = 32
+	OpScalarEq Op = 32
 
 	// Encoding: 0x21 dst:u8 x:u8 y:u8 (width=4)
-	OpIntLtEq Op = 33
+	OpScalarNotEq Op = 33
 
 	// Encoding: 0x22 dst:u8 x:u8 y:u8 (width=4)
-	OpIntAdd8 Op = 34
+	OpIntGt Op = 34
 
 	// Encoding: 0x23 dst:u8 x:u8 y:u8 (width=4)
-	OpIntAdd64 Op = 35
+	OpIntGtEq Op = 35
 
 	// Encoding: 0x24 dst:u8 x:u8 y:u8 (width=4)
-	OpIntSub8 Op = 36
+	OpIntLt Op = 36
 
 	// Encoding: 0x25 dst:u8 x:u8 y:u8 (width=4)
-	OpIntSub64 Op = 37
+	OpIntLtEq Op = 37
 
 	// Encoding: 0x26 dst:u8 x:u8 y:u8 (width=4)
-	OpIntMul8 Op = 38
+	OpIntAdd8 Op = 38
 
 	// Encoding: 0x27 dst:u8 x:u8 y:u8 (width=4)
-	OpIntMul64 Op = 39
+	OpIntAdd64 Op = 39
 
 	// Encoding: 0x28 dst:u8 x:u8 y:u8 (width=4)
-	OpIntXor Op = 40
+	OpIntSub8 Op = 40
 
 	// Encoding: 0x29 dst:u8 x:u8 y:u8 (width=4)
-	OpIntDiv Op = 41
+	OpIntSub64 Op = 41
 
 	// Encoding: 0x2a dst:u8 x:u8 y:u8 (width=4)
-	OpIntMod Op = 42
+	OpIntMul8 Op = 42
 
-	// Encoding: 0x2b x:u8 (width=2)
-	OpIntInc Op = 43
+	// Encoding: 0x2b dst:u8 x:u8 y:u8 (width=4)
+	OpIntMul64 Op = 43
 
-	// Encoding: 0x2c x:u8 (width=2)
-	OpIntDec Op = 44
+	// Encoding: 0x2c dst:u8 x:u8 y:u8 (width=4)
+	OpIntDiv Op = 44
 
-	// Encoding: 0x2d offset:i16 (width=3)
-	OpJump Op = 45
+	// Encoding: 0x2d dst:u8 x:u8 y:u8 (width=4)
+	OpIntMod Op = 45
 
-	// Encoding: 0x2e offset:i16 cond:u8 (width=4)
-	OpJumpZero Op = 46
+	// Encoding: 0x2e dst:u8 x:u8 y:u8 (width=4)
+	OpIntXor Op = 46
 
-	// Encoding: 0x2f offset:i16 cond:u8 (width=4)
-	OpJumpNotZero Op = 47
+	// Encoding: 0x2f dst:u8 x:u8 y:u8 (width=4)
+	OpIntOr Op = 47
 
-	// Encoding: 0x30 value:u8 (width=2)
-	OpJumpTable Op = 48
+	// Encoding: 0x30 dst:u8 x:u8 y:u8 (width=4)
+	OpIntLshift Op = 48
 
-	// Encoding: 0x31 dst:u8 fn:u16 (width=4)
-	OpCall Op = 49
+	// Encoding: 0x31 dst:u8 x:u8 y:u8 (width=4)
+	OpIntRshift Op = 49
 
-	// Encoding: 0x32 dst:u8 (width=2)
-	OpCallRecur Op = 50
+	// Encoding: 0x32 x:u8 (width=2)
+	OpIntInc Op = 50
 
-	// Encoding: 0x33 fn:u16 (width=3)
-	OpCallVoid Op = 51
+	// Encoding: 0x33 x:u8 (width=2)
+	OpIntDec Op = 51
 
-	// Encoding: 0x34 dst:u8 fn:u16 (width=4)
-	OpCallNative Op = 52
+	// Encoding: 0x34 offset:i16 (width=3)
+	OpJump Op = 52
 
-	// Encoding: 0x35 fn:u16 (width=3)
-	OpCallVoidNative Op = 53
+	// Encoding: 0x35 offset:i16 cond:u8 (width=4)
+	OpJumpZero Op = 53
 
-	// Encoding: 0x36 x:u8 (width=2)
-	OpPushVariadicBoolArg Op = 54
+	// Encoding: 0x36 offset:i16 cond:u8 (width=4)
+	OpJumpNotZero Op = 54
 
-	// Encoding: 0x37 x:u8 (width=2)
-	OpPushVariadicScalarArg Op = 55
+	// Encoding: 0x37 value:u8 (width=2)
+	OpJumpTable Op = 55
 
-	// Encoding: 0x38 x:u8 (width=2)
-	OpPushVariadicStrArg Op = 56
+	// Encoding: 0x38 dst:u8 fn:u16 (width=4)
+	OpCall Op = 56
 
-	// Encoding: 0x39 x:u8 (width=2)
-	OpPushVariadicInterfaceArg Op = 57
+	// Encoding: 0x39 dst:u8 (width=2)
+	OpCallRecur Op = 57
 
-	// Encoding: 0x3a (width=1)
-	OpVariadicReset Op = 58
+	// Encoding: 0x3a fn:u16 (width=3)
+	OpCallVoid Op = 58
 
-	// Encoding: 0x3b (width=1)
-	OpReturnVoid Op = 59
+	// Encoding: 0x3b dst:u8 fn:u16 (width=4)
+	OpCallNative Op = 59
 
-	// Encoding: 0x3c (width=1)
-	OpReturnZero Op = 60
+	// Encoding: 0x3c fn:u16 (width=3)
+	OpCallVoidNative Op = 60
 
-	// Encoding: 0x3d (width=1)
-	OpReturnOne Op = 61
+	// Encoding: 0x3d x:u8 (width=2)
+	OpPushVariadicBoolArg Op = 61
 
 	// Encoding: 0x3e x:u8 (width=2)
-	OpReturnStr Op = 62
+	OpPushVariadicScalarArg Op = 62
 
 	// Encoding: 0x3f x:u8 (width=2)
-	OpReturnScalar Op = 63
+	OpPushVariadicStrArg Op = 63
 
 	// Encoding: 0x40 x:u8 (width=2)
-	OpReturn Op = 64
+	OpPushVariadicInterfaceArg Op = 64
 
-	// Encoding: 0x41 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatAdd64 Op = 65
+	// Encoding: 0x41 (width=1)
+	OpVariadicReset Op = 65
 
-	// Encoding: 0x42 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatSub64 Op = 66
+	// Encoding: 0x42 (width=1)
+	OpReturnVoid Op = 66
 
-	// Encoding: 0x43 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatMul64 Op = 67
+	// Encoding: 0x43 (width=1)
+	OpReturnZero Op = 67
 
-	// Encoding: 0x44 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatDiv64 Op = 68
+	// Encoding: 0x44 (width=1)
+	OpReturnOne Op = 68
 
-	// Encoding: 0x45 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatGt Op = 69
+	// Encoding: 0x45 x:u8 (width=2)
+	OpReturnStr Op = 69
 
-	// Encoding: 0x46 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatGtEq Op = 70
+	// Encoding: 0x46 x:u8 (width=2)
+	OpReturnScalar Op = 70
 
-	// Encoding: 0x47 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatLt Op = 71
+	// Encoding: 0x47 x:u8 (width=2)
+	OpReturn Op = 71
 
 	// Encoding: 0x48 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatLtEq Op = 72
+	OpFloatAdd64 Op = 72
 
-	// Encoding: 0x49 dst:u8 x:u8 (width=3)
-	OpFloatNeg Op = 73
+	// Encoding: 0x49 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatSub64 Op = 73
 
-	// Encoding: 0x4a dst:u8 x:u8 (width=3)
-	OpConvIntToFloat Op = 74
+	// Encoding: 0x4a dst:u8 x:u8 y:u8 (width=4)
+	OpFloatMul64 Op = 74
+
+	// Encoding: 0x4b dst:u8 x:u8 y:u8 (width=4)
+	OpFloatDiv64 Op = 75
+
+	// Encoding: 0x4c dst:u8 x:u8 y:u8 (width=4)
+	OpFloatGt Op = 76
+
+	// Encoding: 0x4d dst:u8 x:u8 y:u8 (width=4)
+	OpFloatGtEq Op = 77
+
+	// Encoding: 0x4e dst:u8 x:u8 y:u8 (width=4)
+	OpFloatLt Op = 78
+
+	// Encoding: 0x4f dst:u8 x:u8 y:u8 (width=4)
+	OpFloatLtEq Op = 79
+
+	// Encoding: 0x50 dst:u8 x:u8 (width=3)
+	OpFloatNeg Op = 80
+
+	// Encoding: 0x51 dst:u8 x:u8 (width=3)
+	OpConvIntToFloat Op = 81
 )
 
 var opcodeInfoTable = [256]OpcodeInfo{
@@ -369,6 +390,31 @@ var opcodeInfoTable = [256]OpcodeInfo{
 			{Name: "slice", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
 			{Name: "index", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
+	OpBytesSlice: {
+		Width: 5,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "str", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "from", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead},
+			{Name: "to", Kind: ArgSlot, Offset: 4, Flags: FlagIsRead}},
+	},
+	OpBytesSliceFrom: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "str", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "from", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpBytesSliceTo: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "str", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "to", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
 	OpSliceSetScalar8: {
 		Width: 4,
 		Flags: 0,
@@ -426,6 +472,13 @@ var opcodeInfoTable = [256]OpcodeInfo{
 			{Name: "s2", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntNeg: {
+		Width: 3,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead}},
+	},
+	OpIntBitwiseNot: {
 		Width: 3,
 		Flags: FlagHasDst,
 		Args: []Argument{
@@ -528,14 +581,6 @@ var opcodeInfoTable = [256]OpcodeInfo{
 			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
 			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
-	OpIntXor: {
-		Width: 4,
-		Flags: FlagHasDst,
-		Args: []Argument{
-			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
-			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
-			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
-	},
 	OpIntDiv: {
 		Width: 4,
 		Flags: FlagHasDst,
@@ -545,6 +590,38 @@ var opcodeInfoTable = [256]OpcodeInfo{
 			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
 	},
 	OpIntMod: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpIntXor: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpIntOr: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpIntLshift: {
+		Width: 4,
+		Flags: FlagHasDst,
+		Args: []Argument{
+			{Name: "dst", Kind: ArgSlot, Offset: 1, Flags: FlagIsWrite},
+			{Name: "x", Kind: ArgSlot, Offset: 2, Flags: FlagIsRead},
+			{Name: "y", Kind: ArgSlot, Offset: 3, Flags: FlagIsRead}},
+	},
+	OpIntRshift: {
 		Width: 4,
 		Flags: FlagHasDst,
 		Args: []Argument{

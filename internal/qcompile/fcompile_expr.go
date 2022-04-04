@@ -86,6 +86,9 @@ func (cl *funcCompiler) compileUnaryExpr(dst ir.Slot, e *ast.UnaryExpr) {
 			cl.compileUnaryOp(dst, bytecode.OpIntNeg, e.X)
 		}
 
+	case token.XOR:
+		cl.compileUnaryOp(dst, bytecode.OpIntBitwiseNot, e.X)
+
 	default:
 		panic(cl.errorf(e, "can't compile unary %s yet", e.Op))
 	}
@@ -161,6 +164,14 @@ func (cl *funcCompiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 	case token.LEQ:
 		cl.compileScalarBinaryOp(dst, e, bytecode.OpIntLtEq, typ)
 
+	case token.SHL:
+		cl.compileBinaryOp(dst, bytecode.OpIntLshift, e)
+	case token.SHR:
+		cl.compileBinaryOp(dst, bytecode.OpIntRshift, e)
+
+	case token.OR:
+		cl.compileBinaryOp(dst, bytecode.OpIntOr, e)
+
 	case token.ADD:
 		switch {
 		case typeIsString(typ):
@@ -235,21 +246,21 @@ func (cl *funcCompiler) compileBinaryOp(dst ir.Slot, op bytecode.Op, e *ast.Bina
 	cl.emit3(op, dst, xslot, yslot)
 }
 
-func (cl *funcCompiler) CompileSliceExpr(dst ir.Slot, x, low, high ast.Expr) {
+func (cl *funcCompiler) CompileSliceExpr(dst ir.Slot, isString bool, x, low, high ast.Expr) {
 	switch {
 	case low == nil && high != nil:
 		strslot := cl.compileTempExpr(x)
 		toslot := cl.compileTempExpr(high)
-		cl.emit3(bytecode.OpStrSliceTo, dst, strslot, toslot)
+		cl.emit3(pickOp(isString, bytecode.OpStrSliceTo, bytecode.OpBytesSliceTo), dst, strslot, toslot)
 	case low != nil && high == nil:
 		strslot := cl.compileTempExpr(x)
 		fromslot := cl.compileTempExpr(low)
-		cl.emit3(bytecode.OpStrSliceFrom, dst, strslot, fromslot)
+		cl.emit3(pickOp(isString, bytecode.OpStrSliceFrom, bytecode.OpBytesSliceFrom), dst, strslot, fromslot)
 	default:
 		strslot := cl.compileTempExpr(x)
 		fromslot := cl.compileTempExpr(low)
 		toslot := cl.compileTempExpr(high)
-		cl.emit4(bytecode.OpStrSlice, dst, strslot, fromslot, toslot)
+		cl.emit4(pickOp(isString, bytecode.OpStrSlice, bytecode.OpBytesSlice), dst, strslot, fromslot, toslot)
 	}
 }
 
@@ -258,14 +269,16 @@ func (cl *funcCompiler) compileSliceExpr(dst ir.Slot, slice *ast.SliceExpr) {
 		panic(cl.errorf(slice, "can't compile 3-index slicing"))
 	}
 
-	if !typeIsString(cl.ctx.Types.TypeOf(slice.X)) {
-		panic(cl.errorf(slice.X, "can't compile slicing of something that is not a string"))
+	typ := cl.ctx.Types.TypeOf(slice.X)
+	if !typeIsString(typ) && !typeIsByteSlice(typ) {
+		panic(cl.errorf(slice.X, "can only slice strings and []byte"))
 	}
 
 	if cl.patternCompiler.CompileSliceExpr(dst, slice) {
 		return
 	}
-	cl.CompileSliceExpr(dst, slice.X, slice.Low, slice.High)
+
+	cl.CompileSliceExpr(dst, typeIsString(typ), slice.X, slice.Low, slice.High)
 }
 
 func (cl *funcCompiler) compileIndexExpr(dst ir.Slot, e *ast.IndexExpr) {

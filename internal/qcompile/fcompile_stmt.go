@@ -200,6 +200,8 @@ func (cl *funcCompiler) compileAssignStmt(assign *ast.AssignStmt) {
 			op = pickOp(typeIsByte(typ), bytecode.OpIntMul8, bytecode.OpIntMul64)
 		case token.XOR_ASSIGN:
 			op = bytecode.OpIntXor
+		case token.OR_ASSIGN:
+			op = bytecode.OpIntOr
 		case token.ADD_ASSIGN:
 			switch {
 			case typeIsString(typ):

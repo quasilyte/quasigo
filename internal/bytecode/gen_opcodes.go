@@ -39,6 +39,10 @@ var opcodePrototypes = []opcodeProto{
 	{"SliceIndexScalar8", "op dst:wslot slice:rslot index:rslot"},
 	{"SliceIndexScalar64", "op dst:wslot slice:rslot index:rslot"},
 
+	{"BytesSlice", "op dst:wslot str:rslot from:rslot to:rslot"},
+	{"BytesSliceFrom", "op dst:wslot str:rslot from:rslot"},
+	{"BytesSliceTo", "op dst:wslot str:rslot to:rslot"},
+
 	{"SliceSetScalar8", "op slice:rslot index:rslot value:rslot"},
 	{"SliceSetScalar64", "op slice:rslot index:rslot value:rslot"},
 
@@ -50,6 +54,7 @@ var opcodePrototypes = []opcodeProto{
 	{"StrLt", "op dst:wslot s1:rslot s2:rslot"},
 
 	{"IntNeg", "op dst:wslot x:rslot"},
+	{"IntBitwiseNot", "op dst:wslot x:rslot"},
 
 	{"ScalarEq", "op dst:wslot x:rslot y:rslot"},
 	{"ScalarNotEq", "op dst:wslot x:rslot y:rslot"},
@@ -65,9 +70,12 @@ var opcodePrototypes = []opcodeProto{
 	{"IntSub64", "op dst:wslot x:rslot y:rslot"},
 	{"IntMul8", "op dst:wslot x:rslot y:rslot"},
 	{"IntMul64", "op dst:wslot x:rslot y:rslot"},
-	{"IntXor", "op dst:wslot x:rslot y:rslot"},
 	{"IntDiv", "op dst:wslot x:rslot y:rslot"},
 	{"IntMod", "op dst:wslot x:rslot y:rslot"},
+	{"IntXor", "op dst:wslot x:rslot y:rslot"},
+	{"IntOr", "op dst:wslot x:rslot y:rslot"},
+	{"IntLshift", "op dst:wslot x:rslot y:rslot"},
+	{"IntRshift", "op dst:wslot x:rslot y:rslot"},
 
 	{"IntInc", "op x:rwslot"},
 	{"IntDec", "op x:rwslot"},
