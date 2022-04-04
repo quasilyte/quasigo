@@ -23,7 +23,6 @@
       "structcheck",
       "typecheck",
       "unconvert",
-      "unparam",
       "unused",
       "varcheck",
     ],
