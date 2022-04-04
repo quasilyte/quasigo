@@ -83,6 +83,26 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			slice[index] = getslot(slotptr, valueslot).Scalar
 			codeptr = addb(codeptr, 4)
 
+		case bytecode.OpBytesSliceFrom:
+			dstslot, sliceslot, fromslot := unpack8x3(codeptr, 1)
+			slice := getslot(slotptr, sliceslot).ByteSlice()
+			from := getslot(slotptr, fromslot).Scalar
+			getslot(slotptr, dstslot).SetByteSlice(slice[from:])
+			codeptr = addb(codeptr, 4)
+		case bytecode.OpBytesSliceTo:
+			dstslot, sliceslot, toslot := unpack8x3(codeptr, 1)
+			slice := getslot(slotptr, sliceslot).ByteSlice()
+			to := getslot(slotptr, toslot).Scalar
+			getslot(slotptr, dstslot).SetByteSlice(slice[:to])
+			codeptr = addb(codeptr, 4)
+		case bytecode.OpBytesSlice:
+			dstslot, sliceslot, fromslot, toslot := unpack8x4(codeptr, 1)
+			slice := getslot(slotptr, sliceslot).ByteSlice()
+			from := getslot(slotptr, fromslot).Scalar
+			to := getslot(slotptr, toslot).Scalar
+			getslot(slotptr, dstslot).SetByteSlice(slice[from:to])
+			codeptr = addb(codeptr, 5)
+
 		case bytecode.OpStrSliceFrom:
 			dstslot, strslot, fromslot := unpack8x3(codeptr, 1)
 			str := getslot(slotptr, strslot).String()
@@ -146,6 +166,10 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			dstslot, xslot := unpack8x2(codeptr, 1)
 			getslot(slotptr, dstslot).SetInt(-getslot(slotptr, xslot).Int())
 			codeptr = addb(codeptr, 3)
+		case bytecode.OpIntBitwiseNot:
+			dstslot, xslot := unpack8x2(codeptr, 1)
+			getslot(slotptr, dstslot).SetInt(^getslot(slotptr, xslot).Int())
+			codeptr = addb(codeptr, 3)
 
 		case bytecode.OpScalarEq:
 			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
@@ -177,6 +201,18 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			getslot(slotptr, dstslot).SetString(getslot(slotptr, xslot).String() + getslot(slotptr, yslot).String())
 			codeptr = addb(codeptr, 4)
 
+		case bytecode.OpIntOr:
+			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
+			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() | getslot(slotptr, yslot).Int())
+			codeptr = addb(codeptr, 4)
+		case bytecode.OpIntLshift:
+			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
+			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() << getslot(slotptr, yslot).Int())
+			codeptr = addb(codeptr, 4)
+		case bytecode.OpIntRshift:
+			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
+			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() >> getslot(slotptr, yslot).Int())
+			codeptr = addb(codeptr, 4)
 		case bytecode.OpIntXor:
 			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
 			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() ^ getslot(slotptr, yslot).Int())

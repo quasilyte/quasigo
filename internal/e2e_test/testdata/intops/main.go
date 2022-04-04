@@ -163,9 +163,128 @@ func testEvalA() {
 	}
 }
 
+//test:disasm_both
+// main.rshift code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   IntRshift temp0 = x n
+//   ReturnScalar temp0
+func rshift(x, n int) int {
+	return x >> n
+}
+
+//test:disasm_both
+// main.lshift code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   IntLshift temp0 = x n
+//   ReturnScalar temp0
+func lshift(x, n int) int {
+	return x << n
+}
+
+//test:disasm_both
+// main.byteLshift code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   IntLshift temp0 = x n
+//   ReturnScalar temp0
+func byteLshift(x uint8, n int) uint8 {
+	return x << n
+}
+
+//test:disasm_both
+// main.or code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   IntOr temp0 = x y
+//   ReturnScalar temp0
+func or(x, y int) int {
+	return x | y
+}
+
+//test:disasm_both
+// main.byteOr code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   IntOr temp0 = x y
+//   ReturnScalar temp0
+func byteOr(x, y uint8) uint8 {
+	return x | y
+}
+
+//test:disasm_both
+// main.unaryXor code=5 frame=48 (2 slots: 1 params, 1 locals)
+//   IntBitwiseNot temp0 = x
+//   ReturnScalar temp0
+func unaryXor(x int) int {
+	return ^x
+}
+
+//test:disasm_both
+// main.byteUnaryXor code=5 frame=48 (2 slots: 1 params, 1 locals)
+//   IntBitwiseNot temp0 = x
+//   ReturnScalar temp0
+func byteUnaryXor(x uint8) uint8 {
+	return ^x
+}
+
+func testOr(x, y int) {
+	println(or(x, y))
+	println(byteOr(byte(x), byte(y)))
+	println(byteOr(byte(x), byte(-y)))
+	println(byteOr(byte(-x), byte(y)))
+	println(byteOr(byte(-x), byte(-y)))
+}
+
+func testLshift(x, y int) {
+	println(lshift(x, y))
+	println(byteLshift(byte(x), y))
+	println(byteLshift(byte(-x), y))
+}
+
+func testUnaryXor(x int) {
+	println(unaryXor(x))
+	println(byteUnaryXor(byte(x)))
+	println(byteUnaryXor(byte(-x)))
+}
+
+func testArith() {
+	println(rshift(0, 0))
+	println(rshift(1, 1))
+	println(rshift(10, 0))
+	println(rshift(24, 2))
+	println(rshift(24, 3))
+
+	testLshift(0, 0)
+	testLshift(1, 1)
+	testLshift(4, 4)
+	testLshift(10, 0)
+	testLshift(250, 7)
+	testLshift(250, 8)
+	testLshift(230, 7)
+	testLshift(2, 7)
+	testLshift(2, 8)
+	testLshift(0, 10)
+	testLshift(2, 24)
+	testLshift(3, 24)
+
+	testOr(0, 0)
+	testOr(0xfff, 0xf)
+	testOr(0xf, 0xfff)
+	testOr(0, -1)
+	testOr(352, 32)
+	testOr(352, -32)
+	testOr(352, 352)
+	testOr(0xff, 0xf)
+	testOr(0xf, 0xff)
+	println(byteOr(0xff, 0xff))
+	println(byteOr(0xf, 0xff))
+	println(byteOr(0xff, 0xf))
+
+	testUnaryXor(0)
+	testUnaryXor(0xff)
+	testUnaryXor(-43)
+	testUnaryXor(20)
+	testUnaryXor(1)
+	testUnaryXor(0xf)
+	testUnaryXor(0xf1)
+}
+
 func main() {
 	testMax()
 	testGCD()
 	testSqrt()
 	testEvalA()
+	testArith()
 }
