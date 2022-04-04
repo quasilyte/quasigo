@@ -248,7 +248,7 @@ func noinline(x, y int) {
 }
 
 //test:irdump
-// block0 (L0) [0]:
+// block0 [0]:
 //   LoadScalarConst temp0.v0 = 3
 //   LoadScalarConst temp1.v0 = -1
 //   Move arg0 = temp0.v0
@@ -257,7 +257,7 @@ func noinline(x, y int) {
 //   Zero temp1
 //   IntNeg temp3 = temp1
 //   Move temp0 = temp3
-// block1 [1]:
+// block1 (L0) [1]:
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt
 //   VarKill temp0

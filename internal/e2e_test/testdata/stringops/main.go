@@ -8,18 +8,17 @@ package main
 //   IntSub64 temp1 = temp2.v0 temp3.v0
 //   Jump L2
 // block1 (L3) [0]:
-// block2 (L1) [0]:
 //   LoadScalarConst temp4.v0 = 1
 //   IntAdd64 temp3.v1 = temp1 temp4.v0
 //   StrSlice temp2.v1 = s temp1 temp3.v1
 //   Concat temp0 = temp0 temp2.v1
-// block3 (L2) [0]:
+// block2 (L1) [0]:
 //   IntDec temp1
-// block4 [0]:
+// block3 (L2) [0]:
 //   Zero temp3.v2
 //   IntGtEq temp2.v2 = temp1 temp3.v2
 //   JumpNotZero L3 temp2.v2
-// block5 (L0) [1]:
+// block4 (L0) [1]:
 //   ReturnStr temp0
 //   VarKill temp0
 //

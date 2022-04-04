@@ -4,9 +4,9 @@ package irtest
 // block0 [0]:
 //   Move temp0 = x
 //   JumpNotZero L0 temp0
-// block1 (L0) [0]:
+// block1 [0]:
 //   Move temp0 = y
-// block2 [1]:
+// block2 (L0) [1]:
 //   ReturnScalar temp0
 //   VarKill temp0
 func testOr1(x, y bool) bool {

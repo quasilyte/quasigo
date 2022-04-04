@@ -29,9 +29,8 @@ func testIf1(cond bool, x, y int) int {
 //   Move temp0 = x
 //   Jump L0
 // block2 (L1) [0]:
-// block3 (L0) [0]:
 //   Move temp0 = y
-// block4 [1]:
+// block3 (L0) [1]:
 //   ReturnScalar temp0
 //   VarKill temp0
 //
@@ -62,7 +61,7 @@ func testIf2(cond bool, x, y int) int {
 //   ReturnScalar x
 // block2 (L1) [0]:
 //   ReturnScalar y
-// block3 (L0) [0]:
+// block3 [0]:
 //
 //test:disasm_both
 // main.testIf3 code=8 frame=72 (3 slots: 3 params, 0 locals)
@@ -86,7 +85,7 @@ func testIf3(cond bool, x, y int) int {
 //   ReturnScalar x
 // block2 (L1) [0]:
 //   ReturnScalar y
-// block3 (L0) [0]:
+// block3 [0]:
 //
 //test:disasm
 // main.testIf4 code=11 frame=96 (4 slots: 3 params, 1 locals)
