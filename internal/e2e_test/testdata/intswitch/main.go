@@ -27,7 +27,6 @@ package main
 //   LoadStrConst temp1.v6 = "?"
 //   ReturnStr temp1.v6
 // block7 (L1) [0]:
-// block8 (L0) [0]:
 //
 //test:disasm
 // main.test3withDefault code=56 frame=96 (4 slots: 1 params, 3 locals)

@@ -196,9 +196,9 @@ func cstyle7() {
 }
 
 //test:irdump
-// block0 (L1) [0]:
+// block0 [0]:
 //   LoadScalarConst temp0 = -5
-// block1 [0]:
+// block1 (L1) [0]:
 //   Zero temp2.v0
 //   IntGt temp1.v0 = temp0 temp2.v0
 //   JumpZero L2 temp1.v0

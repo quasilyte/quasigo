@@ -18,6 +18,7 @@ type blocksBuilder struct {
 func (builder *blocksBuilder) Build() []ir.Block {
 	code := builder.fn.Code
 
+	blockLabel := uint16(0)
 	blockStart := 0
 	numVarKill := 0
 	seenBlockInst := false
@@ -42,12 +43,13 @@ func (builder *blocksBuilder) Build() []ir.Block {
 			blockCode := code[blockStart:i]
 			builder.pushBlock(ir.Block{
 				Code:       blockCode,
-				Label:      uint16(inst.Arg0) + 1,
 				NumVarKill: uint16(numVarKill),
+				Label:      blockLabel,
 			})
 			blockStart = i + 1
 			numVarKill = 0
 			seenBlockInst = false
+			blockLabel = uint16(inst.Arg0) + 1
 			i++
 			continue
 		}
@@ -70,11 +72,13 @@ func (builder *blocksBuilder) Build() []ir.Block {
 				builder.pushBlock(ir.Block{
 					Code:       blockCode,
 					NumVarKill: uint16(numVarKill),
+					Label:      blockLabel,
 				})
 			}
 			blockStart = i
 			numVarKill = 0
 			seenBlockInst = false
+			blockLabel = 0
 			continue
 		}
 

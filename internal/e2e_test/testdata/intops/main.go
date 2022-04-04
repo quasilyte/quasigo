@@ -4,15 +4,14 @@ package main
 // block0 [0]:
 //   Jump L1
 // block1 (L2) [0]:
-// block2 (L1) [0]:
 //   Move temp0.v0 = b
 //   IntMod b = a b
 //   Move a = temp0.v0
-// block3 [0]:
+// block2 (L1) [0]:
 //   Zero temp1.v0
 //   ScalarNotEq temp0.v1 = b temp1.v0
 //   JumpNotZero L2 temp0.v1
-// block4 (L0) [0]:
+// block3 (L0) [0]:
 //   ReturnScalar a
 //
 //test:disasm

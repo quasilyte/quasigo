@@ -102,15 +102,14 @@ func testBlockScope() {
 //   LoadScalarConst temp2 = 5
 //   Jump L2
 // block1 (L3) [0]:
-// block2 (L1) [0]:
 //   IntInc temp0
-// block3 (L2) [0]:
+// block2 (L1) [0]:
 //   IntInc temp2
-// block4 [0]:
+// block3 (L2) [0]:
 //   LoadScalarConst temp4.v0 = 10
 //   IntLt temp3.v0 = temp2 temp4.v0
 //   JumpNotZero L3 temp3.v0
-// block5 (L0) [1]:
+// block4 (L0) [1]:
 //   IntAdd64 temp0.v0 = temp0 temp1
 //   ReturnScalar temp0.v0
 //   VarKill temp1
@@ -150,24 +149,22 @@ func forScopeTest1() int {
 //   LoadScalarConst temp3 = 4
 //   Jump L6
 // block2 (L7) [0]:
-// block3 (L5) [0]:
 //   IntAdd64 temp0 = temp0 temp3
-// block4 (L6) [0]:
+// block3 (L5) [0]:
 //   IntDec temp3
-// block5 [0]:
+// block4 (L6) [0]:
 //   Zero temp5.v0
 //   ScalarNotEq temp4.v0 = temp3 temp5.v0
 //   JumpNotZero L7 temp4.v0
-// block6 (L4) [0]:
-// block7 (L1) [0]:
+// block5 (L4) [0]:
 //   IntInc temp0
-// block8 (L2) [0]:
+// block6 (L1) [0]:
 //   IntInc temp2
-// block9 [0]:
+// block7 (L2) [0]:
 //   LoadScalarConst temp4.v1 = 10
 //   IntLt temp3.v0 = temp2 temp4.v1
 //   JumpNotZero L3 temp3.v0
-// block10 (L0) [1]:
+// block8 (L0) [1]:
 //   IntAdd64 temp0.v0 = temp0 temp1
 //   ReturnScalar temp0.v0
 //   VarKill temp1
