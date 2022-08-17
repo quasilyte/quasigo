@@ -35,7 +35,6 @@ func (s *scope) LookupInCurrent(name string) int {
 	num := s.depths[len(s.depths)-1]
 	for i, x := range s.vars[len(s.vars)-num:] {
 		if x == name {
-			fmt.Printf("vars=%q num=%d name=%q result=%d\n", s.vars, num, name, len(s.vars)-num+i)
 			return len(s.vars) - num + i
 		}
 	}
