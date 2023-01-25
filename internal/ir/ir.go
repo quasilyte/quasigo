@@ -119,3 +119,7 @@ type Block struct {
 	Label      uint16
 	Dirty      bool
 }
+
+func (b *Block) HasLabel() bool { return b.Label != 0 }
+
+func (b *Block) LabelID() uint16 { return b.Label - 1 }
