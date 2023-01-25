@@ -1,7 +1,6 @@
 package quasigo_test
 
 import (
-	"runtime"
 	"testing"
 
 	"github.com/quasilyte/quasigo"
@@ -156,22 +155,11 @@ func TestNoAllocs(t *testing.T) {
 		evalEnv := env.GetEvalEnv(4096)
 		evalEnv.BindArgs(test.args...)
 
-		const numTests = 5
-		failures := 0
-		allocated := uint64(0)
-		for i := 0; i < numTests; i++ {
-			var before, after runtime.MemStats
-			runtime.GC()
-			runtime.ReadMemStats(&before)
+		allocs := testing.AllocsPerRun(5, func() {
 			quasigo.Call(evalEnv, compiled)
-			runtime.ReadMemStats(&after)
-			allocated = after.Alloc - before.Alloc
-			if allocated != 0 {
-				failures++
-			}
-		}
-		if failures == numTests {
-			t.Errorf("%s does allocate (%d bytes)", test.name, allocated)
+		})
+		if int(allocs) != 0 {
+			t.Errorf("%s does allocate (%d allocs)", test.name, int(allocs))
 		}
 	}
 }
