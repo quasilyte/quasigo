@@ -35,8 +35,8 @@ func Dump(fn *Func) string {
 
 	args := make([]string, 0, 4)
 	for i, b := range fn.Blocks {
-		if b.Label != 0 {
-			fmt.Fprintf(&out, "block%d (L%d) [%d]:\n", i, b.Label-1, b.NumVarKill)
+		if b.HasLabel() {
+			fmt.Fprintf(&out, "block%d (L%d) [%d]:\n", i, b.LabelID(), b.NumVarKill)
 		} else {
 			fmt.Fprintf(&out, "block%d [%d]:\n", i, b.NumVarKill)
 		}
