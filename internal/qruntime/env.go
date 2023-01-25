@@ -105,6 +105,8 @@ func (env *EvalEnv) BindArgs(args ...interface{}) {
 			env.slots[i].SetBool(arg)
 		case string:
 			env.slots[i].SetString(arg)
+		case []byte:
+			env.slots[i].SetByteSlice(arg)
 		default:
 			env.slots[i].SetInterface(arg)
 		}
