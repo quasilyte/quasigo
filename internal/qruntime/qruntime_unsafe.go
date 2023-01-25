@@ -120,49 +120,45 @@ func (slot Slot) Float() float64 { return math.Float64frombits(slot.Scalar) }
 
 func (slot Slot) Byte() byte { return byte(slot.Scalar) }
 
-// addb returns the byte pointer p+n.
-//go:nosplit
-func addb(p *byte, n int) *byte {
-	return (*byte)(unsafe.Pointer(uintptr(unsafe.Pointer(p)) + uintptr(n)))
-}
-
-//go:nosplit
-func add(p unsafe.Pointer, x uintptr) unsafe.Pointer {
-	return unsafe.Pointer(uintptr(p) + x)
+// With go 1.19 this function is less efficient than specialized
+// functions, but it can be fixed with GOEXPERIMENT=unified.
+// With go 1.20 (and above?) no extra knobs are needed.
+func ptradd[T any](p *T, n int) *T {
+	return (*T)(unsafe.Pointer(uintptr(unsafe.Pointer(p)) + uintptr(n)))
 }
 
 //go:nosplit
 func unpack16(code *byte, offset int) int {
-	ptr := addb(code, offset)
-	return int(int16(uint16(*ptr) | uint16(*addb(ptr, 1))<<8))
+	ptr := ptradd(code, offset)
+	return int(int16(uint16(*ptr) | uint16(*ptradd(ptr, 1))<<8))
 }
 
 //go:nosplit
 func unpack8(code *byte, offset int) byte {
-	return *addb(code, offset)
+	return *ptradd(code, offset)
 }
 
 //go:nosplit
 func unpack8x2(code *byte, offset int) (byte, byte) {
-	ptr := addb(code, offset)
-	return *ptr, *(addb(ptr, 1))
+	ptr := ptradd(code, offset)
+	return *ptr, *(ptradd(ptr, 1))
 }
 
 //go:nosplit
 func unpack8x3(code *byte, offset int) (byte, byte, byte) {
-	ptr := addb(code, offset)
-	return *ptr, *(addb(ptr, 1)), *(addb(ptr, 2))
+	ptr := ptradd(code, offset)
+	return *ptr, *(ptradd(ptr, 1)), *(ptradd(ptr, 2))
 }
 
 //go:nosplit
 func unpack8x4(code *byte, offset int) (byte, byte, byte, byte) {
-	ptr := addb(code, offset)
-	return *ptr, *(addb(ptr, 1)), *(addb(ptr, 2)), *(addb(ptr, 3))
+	ptr := ptradd(code, offset)
+	return *ptr, *(ptradd(ptr, 1)), *(ptradd(ptr, 2)), *(ptradd(ptr, 3))
 }
 
 //go:nosplit
 func getslot(slotptr *Slot, index byte) *Slot {
-	return (*Slot)(add(unsafe.Pointer(slotptr), SizeofSlot*uintptr(index)))
+	return ptradd(slotptr, int(SizeofSlot)*int(index))
 }
 
 //go:nosplit
@@ -172,5 +168,5 @@ func canAllocFrame(current, end *Slot, frameSize int) bool {
 
 //go:nosplit
 func nextFrameSlot(current *Slot, frameSize int) *Slot {
-	return (*Slot)(add(unsafe.Pointer(current), uintptr(frameSize)))
+	return ptradd(current, frameSize)
 }
