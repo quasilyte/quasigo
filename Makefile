@@ -6,7 +6,7 @@ test:
 	@echo "everything is OK"
 
 ci-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_DIR)/bin v1.43.0
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_DIR)/bin v1.50.1
 	$(GOPATH_DIR)/bin/golangci-lint run ./...
 	@echo "everything is OK"
 
