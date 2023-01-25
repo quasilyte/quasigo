@@ -1,7 +1,5 @@
 package qcompile
 
-import "fmt"
-
 type scope struct {
 	vars   []string
 	depths []int
