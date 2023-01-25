@@ -15,4 +15,3 @@ lint:
 	@echo "everything is OK"
 
 .PHONY: ci-lint lint test
-
