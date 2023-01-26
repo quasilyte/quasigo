@@ -10,6 +10,12 @@ import (
 //   Move arg0 = temp0
 // =>
 //   Len arg0 = xs
+//
+// TODO:
+//   Len temp3 = s
+//   IntLt temp2 = temp1 temp3
+// =>
+//   IntLt temp2 = temp1 s
 
 type Optimizer struct {
 	fn *ir.Func
@@ -398,7 +404,7 @@ func (opt *Optimizer) removeDeadstores(b *ir.Block) bool {
 		case bytecode.OpMove:
 			dst := inst.Arg0.ToSlot()
 			src := inst.Arg1.ToSlot()
-			if !dst.IsUniq() || !src.IsUniq() {
+			if !dst.IsUniq() {
 				break
 			}
 			srckey := movedUniqs.FindIndex(src.ID)
@@ -410,17 +416,22 @@ func (opt *Optimizer) removeDeadstores(b *ir.Block) bool {
 			}
 			movedUniqs.Add(dst.ID, uint8(i))
 
-		case bytecode.OpReturnScalar:
-			src := inst.Arg0.ToSlot()
-			if !src.IsUniq() {
-				break
-			}
-			srckey := movedUniqs.FindIndex(src.ID)
-			if srckey != -1 {
-				srcpos := movedUniqs.GetValue(srckey)
-				block[i].Arg0 = block[srcpos].Arg1
-				block[srcpos].Op = bytecode.OpInvalid
-				changed = true
+		default:
+			for argIndex, argInfo := range inst.Op.Args() {
+				if argInfo.Kind != bytecode.ArgSlot || !argInfo.IsReadSlot() {
+					continue
+				}
+				arg := inst.GetArg(argIndex).ToSlot()
+				if !arg.IsUniq() {
+					continue
+				}
+				srckey := movedUniqs.FindIndex(arg.ID)
+				if srckey != -1 {
+					srcpos := movedUniqs.GetValue(srckey)
+					block[i].SetArg(argIndex, block[srcpos].Arg1)
+					block[srcpos].Op = bytecode.OpInvalid
+					changed = true
+				}
 			}
 		}
 

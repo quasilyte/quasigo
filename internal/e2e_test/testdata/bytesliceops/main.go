@@ -7,6 +7,22 @@ func printBytes(b []byte) {
 	}
 }
 
+//test:disasm
+// main.indexByteAsInt code=11 frame=96 (4 slots: 1 params, 3 locals)
+//   Zero temp2
+//   SliceIndexScalar8 temp1 = b temp2
+//   Move temp0 = temp1
+//   ReturnScalar temp0
+//
+//test:disasm_opt
+// main.indexByteAsInt code=8 frame=72 (3 slots: 1 params, 2 locals)
+//   Zero temp1
+//   SliceIndexScalar8 temp0 = b temp1
+//   ReturnScalar temp0
+func indexByteAsInt(b []byte) int {
+	return int(b[0])
+}
+
 //test:disasm_both
 // main.slicingBytesFromTo code=7 frame=96 (4 slots: 3 params, 1 locals)
 //   BytesSlice temp0 = b from to
@@ -275,7 +291,16 @@ func testSlicing() {
 	printBytes(slicingBytesTo(b, 3))
 }
 
+func testIndexing() {
+	b := make([]byte, 3)
+	b[0] = 10
+	b[1] = 20
+	b[2] = 30
+	println(indexByteAsInt(b))
+}
+
 func main() {
+	testIndexing()
 	testStringReverse()
 	testRemoveChar()
 	testToLower()
