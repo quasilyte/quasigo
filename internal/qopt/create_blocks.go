@@ -85,6 +85,13 @@ func (builder *blocksBuilder) Build() []ir.Block {
 		i++
 	}
 
+	if len(builder.out) == 0 {
+		builder.pushBlock(ir.Block{
+			Code:       code,
+			NumVarKill: uint16(numVarKill),
+		})
+	}
+
 	return builder.out
 }
 
