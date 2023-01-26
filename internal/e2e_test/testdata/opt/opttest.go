@@ -29,42 +29,53 @@ func zerocmp1(s string) string {
 	return "zero"
 }
 
-//test:disasm_both
-// opttest.nopStringSlice1 code=5 frame=48 (2 slots: 1 params, 1 locals)
-//   Move temp0 = s
-//   ReturnStr temp0
+//test:disasm_opt
+// opttest.nopStringSlice1 code=2 frame=24 (1 slots: 1 params, 0 locals)
+//   ReturnStr s
 func nopStringSlice1(s string) string {
 	return s[:]
 }
 
-//test:disasm_both
-// opttest.nopStringSlice2 code=5 frame=48 (2 slots: 1 params, 1 locals)
-//   Move temp0 = s
-//   ReturnStr temp0
+//test:disasm_opt
+// opttest.nopStringSlice2 code=2 frame=24 (1 slots: 1 params, 0 locals)
+//   ReturnStr s
 func nopStringSlice2(s string) string {
 	return s[:][:][:]
 }
 
-//test:disasm_both
-// opttest.nopStringSlice3 code=5 frame=48 (2 slots: 1 params, 1 locals)
-//   Move temp0 = s
-//   ReturnStr temp0
+//test:disasm_opt
+// opttest.nopStringSlice3 code=2 frame=24 (1 slots: 1 params, 0 locals)
+//   ReturnStr s
 func nopStringSlice3(s string) string {
 	return s[:len(s)]
 }
 
-//test:disasm_both
-// opttest.nopStringSlice4 code=5 frame=48 (2 slots: 1 params, 1 locals)
-//   Move temp0 = s
-//   ReturnStr temp0
+//test:disasm_opt
+// opttest.nopStringSlice4 code=2 frame=24 (1 slots: 1 params, 0 locals)
+//   ReturnStr s
 func nopStringSlice4(s string) string {
 	return s[0:len(s)]
 }
 
-//test:disasm_both
-// opttest.nopStringSlice5 code=5 frame=48 (2 slots: 1 params, 1 locals)
-//   Move temp0 = s
-//   ReturnStr temp0
+//test:disasm_opt
+// opttest.nopStringSlice5 code=2 frame=24 (1 slots: 1 params, 0 locals)
+//   ReturnStr s
 func nopStringSlice5(s string) string {
 	return s[0:]
+}
+
+//test:disasm_opt
+// opttest.addByteAsInt1 code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   IntAdd64 temp0 = b i
+//   ReturnScalar temp0
+func addByteAsInt1(b byte, i int) int {
+	return int(b) + i
+}
+
+//test:disasm_opt
+// opttest.addByteAsInt2 code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   IntAdd64 temp0 = i b
+//   ReturnScalar temp0
+func addByteAsInt2(b byte, i int) int {
+	return i + int(b)
 }

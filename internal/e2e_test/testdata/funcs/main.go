@@ -57,7 +57,7 @@ func streq(s1, s2 string) bool {
 	return true
 }
 
-//test:disasm_both
+//test:disasm
 // main.fnv1 code=41 frame=120 (5 slots: 1 params, 4 locals)
 //   LoadScalarConst temp0 = 2166136261
 //   Zero temp1
@@ -68,6 +68,23 @@ func streq(s1, s2 string) bool {
 //   StrIndex temp3 = s temp1
 //   Move temp2 = temp3
 //   IntXor temp0 = temp0 temp2
+//   IntInc temp1
+// L0:
+//   Len temp3 = s
+//   IntLt temp2 = temp1 temp3
+//   JumpNotZero L1 temp2
+//   ReturnScalar temp0
+//
+//test:disasm_opt
+// main.fnv1 code=38 frame=120 (5 slots: 1 params, 4 locals)
+//   LoadScalarConst temp0 = 2166136261
+//   Zero temp1
+//   Jump L0
+// L1:
+//   LoadScalarConst temp2 = 16777619
+//   IntMul64 temp0 = temp0 temp2
+//   StrIndex temp3 = s temp1
+//   IntXor temp0 = temp0 temp3
 //   IntInc temp1
 // L0:
 //   Len temp3 = s
@@ -154,7 +171,7 @@ func isNumericString(s string) bool {
 //   ReturnScalar temp0
 //
 //test:disasm_opt
-// main.atoi code=89 frame=240 (10 slots: 1 params, 9 locals)
+// main.atoi code=86 frame=240 (10 slots: 1 params, 9 locals)
 //   Len temp1 = s
 //   JumpNotZero L0 temp1
 //   ReturnZero
@@ -177,8 +194,7 @@ func isNumericString(s string) bool {
 //   StrIndex temp7 = s temp2
 //   LoadScalarConst temp8 = 48
 //   IntSub8 temp6 = temp7 temp8
-//   Move temp5 = temp6
-//   IntAdd64 temp0 = temp3 temp5
+//   IntAdd64 temp0 = temp3 temp6
 //   IntInc temp2
 // L2:
 //   Len temp4 = s
@@ -281,7 +297,7 @@ func testFactorial() {
 	println(factorial(4) + factorial(8))
 }
 
-//test:disasm_both
+//test:disasm
 // main.charsum code=42 frame=192 (8 slots: 1 params, 7 locals)
 //   Zero temp0
 //   Zero temp1
@@ -293,6 +309,24 @@ func testFactorial() {
 //   IntSub8 temp3 = temp4 temp6
 //   Move temp2 = temp3
 //   IntAdd64 temp0 = temp0 temp2
+//   IntInc temp1
+// L0:
+//   Len temp3 = s
+//   IntLt temp2 = temp1 temp3
+//   JumpNotZero L1 temp2
+//   ReturnScalar temp0
+//
+//test:disasm_opt
+// main.charsum code=39 frame=192 (8 slots: 1 params, 7 locals)
+//   Zero temp0
+//   Zero temp1
+//   Jump L0
+// L1:
+//   Zero temp5
+//   StrIndex temp4 = s temp5
+//   LoadScalarConst temp6 = 48
+//   IntSub8 temp3 = temp4 temp6
+//   IntAdd64 temp0 = temp0 temp3
 //   IntInc temp1
 // L0:
 //   Len temp3 = s

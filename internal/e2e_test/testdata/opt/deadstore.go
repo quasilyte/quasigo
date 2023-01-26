@@ -10,9 +10,8 @@ package opttest
 //   ReturnScalar temp4.v0
 //
 //test:disasm_opt
-// opttest.deadstore1 code=5 frame=48 (2 slots: 1 params, 1 locals)
-//   Move temp0 = i
-//   ReturnScalar temp0
+// opttest.deadstore1 code=2 frame=24 (1 slots: 1 params, 0 locals)
+//   ReturnScalar i
 func deadstore1(i int) int {
 	x1 := i
 	x2 := x1
