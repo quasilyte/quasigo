@@ -79,3 +79,15 @@ func addByteAsInt1(b byte, i int) int {
 func addByteAsInt2(b byte, i int) int {
 	return i + int(b)
 }
+
+//test:disasm_opt
+// opttest.binaryopTempReuse code=21 frame=144 (6 slots: 2 params, 4 locals)
+//   IntAdd64 temp2 = x y
+//   LoadScalarConst temp3 = 2
+//   IntAdd64 temp1 = temp2 temp3
+//   IntAdd64 temp2 = x y
+//   IntMul64 temp0 = temp1 temp2
+//   ReturnScalar temp0
+func binaryopTempReuse(x, y int) int {
+	return (x + y + 2) * (x + y)
+}

@@ -53,12 +53,12 @@ func fx1() int { return fx2() }
 func fx() int { return fx1() }
 
 //test:disasm
-// main.isDigit code=20 frame=96 (4 slots: 1 params, 3 locals)
+// main.isDigit code=20 frame=72 (3 slots: 1 params, 2 locals)
 //   LoadScalarConst temp1 = 48
 //   IntGtEq temp0 = ch temp1
 //   JumpZero L0 temp0
-//   LoadScalarConst temp2 = 57
-//   IntLtEq temp0 = ch temp2
+//   LoadScalarConst temp1 = 57
+//   IntLtEq temp0 = ch temp1
 // L0:
 //   ReturnScalar temp0
 func isDigit(ch byte) bool {
@@ -66,12 +66,12 @@ func isDigit(ch byte) bool {
 }
 
 //test:disasm
-// main.isAlpha code=20 frame=96 (4 slots: 1 params, 3 locals)
+// main.isAlpha code=20 frame=72 (3 slots: 1 params, 2 locals)
 //   LoadScalarConst temp1 = 97
 //   IntGtEq temp0 = ch temp1
 //   JumpZero L0 temp0
-//   LoadScalarConst temp2 = 122
-//   IntLtEq temp0 = ch temp2
+//   LoadScalarConst temp1 = 122
+//   IntLtEq temp0 = ch temp1
 // L0:
 //   ReturnScalar temp0
 func isAlpha(ch byte) bool {
@@ -79,13 +79,13 @@ func isAlpha(ch byte) bool {
 }
 
 //test:disasm_opt
-// main.isAlphaNum code=54 frame=168 (7 slots: 1 params, 6 locals)
+// main.isAlphaNum code=54 frame=144 (6 slots: 1 params, 5 locals)
 //   Move temp1 = ch
 //   LoadScalarConst temp4 = 48
 //   IntGtEq temp3 = temp1 temp4
 //   JumpZero L0 temp3
-//   LoadScalarConst temp5 = 57
-//   IntLtEq temp3 = temp1 temp5
+//   LoadScalarConst temp4 = 57
+//   IntLtEq temp3 = temp1 temp4
 // L0:
 //   Move temp0 = temp3
 //   JumpNotZero L1 temp0
@@ -93,8 +93,8 @@ func isAlpha(ch byte) bool {
 //   LoadScalarConst temp4 = 97
 //   IntGtEq temp3 = temp1 temp4
 //   JumpZero L2 temp3
-//   LoadScalarConst temp5 = 122
-//   IntLtEq temp3 = temp1 temp5
+//   LoadScalarConst temp4 = 122
+//   IntLtEq temp3 = temp1 temp4
 // L2:
 //   Move temp0 = temp3
 // L1:

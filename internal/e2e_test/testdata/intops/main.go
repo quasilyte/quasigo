@@ -65,8 +65,8 @@ func max(a, b int) int {
 //   Zero temp1
 //   ScalarEq temp0 = x temp1
 //   JumpNotZero L0 temp0
-//   LoadScalarConst temp2 = 1
-//   ScalarEq temp0 = x temp2
+//   LoadScalarConst temp1 = 1
+//   ScalarEq temp0 = x temp1
 // L0:
 //   JumpZero L1 temp0
 //   ReturnScalar x

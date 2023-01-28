@@ -176,7 +176,7 @@ func removeChar(s string, ch byte) string {
 }
 
 //test:disasm_opt
-// main.tolower code=80 frame=168 (7 slots: 1 params, 6 locals)
+// main.tolower code=80 frame=144 (6 slots: 1 params, 5 locals)
 //   Move temp2 = s
 //   Move temp3 = s
 //   LoadScalarConst arg0 = 1
@@ -190,8 +190,8 @@ func removeChar(s string, ch byte) string {
 //   LoadScalarConst temp4 = 65
 //   IntGtEq temp3 = temp2 temp4
 //   JumpZero L1 temp3
-//   LoadScalarConst temp5 = 90
-//   IntLtEq temp3 = temp2 temp5
+//   LoadScalarConst temp4 = 90
+//   IntLtEq temp3 = temp2 temp4
 // L1:
 //   JumpZero L2 temp3
 //   LoadScalarConst temp3 = 32
@@ -207,7 +207,7 @@ func removeChar(s string, ch byte) string {
 //   ReturnStr temp1
 //
 //test:disasm
-// main.tolower code=86 frame=168 (7 slots: 1 params, 6 locals)
+// main.tolower code=86 frame=144 (6 slots: 1 params, 5 locals)
 //   LoadScalarConst temp1 = 1
 //   Move temp2 = s
 //   Move temp3 = s
@@ -222,8 +222,8 @@ func removeChar(s string, ch byte) string {
 //   LoadScalarConst temp4 = 65
 //   IntGtEq temp3 = temp2 temp4
 //   JumpZero L1 temp3
-//   LoadScalarConst temp5 = 90
-//   IntLtEq temp3 = temp2 temp5
+//   LoadScalarConst temp4 = 90
+//   IntLtEq temp3 = temp2 temp4
 // L1:
 //   JumpZero L2 temp3
 //   LoadScalarConst temp3 = 32
