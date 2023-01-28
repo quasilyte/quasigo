@@ -22,10 +22,31 @@ func concat3(s1, s2, s3 string) string {
 	return concat(concat(s1, s2), s3)
 }
 
-//test:disasm_both
+//test:disasm_opt
+// main.streq code=42 frame=144 (6 slots: 2 params, 4 locals)
+//   ScalarNotEq temp0 = s1 s2
+//   JumpZero L0 temp0
+//   ReturnZero
+// L0:
+//   Zero temp0
+//   Jump L1
+// L3:
+//   StrIndex temp2 = s1 temp0
+//   StrIndex temp3 = s2 temp0
+//   ScalarNotEq temp1 = temp2 temp3
+//   JumpZero L2 temp1
+//   ReturnZero
+// L2:
+//   IntInc temp0
+// L1:
+//   IntLt temp1 = temp0 s1
+//   JumpNotZero L3 temp1
+//   ReturnOne
+//
+//test:disasm
 // main.streq code=51 frame=144 (6 slots: 2 params, 4 locals)
-//   Len temp1 = s1
-//   Len temp2 = s2
+//   Move temp1 = s1
+//   Move temp2 = s2
 //   ScalarNotEq temp0 = temp1 temp2
 //   JumpZero L0 temp0
 //   ReturnZero
@@ -41,7 +62,7 @@ func concat3(s1, s2, s3 string) string {
 // L2:
 //   IntInc temp0
 // L1:
-//   Len temp2 = s1
+//   Move temp2 = s1
 //   IntLt temp1 = temp0 temp2
 //   JumpNotZero L3 temp1
 //   ReturnOne
@@ -70,13 +91,13 @@ func streq(s1, s2 string) bool {
 //   IntXor temp0 = temp0 temp2
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
+//   Move temp3 = s
 //   IntLt temp2 = temp1 temp3
 //   JumpNotZero L1 temp2
 //   ReturnScalar temp0
 //
 //test:disasm_opt
-// main.fnv1 code=38 frame=120 (5 slots: 1 params, 4 locals)
+// main.fnv1 code=35 frame=120 (5 slots: 1 params, 4 locals)
 //   LoadScalarConst temp0 = 2166136261
 //   Zero temp1
 //   Jump L0
@@ -87,8 +108,7 @@ func streq(s1, s2 string) bool {
 //   IntXor temp0 = temp0 temp3
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
-//   IntLt temp2 = temp1 temp3
+//   IntLt temp2 = temp1 s
 //   JumpNotZero L1 temp2
 //   ReturnScalar temp0
 func fnv1(s string) int {
@@ -100,7 +120,29 @@ func fnv1(s string) int {
 	return v
 }
 
-//test:disasm_both
+//test:disasm_opt
+// main.isNumericString code=47 frame=168 (7 slots: 1 params, 6 locals)
+//   Zero temp0
+//   Jump L0
+// L3:
+//   StrIndex temp2 = s temp0
+//   LoadScalarConst temp3 = 48
+//   IntLt temp1 = temp2 temp3
+//   JumpNotZero L1 temp1
+//   StrIndex temp4 = s temp0
+//   LoadScalarConst temp5 = 57
+//   IntGt temp1 = temp4 temp5
+// L1:
+//   JumpZero L2 temp1
+//   ReturnZero
+// L2:
+//   IntInc temp0
+// L0:
+//   IntLt temp1 = temp0 s
+//   JumpNotZero L3 temp1
+//   ReturnOne
+//
+//test:disasm
 // main.isNumericString code=50 frame=168 (7 slots: 1 params, 6 locals)
 //   Zero temp0
 //   Jump L0
@@ -118,7 +160,7 @@ func fnv1(s string) int {
 // L2:
 //   IntInc temp0
 // L0:
-//   Len temp2 = s
+//   Move temp2 = s
 //   IntLt temp1 = temp0 temp2
 //   JumpNotZero L3 temp1
 //   ReturnOne
@@ -133,7 +175,7 @@ func isNumericString(s string) bool {
 
 //test:disasm
 // main.atoi code=95 frame=240 (10 slots: 1 params, 9 locals)
-//   Len temp1 = s
+//   Move temp1 = s
 //   Zero temp2
 //   ScalarEq temp0 = temp1 temp2
 //   JumpZero L0 temp0
@@ -161,7 +203,7 @@ func isNumericString(s string) bool {
 //   IntAdd64 temp0 = temp3 temp5
 //   IntInc temp2
 // L2:
-//   Len temp4 = s
+//   Move temp4 = s
 //   IntLt temp3 = temp2 temp4
 //   JumpNotZero L3 temp3
 //   JumpZero L4 temp1
@@ -171,9 +213,8 @@ func isNumericString(s string) bool {
 //   ReturnScalar temp0
 //
 //test:disasm_opt
-// main.atoi code=86 frame=240 (10 slots: 1 params, 9 locals)
-//   Len temp1 = s
-//   JumpNotZero L0 temp1
+// main.atoi code=80 frame=240 (10 slots: 1 params, 9 locals)
+//   JumpNotZero L0 s
 //   ReturnZero
 // L0:
 //   Zero temp0
@@ -197,8 +238,7 @@ func isNumericString(s string) bool {
 //   IntAdd64 temp0 = temp3 temp6
 //   IntInc temp2
 // L2:
-//   Len temp4 = s
-//   IntLt temp3 = temp2 temp4
+//   IntLt temp3 = temp2 s
 //   JumpNotZero L3 temp3
 //   JumpZero L4 temp1
 //   IntNeg temp3 = temp0
@@ -226,7 +266,24 @@ func atoi(s string) int {
 	return result
 }
 
-//test:disasm_both
+//test:disasm_opt
+// main.countByte code=33 frame=144 (6 slots: 2 params, 4 locals)
+//   Zero temp0
+//   Zero temp1
+//   Jump L0
+// L2:
+//   StrIndex temp3 = s temp1
+//   ScalarEq temp2 = temp3 b
+//   JumpZero L1 temp2
+//   IntInc temp0
+// L1:
+//   IntInc temp1
+// L0:
+//   IntLt temp2 = temp1 s
+//   JumpNotZero L2 temp2
+//   ReturnScalar temp0
+//
+//test:disasm
 // main.countByte code=36 frame=144 (6 slots: 2 params, 4 locals)
 //   Zero temp0
 //   Zero temp1
@@ -239,7 +296,7 @@ func atoi(s string) int {
 // L1:
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
+//   Move temp3 = s
 //   IntLt temp2 = temp1 temp3
 //   JumpNotZero L2 temp2
 //   ReturnScalar temp0
@@ -255,11 +312,11 @@ func countByte(s string, b byte) int {
 
 //test:disasm_opt
 // main.hasPrefix code=27 frame=168 (7 slots: 2 params, 5 locals)
-//   Len temp1 = s
-//   Len temp2 = prefix
+//   Move temp1 = s
+//   Move temp2 = prefix
 //   IntGtEq temp0 = temp1 temp2
 //   JumpZero L0 temp0
-//   Len temp4 = prefix
+//   Move temp4 = prefix
 //   StrSliceTo temp3 = s temp4
 //   StrEq temp0 = temp3 prefix
 // L0:
@@ -311,13 +368,13 @@ func testFactorial() {
 //   IntAdd64 temp0 = temp0 temp2
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
+//   Move temp3 = s
 //   IntLt temp2 = temp1 temp3
 //   JumpNotZero L1 temp2
 //   ReturnScalar temp0
 //
 //test:disasm_opt
-// main.charsum code=39 frame=192 (8 slots: 1 params, 7 locals)
+// main.charsum code=36 frame=192 (8 slots: 1 params, 7 locals)
 //   Zero temp0
 //   Zero temp1
 //   Jump L0
@@ -329,8 +386,7 @@ func testFactorial() {
 //   IntAdd64 temp0 = temp0 temp3
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
-//   IntLt temp2 = temp1 temp3
+//   IntLt temp2 = temp1 s
 //   JumpNotZero L1 temp2
 //   ReturnScalar temp0
 func charsum(s string) int {
@@ -347,7 +403,7 @@ func charsum(s string) int {
 //   Zero temp1
 //   Jump L0
 // L2:
-//   Len temp4 = sub
+//   Move temp4 = sub
 //   StrSliceTo temp3 = temp0 temp4
 //   StrEq temp2 = temp3 sub
 //   JumpZero L1 temp2
@@ -357,8 +413,8 @@ func charsum(s string) int {
 //   LoadScalarConst temp2 = 1
 //   StrSliceFrom temp0 = temp0 temp2
 // L0:
-//   Len temp3 = temp0
-//   Len temp4 = sub
+//   Move temp3 = temp0
+//   Move temp4 = sub
 //   IntGtEq temp2 = temp3 temp4
 //   JumpNotZero L2 temp2
 //   LoadScalarConst temp2 = -1

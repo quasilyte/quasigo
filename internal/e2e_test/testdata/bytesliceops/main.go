@@ -48,17 +48,16 @@ func slicingBytesTo(b []byte, to int) []byte {
 }
 
 //test:disasm_opt
-// main.stringReverse code=65 frame=144 (6 slots: 1 params, 5 locals)
-//   Len temp2 = s
-//   Len temp3 = s
+// main.stringReverse code=62 frame=144 (6 slots: 1 params, 5 locals)
+//   Move temp2 = s
+//   Move temp3 = s
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = temp2
 //   Move arg2 = temp3
 //   CallNative temp0 = builtin.makeSlice()
 //   Zero temp1
-//   Len temp3 = s
 //   LoadScalarConst temp4 = 1
-//   IntSub64 temp2 = temp3 temp4
+//   IntSub64 temp2 = s temp4
 //   Jump L0
 // L1:
 //   StrIndex temp3 = s temp2
@@ -76,14 +75,14 @@ func slicingBytesTo(b []byte, to int) []byte {
 //test:disasm
 // main.stringReverse code=68 frame=144 (6 slots: 1 params, 5 locals)
 //   LoadScalarConst temp1 = 1
-//   Len temp2 = s
-//   Len temp3 = s
+//   Move temp2 = s
+//   Move temp3 = s
 //   Move arg0 = temp1
 //   Move arg1 = temp2
 //   Move arg2 = temp3
 //   CallNative temp0 = builtin.makeSlice()
 //   Zero temp1
-//   Len temp3 = s
+//   Move temp3 = s
 //   LoadScalarConst temp4 = 1
 //   IntSub64 temp2 = temp3 temp4
 //   Jump L0
@@ -110,8 +109,8 @@ func stringReverse(s string) string {
 }
 
 //test:disasm_opt
-// main.removeChar code=68 frame=144 (6 slots: 2 params, 4 locals)
-//   Len temp3 = s
+// main.removeChar code=65 frame=144 (6 slots: 2 params, 4 locals)
+//   Move temp3 = s
 //   LoadScalarConst arg0 = 1
 //   Zero arg1
 //   Move arg2 = temp3
@@ -130,8 +129,7 @@ func stringReverse(s string) string {
 // L2:
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
-//   IntLt temp2 = temp1 temp3
+//   IntLt temp2 = temp1 s
 //   JumpNotZero L3 temp2
 //   Move arg0 = temp0
 //   CallNative temp1 = builtin.bytesToString()
@@ -141,7 +139,7 @@ func stringReverse(s string) string {
 // main.removeChar code=74 frame=144 (6 slots: 2 params, 4 locals)
 //   LoadScalarConst temp1 = 1
 //   Zero temp2
-//   Len temp3 = s
+//   Move temp3 = s
 //   Move arg0 = temp1
 //   Move arg1 = temp2
 //   Move arg2 = temp3
@@ -160,7 +158,7 @@ func stringReverse(s string) string {
 // L2:
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
+//   Move temp3 = s
 //   IntLt temp2 = temp1 temp3
 //   JumpNotZero L3 temp2
 //   Move arg0 = temp0
@@ -178,9 +176,9 @@ func removeChar(s string, ch byte) string {
 }
 
 //test:disasm_opt
-// main.tolower code=83 frame=168 (7 slots: 1 params, 6 locals)
-//   Len temp2 = s
-//   Len temp3 = s
+// main.tolower code=80 frame=168 (7 slots: 1 params, 6 locals)
+//   Move temp2 = s
+//   Move temp3 = s
 //   LoadScalarConst arg0 = 1
 //   Move arg1 = temp2
 //   Move arg2 = temp3
@@ -202,8 +200,7 @@ func removeChar(s string, ch byte) string {
 //   SliceSetScalar8 temp0 temp1 temp2
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
-//   IntLt temp2 = temp1 temp3
+//   IntLt temp2 = temp1 s
 //   JumpNotZero L3 temp2
 //   Move arg0 = temp0
 //   CallNative temp1 = builtin.bytesToString()
@@ -212,8 +209,8 @@ func removeChar(s string, ch byte) string {
 //test:disasm
 // main.tolower code=86 frame=168 (7 slots: 1 params, 6 locals)
 //   LoadScalarConst temp1 = 1
-//   Len temp2 = s
-//   Len temp3 = s
+//   Move temp2 = s
+//   Move temp3 = s
 //   Move arg0 = temp1
 //   Move arg1 = temp2
 //   Move arg2 = temp3
@@ -235,7 +232,7 @@ func removeChar(s string, ch byte) string {
 //   SliceSetScalar8 temp0 temp1 temp2
 //   IntInc temp1
 // L0:
-//   Len temp3 = s
+//   Move temp3 = s
 //   IntLt temp2 = temp1 temp3
 //   JumpNotZero L3 temp2
 //   Move arg0 = temp0

@@ -10,18 +10,12 @@ import (
 //   Move arg0 = temp0
 // =>
 //   Len arg0 = xs
-//
-// TODO:
-//   Len temp3 = s
-//   IntLt temp2 = temp1 temp3
-// =>
-//   IntLt temp2 = temp1 s
 
 type Optimizer struct {
 	fn *ir.Func
 
-	idMap idMap
-	idSet idSet
+	slotToIndexMap sliceMap[ir.Slot, uint16]
+	idSet          idSet
 
 	varKillTable []varKillState
 	blocksCache  []ir.Block
@@ -397,7 +391,7 @@ func (opt *Optimizer) removeDeadstores(b *ir.Block) bool {
 	}
 
 	changed := false
-	movedUniqs := opt.idMap
+	movedUniqs := opt.slotToIndexMap
 	movedUniqs.Reset()
 	for i, inst := range block {
 		switch inst.Op {
@@ -407,14 +401,14 @@ func (opt *Optimizer) removeDeadstores(b *ir.Block) bool {
 			if !dst.IsUniq() {
 				break
 			}
-			srckey := movedUniqs.FindIndex(src.ID)
+			srckey := movedUniqs.FindIndex(src)
 			if srckey != -1 {
 				srcpos := movedUniqs.GetValue(srckey)
 				block[i].Arg1 = block[srcpos].Arg1
 				block[srcpos].Op = bytecode.OpInvalid
 				changed = true
 			}
-			movedUniqs.Add(dst.ID, uint8(i))
+			movedUniqs.Add(dst, uint16(i))
 
 		default:
 			for argIndex, argInfo := range inst.Op.Args() {
@@ -425,7 +419,7 @@ func (opt *Optimizer) removeDeadstores(b *ir.Block) bool {
 				if !arg.IsUniq() {
 					continue
 				}
-				srckey := movedUniqs.FindIndex(arg.ID)
+				srckey := movedUniqs.FindIndex(arg)
 				if srckey != -1 {
 					srcpos := movedUniqs.GetValue(srckey)
 					block[i].SetArg(argIndex, block[srcpos].Arg1)
@@ -446,7 +440,7 @@ func (opt *Optimizer) removeDeadstores(b *ir.Block) bool {
 			if !arg.IsUniq() {
 				continue
 			}
-			movedUniqs.Remove(arg.ID)
+			movedUniqs.Remove(arg)
 		}
 	}
 
@@ -468,7 +462,7 @@ func (opt *Optimizer) injectConstants(b *ir.Block) bool {
 	}
 
 	changed := false
-	constValues := opt.idMap
+	constValues := opt.slotToIndexMap
 	constValues.Reset()
 	for i, inst := range block {
 		switch inst.Op {
@@ -477,14 +471,14 @@ func (opt *Optimizer) injectConstants(b *ir.Block) bool {
 			if !dstslot.IsUniq() {
 				break
 			}
-			constValues.Add(dstslot.ID, uint8(i))
+			constValues.Add(dstslot, uint16(i))
 
 		case bytecode.OpZero:
 			dstslot := inst.Arg0.ToSlot()
 			if !dstslot.IsUniq() {
 				break
 			}
-			constValues.Add(dstslot.ID, uint8(i))
+			constValues.Add(dstslot, uint16(i))
 
 		case bytecode.OpIntAdd64:
 			xslot := inst.Arg1.ToSlot()
@@ -492,11 +486,11 @@ func (opt *Optimizer) injectConstants(b *ir.Block) bool {
 			if !xslot.IsUniq() || !yslot.IsUniq() {
 				break
 			}
-			xkey := constValues.FindIndex(xslot.ID)
+			xkey := constValues.FindIndex(xslot)
 			if xkey == -1 {
 				break
 			}
-			ykey := constValues.FindIndex(yslot.ID)
+			ykey := constValues.FindIndex(yslot)
 			if ykey == -1 {
 				break
 			}
@@ -517,13 +511,13 @@ func (opt *Optimizer) injectConstants(b *ir.Block) bool {
 			block[ypos].Op = bytecode.OpInvalid
 			dstslot := inst.Arg0.ToSlot()
 			if dstslot.IsUniq() {
-				constValues.Add(dstslot.ID, uint8(i))
+				constValues.Add(dstslot, uint16(i))
 			}
 			changed = true
 
 		case bytecode.OpMove:
 			srcslot := inst.Arg1.ToSlot()
-			key := constValues.FindIndex(srcslot.ID)
+			key := constValues.FindIndex(srcslot)
 			if key == -1 {
 				break
 			}
@@ -538,7 +532,7 @@ func (opt *Optimizer) injectConstants(b *ir.Block) bool {
 			}
 			dstslot := inst.Arg0.ToSlot()
 			if dstslot.IsUniq() {
-				constValues.Add(dstslot.ID, uint8(i))
+				constValues.Add(dstslot, uint16(i))
 			}
 			changed = true
 		}
@@ -554,7 +548,7 @@ func (opt *Optimizer) injectConstants(b *ir.Block) bool {
 			if !arg.IsUniq() {
 				continue
 			}
-			constValues.Remove(arg.ID)
+			constValues.Remove(arg)
 		}
 	}
 

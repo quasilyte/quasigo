@@ -28,7 +28,6 @@ var opcodePrototypes = []opcodeProto{
 	{"IsNilInterface", "op dst:wslot x:rslot"},
 	{"IsNotNilInterface", "op dst:wslot x:rslot"},
 
-	{"Len", "op dst:wslot str:rslot"},
 	{"Cap", "op dst:wslot str:rslot"},
 
 	{"StrSlice", "op dst:wslot str:rslot from:rslot to:rslot"},

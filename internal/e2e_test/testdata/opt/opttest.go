@@ -2,7 +2,7 @@ package opttest
 
 //test:irdump
 // block0 [0]:
-//   Len temp2.v0 = s
+//   Move temp2.v0 = s
 //   Zero temp3.v0
 //   ScalarEq temp1.v0 = temp2.v0 temp3.v0
 //   Not temp0.v0 = temp1.v0
@@ -15,7 +15,7 @@ package opttest
 //   ReturnStr temp0.v2
 //
 // opttest.zerocmp1 code=17 frame=72 (3 slots: 1 params, 2 locals)
-//   Len temp1 = s
+//   Move temp1 = s
 //   JumpZero L0 temp1
 //   LoadStrConst temp0 = "nonzero"
 //   ReturnStr temp0

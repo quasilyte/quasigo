@@ -22,9 +22,8 @@ func deadstore1(i int) int {
 }
 
 //test:disasm_opt
-// opttest.deadstore2 code=5 frame=48 (2 slots: 1 params, 1 locals)
-//   Len temp0 = s
-//   ReturnScalar temp0
+// opttest.deadstore2 code=2 frame=24 (1 slots: 1 params, 0 locals)
+//   ReturnScalar s
 func deadstore2(s string) int {
 	length := len(s)
 	x1 := length

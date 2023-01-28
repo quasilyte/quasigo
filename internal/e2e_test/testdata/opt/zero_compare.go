@@ -16,9 +16,8 @@ func zeroCompare1(x int) string {
 }
 
 //test:disasm_opt
-// opttest.zeroCompare2 code=17 frame=72 (3 slots: 1 params, 2 locals)
-//   Len temp1 = s
-//   JumpZero L0 temp1
+// opttest.zeroCompare2 code=14 frame=48 (2 slots: 1 params, 1 locals)
+//   JumpZero L0 s
 //   LoadStrConst temp0 = "nonzero"
 //   ReturnStr temp0
 // L0:
@@ -32,9 +31,8 @@ func zeroCompare2(s string) string {
 }
 
 //test:disasm_opt
-// opttest.zeroCompare3 code=17 frame=72 (3 slots: 1 params, 2 locals)
-//   Len temp1 = s
-//   JumpNotZero L0 temp1
+// opttest.zeroCompare3 code=14 frame=48 (2 slots: 1 params, 1 locals)
+//   JumpNotZero L0 s
 //   LoadStrConst temp0 = "zero"
 //   ReturnStr temp0
 // L0:
@@ -48,9 +46,8 @@ func zeroCompare3(s string) string {
 }
 
 //test:disasm_opt
-// opttest.zeroCompare4 code=17 frame=72 (3 slots: 1 params, 2 locals)
-//   Len temp1 = s
-//   JumpNotZero L0 temp1
+// opttest.zeroCompare4 code=14 frame=48 (2 slots: 1 params, 1 locals)
+//   JumpNotZero L0 s
 //   LoadStrConst temp0 = "nonzero"
 //   ReturnStr temp0
 // L0:

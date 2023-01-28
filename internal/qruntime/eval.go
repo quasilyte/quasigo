@@ -42,10 +42,6 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			*getslot(slotptr, dstslot) = env.result2
 			codeptr = ptradd(codeptr, 2)
 
-		case bytecode.OpLen:
-			dstslot, srcslot := unpack8x2(codeptr, 1)
-			getslot(slotptr, dstslot).Scalar = getslot(slotptr, srcslot).Scalar
-			codeptr = ptradd(codeptr, 3)
 		case bytecode.OpCap:
 			dstslot, srcslot := unpack8x2(codeptr, 1)
 			getslot(slotptr, dstslot).Scalar = getslot(slotptr, srcslot).Scalar2

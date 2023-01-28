@@ -459,7 +459,7 @@ func (cl *funcCompiler) compileBuiltinCall(dst ir.Slot, fn *ast.Ident, call *ast
 
 	case `len`:
 		srcslot := cl.compileTempExpr(call.Args[0])
-		cl.emit2(bytecode.OpLen, dst, srcslot)
+		cl.emit2(bytecode.OpMove, dst, srcslot)
 	case `cap`:
 		srcslot := cl.compileTempExpr(call.Args[0])
 		cl.emit2(bytecode.OpCap, dst, srcslot)
