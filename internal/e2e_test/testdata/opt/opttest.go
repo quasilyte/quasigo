@@ -106,3 +106,20 @@ func binaryopTempReuse(x, y int) int {
 //   IntAdd64 temp0 = temp1 temp2
 //   ReturnScalar temp0
 func spectralNormEvalA(i, j int) int { return ((i+j)*(i+j+1)/2 + i + 1) }
+
+//test:disasm_opt
+// opttest.spectralNormEvalA2 code=32 frame=216 (9 slots: 2 params, 7 locals)
+//   LoadScalarConst temp0 = 1
+//   IntAdd64 temp1 = i j
+//   IntAdd64 temp6 = temp1 temp0
+//   IntMul64 temp5 = temp1 temp6
+//   LoadScalarConst temp6 = 2
+//   IntDiv temp4 = temp5 temp6
+//   IntAdd64 temp3 = temp4 i
+//   IntAdd64 temp2 = temp3 temp0
+//   ReturnScalar temp2
+func spectralNormEvalA2(i, j int) int {
+	one := 1
+	ij := i + j
+	return (ij*(ij+one)/2 + i + one)
+}
