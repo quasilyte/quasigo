@@ -90,7 +90,7 @@ func makeBoolSlice2(length, capacity int) []bool {
 
 //test:disasm_both
 // main.intSliceLenCap code=19 frame=48 (2 slots: 1 params, 1 locals)
-//   Len temp0 = xs
+//   Move temp0 = xs
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   Cap temp0 = xs
@@ -104,7 +104,7 @@ func intSliceLenCap(xs []int) {
 
 //test:disasm_both
 // main.floatSliceLenCap code=19 frame=48 (2 slots: 1 params, 1 locals)
-//   Len temp0 = xs
+//   Move temp0 = xs
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   Cap temp0 = xs
@@ -118,7 +118,7 @@ func floatSliceLenCap(xs []float64) {
 
 //test:disasm_both
 // main.byteSliceLenCap code=19 frame=48 (2 slots: 1 params, 1 locals)
-//   Len temp0 = xs
+//   Move temp0 = xs
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   Cap temp0 = xs
@@ -132,7 +132,7 @@ func byteSliceLenCap(xs []byte) {
 
 //test:disasm_both
 // main.boolSliceLenCap code=19 frame=48 (2 slots: 1 params, 1 locals)
-//   Len temp0 = xs
+//   Move temp0 = xs
 //   Move arg0 = temp0
 //   CallVoidNative builtin.PrintInt()
 //   Cap temp0 = xs

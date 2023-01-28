@@ -3,7 +3,7 @@ package main
 //test:irdump
 // block0 [0]:
 //   LoadStrConst temp0 = ""
-//   Len temp2.v0 = s
+//   Move temp2.v0 = s
 //   LoadScalarConst temp3.v0 = 1
 //   IntSub64 temp1 = temp2.v0 temp3.v0
 //   Jump L2
@@ -22,12 +22,30 @@ package main
 //   ReturnStr temp0
 //   VarKill temp0
 //
-//test:disasm_both
+//test:disasm
 // main.reverse code=46 frame=144 (6 slots: 1 params, 5 locals)
 //   LoadStrConst temp0 = ""
-//   Len temp2 = s
+//   Move temp2 = s
 //   LoadScalarConst temp3 = 1
 //   IntSub64 temp1 = temp2 temp3
+//   Jump L0
+// L1:
+//   LoadScalarConst temp4 = 1
+//   IntAdd64 temp3 = temp1 temp4
+//   StrSlice temp2 = s temp1 temp3
+//   Concat temp0 = temp0 temp2
+//   IntDec temp1
+// L0:
+//   Zero temp3
+//   IntGtEq temp2 = temp1 temp3
+//   JumpNotZero L1 temp2
+//   ReturnStr temp0
+//
+//test:disasm_opt
+// main.reverse code=43 frame=144 (6 slots: 1 params, 5 locals)
+//   LoadStrConst temp0 = ""
+//   LoadScalarConst temp3 = 1
+//   IntSub64 temp1 = s temp3
 //   Jump L0
 // L1:
 //   LoadScalarConst temp4 = 1

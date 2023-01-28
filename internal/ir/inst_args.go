@@ -4,7 +4,8 @@ package ir
 type SlotKind uint8
 
 const (
-	SlotCallArg SlotKind = iota
+	SlotInvalid SlotKind = iota
+	SlotCallArg
 	SlotParam
 	SlotTemp
 	SlotUniq
@@ -25,6 +26,7 @@ func (s Slot) ToInstArg() InstArg {
 	return InstArg((uint16(s.ID) << 8) | uint16(s.Kind))
 }
 
+func (s Slot) IsInvalid() bool { return s.Kind == SlotInvalid }
 func (s Slot) IsCallArg() bool { return s.Kind == SlotCallArg }
 func (s Slot) IsParam() bool   { return s.Kind == SlotParam }
 func (s Slot) IsTemp() bool    { return s.Kind == SlotTemp }

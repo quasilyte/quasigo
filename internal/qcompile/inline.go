@@ -38,7 +38,6 @@ var inlineableOps = [256]bool{
 	bytecode.OpIntInc: true,
 	bytecode.OpIntDec: true,
 
-	bytecode.OpLen: true,
 	bytecode.OpCap: true,
 
 	bytecode.OpStrSlice:     true,
