@@ -59,12 +59,12 @@ func todoInc(i int) int {
 // TODO: fuse into <= 0.
 //
 //test:disasm_opt
-// opttest.todoFuseComparisons code=18 frame=96 (4 slots: 1 params, 3 locals)
+// opttest.todoFuseComparisons code=18 frame=72 (3 slots: 1 params, 2 locals)
 //   Zero temp1
 //   ScalarEq temp0 = i temp1
 //   JumpNotZero L0 temp0
-//   Zero temp2
-//   IntLt temp0 = i temp2
+//   Zero temp1
+//   IntLt temp0 = i temp1
 // L0:
 //   ReturnScalar temp0
 func todoFuseComparisons(i int) bool {

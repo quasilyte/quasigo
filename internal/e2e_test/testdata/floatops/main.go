@@ -65,21 +65,21 @@ func abs(x float64) float64 {
 }
 
 //test:disasm_both
-// main.sqrt code=49 frame=168 (7 slots: 1 params, 6 locals)
+// main.sqrt code=49 frame=144 (6 slots: 1 params, 5 locals)
 //   LoadScalarConst temp0 = 4607182418800017408
 //   Jump L0
 // L1:
 //   FloatDiv64 temp2 = x temp0
 //   FloatAdd64 temp1 = temp0 temp2
-//   LoadScalarConst temp3 = 4611686018427387904
-//   FloatDiv64 temp0 = temp1 temp3
+//   LoadScalarConst temp2 = 4611686018427387904
+//   FloatDiv64 temp0 = temp1 temp2
 // L0:
 //   FloatDiv64 temp4 = x temp0
 //   FloatSub64 temp3 = temp4 temp0
 //   Move arg0 = temp3
 //   Call temp2 = main.abs()
-//   LoadScalarConst temp5 = 4532020583610935537
-//   FloatGt temp1 = temp2 temp5
+//   LoadScalarConst temp3 = 4532020583610935537
+//   FloatGt temp1 = temp2 temp3
 //   JumpNotZero L1 temp1
 //   ReturnScalar temp0
 func sqrt(x float64) float64 {

@@ -28,10 +28,38 @@ func (cl *funcCompiler) compileTempExpr(e ast.Expr) ir.Slot {
 	return temp
 }
 
+func (cl *funcCompiler) compileNestedTempExpr(e ast.Expr) ir.Slot {
+	if v, ok := e.(*ast.Ident); ok {
+		if i := cl.scope.Lookup(v.Name); i != -1 {
+			return ir.NewTempSlot(uint8(i))
+		}
+		if p, ok := cl.params[v.Name]; ok {
+			return p.i
+		}
+	}
+	temp := cl.allocTemp()
+	tempSeq := cl.tempSeq
+	cl.CompileExpr(temp, e)
+	tempAllocated := cl.tempSeq - tempSeq
+	cl.killScopeVars(tempAllocated)
+	return temp
+}
+
 func (cl *funcCompiler) compileRootExpr(dst ir.Slot, e ast.Expr) {
 	cl.beginTempBlock()
 	cl.CompileExpr(dst, e)
 	cl.endTempBlock()
+}
+
+func (cl *funcCompiler) compileNestedRootExpr(dst ir.Slot, e ast.Expr) {
+	if !cl.inTempBlock {
+		cl.compileRootExpr(dst, e)
+		return
+	}
+	tempSeq := cl.tempSeq
+	cl.CompileExpr(dst, e)
+	tempAllocated := cl.tempSeq - tempSeq
+	cl.killScopeVars(tempAllocated)
 }
 
 func (cl *funcCompiler) CompileExpr(dst ir.Slot, e ast.Expr) {
@@ -241,7 +269,7 @@ func (cl *funcCompiler) compileIntBinaryOp(dst ir.Slot, e *ast.BinaryExpr, op by
 }
 
 func (cl *funcCompiler) compileBinaryOp(dst ir.Slot, op bytecode.Op, e *ast.BinaryExpr) {
-	xslot := cl.compileTempExpr(e.X)
+	xslot := cl.compileNestedTempExpr(e.X)
 	yslot := cl.compileTempExpr(e.Y)
 	cl.emit3(op, dst, xslot, yslot)
 }
@@ -746,7 +774,7 @@ func (cl *funcCompiler) compileConstantValue(dst ir.Slot, source ast.Expr, cv co
 
 func (cl *funcCompiler) compileOr(dst ir.Slot, e *ast.BinaryExpr) {
 	labelEnd := cl.newLabel()
-	cl.CompileExpr(dst, e.X)
+	cl.compileNestedRootExpr(dst, e.X)
 	cl.emitCondJump(dst, bytecode.OpJumpNotZero, labelEnd)
 	cl.CompileExpr(dst, e.Y)
 	cl.bindLabel(labelEnd)
@@ -754,7 +782,7 @@ func (cl *funcCompiler) compileOr(dst ir.Slot, e *ast.BinaryExpr) {
 
 func (cl *funcCompiler) compileAnd(dst ir.Slot, e *ast.BinaryExpr) {
 	labelEnd := cl.newLabel()
-	cl.CompileExpr(dst, e.X)
+	cl.compileNestedRootExpr(dst, e.X)
 	cl.emitCondJump(dst, bytecode.OpJumpZero, labelEnd)
 	cl.CompileExpr(dst, e.Y)
 	cl.bindLabel(labelEnd)

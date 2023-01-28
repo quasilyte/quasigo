@@ -121,7 +121,7 @@ func fnv1(s string) int {
 }
 
 //test:disasm_opt
-// main.isNumericString code=47 frame=168 (7 slots: 1 params, 6 locals)
+// main.isNumericString code=47 frame=120 (5 slots: 1 params, 4 locals)
 //   Zero temp0
 //   Jump L0
 // L3:
@@ -129,9 +129,9 @@ func fnv1(s string) int {
 //   LoadScalarConst temp3 = 48
 //   IntLt temp1 = temp2 temp3
 //   JumpNotZero L1 temp1
-//   StrIndex temp4 = s temp0
-//   LoadScalarConst temp5 = 57
-//   IntGt temp1 = temp4 temp5
+//   StrIndex temp2 = s temp0
+//   LoadScalarConst temp3 = 57
+//   IntGt temp1 = temp2 temp3
 // L1:
 //   JumpZero L2 temp1
 //   ReturnZero
@@ -143,7 +143,7 @@ func fnv1(s string) int {
 //   ReturnOne
 //
 //test:disasm
-// main.isNumericString code=50 frame=168 (7 slots: 1 params, 6 locals)
+// main.isNumericString code=50 frame=120 (5 slots: 1 params, 4 locals)
 //   Zero temp0
 //   Jump L0
 // L3:
@@ -151,9 +151,9 @@ func fnv1(s string) int {
 //   LoadScalarConst temp3 = 48
 //   IntLt temp1 = temp2 temp3
 //   JumpNotZero L1 temp1
-//   StrIndex temp4 = s temp0
-//   LoadScalarConst temp5 = 57
-//   IntGt temp1 = temp4 temp5
+//   StrIndex temp2 = s temp0
+//   LoadScalarConst temp3 = 57
+//   IntGt temp1 = temp2 temp3
 // L1:
 //   JumpZero L2 temp1
 //   ReturnZero
@@ -174,7 +174,7 @@ func isNumericString(s string) bool {
 }
 
 //test:disasm
-// main.atoi code=95 frame=240 (10 slots: 1 params, 9 locals)
+// main.atoi code=95 frame=216 (9 slots: 1 params, 8 locals)
 //   Move temp1 = s
 //   Zero temp2
 //   ScalarEq temp0 = temp1 temp2
@@ -186,8 +186,8 @@ func isNumericString(s string) bool {
 //   Zero temp2
 //   Zero temp5
 //   StrIndex temp4 = s temp5
-//   LoadScalarConst temp6 = 45
-//   ScalarEq temp3 = temp4 temp6
+//   LoadScalarConst temp5 = 45
+//   ScalarEq temp3 = temp4 temp5
 //   JumpZero L1 temp3
 //   LoadScalarConst temp1 = 1
 //   LoadScalarConst temp2 = 1
@@ -196,11 +196,11 @@ func isNumericString(s string) bool {
 // L3:
 //   LoadScalarConst temp4 = 10
 //   IntMul64 temp3 = temp0 temp4
-//   StrIndex temp7 = s temp2
-//   LoadScalarConst temp8 = 48
-//   IntSub8 temp6 = temp7 temp8
-//   Move temp5 = temp6
-//   IntAdd64 temp0 = temp3 temp5
+//   StrIndex temp6 = s temp2
+//   LoadScalarConst temp7 = 48
+//   IntSub8 temp5 = temp6 temp7
+//   Move temp4 = temp5
+//   IntAdd64 temp0 = temp3 temp4
 //   IntInc temp2
 // L2:
 //   Move temp4 = s
@@ -213,7 +213,7 @@ func isNumericString(s string) bool {
 //   ReturnScalar temp0
 //
 //test:disasm_opt
-// main.atoi code=80 frame=240 (10 slots: 1 params, 9 locals)
+// main.atoi code=80 frame=216 (9 slots: 1 params, 8 locals)
 //   JumpNotZero L0 s
 //   ReturnZero
 // L0:
@@ -222,8 +222,8 @@ func isNumericString(s string) bool {
 //   Zero temp2
 //   Zero temp5
 //   StrIndex temp4 = s temp5
-//   LoadScalarConst temp6 = 45
-//   ScalarEq temp3 = temp4 temp6
+//   LoadScalarConst temp5 = 45
+//   ScalarEq temp3 = temp4 temp5
 //   JumpZero L1 temp3
 //   LoadScalarConst temp1 = 1
 //   LoadScalarConst temp2 = 1
@@ -232,10 +232,10 @@ func isNumericString(s string) bool {
 // L3:
 //   LoadScalarConst temp4 = 10
 //   IntMul64 temp3 = temp0 temp4
-//   StrIndex temp7 = s temp2
-//   LoadScalarConst temp8 = 48
-//   IntSub8 temp6 = temp7 temp8
-//   IntAdd64 temp0 = temp3 temp6
+//   StrIndex temp6 = s temp2
+//   LoadScalarConst temp7 = 48
+//   IntSub8 temp5 = temp6 temp7
+//   IntAdd64 temp0 = temp3 temp5
 //   IntInc temp2
 // L2:
 //   IntLt temp3 = temp2 s
@@ -311,14 +311,11 @@ func countByte(s string, b byte) int {
 }
 
 //test:disasm_opt
-// main.hasPrefix code=27 frame=168 (7 slots: 2 params, 5 locals)
-//   Move temp1 = s
-//   Move temp2 = prefix
-//   IntGtEq temp0 = temp1 temp2
+// main.hasPrefix code=18 frame=96 (4 slots: 2 params, 2 locals)
+//   IntGtEq temp0 = s prefix
 //   JumpZero L0 temp0
-//   Move temp4 = prefix
-//   StrSliceTo temp3 = s temp4
-//   StrEq temp0 = temp3 prefix
+//   StrSliceTo temp1 = s prefix
+//   StrEq temp0 = temp1 prefix
 // L0:
 //   ReturnScalar temp0
 func hasPrefix(s, prefix string) bool {
@@ -355,15 +352,15 @@ func testFactorial() {
 }
 
 //test:disasm
-// main.charsum code=42 frame=192 (8 slots: 1 params, 7 locals)
+// main.charsum code=42 frame=168 (7 slots: 1 params, 6 locals)
 //   Zero temp0
 //   Zero temp1
 //   Jump L0
 // L1:
 //   Zero temp5
 //   StrIndex temp4 = s temp5
-//   LoadScalarConst temp6 = 48
-//   IntSub8 temp3 = temp4 temp6
+//   LoadScalarConst temp5 = 48
+//   IntSub8 temp3 = temp4 temp5
 //   Move temp2 = temp3
 //   IntAdd64 temp0 = temp0 temp2
 //   IntInc temp1
@@ -374,15 +371,15 @@ func testFactorial() {
 //   ReturnScalar temp0
 //
 //test:disasm_opt
-// main.charsum code=36 frame=192 (8 slots: 1 params, 7 locals)
+// main.charsum code=36 frame=168 (7 slots: 1 params, 6 locals)
 //   Zero temp0
 //   Zero temp1
 //   Jump L0
 // L1:
 //   Zero temp5
 //   StrIndex temp4 = s temp5
-//   LoadScalarConst temp6 = 48
-//   IntSub8 temp3 = temp4 temp6
+//   LoadScalarConst temp5 = 48
+//   IntSub8 temp3 = temp4 temp5
 //   IntAdd64 temp0 = temp0 temp3
 //   IntInc temp1
 // L0:
