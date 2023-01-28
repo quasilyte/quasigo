@@ -80,3 +80,27 @@ func todoFuseComparisons(i int) bool {
 func todoInverseEq(i int) bool {
 	return !(i == 0)
 }
+
+// TODO: figure out how to mark temp0 as unique after 1st
+//       move is removed.
+//
+//test:irdump
+// block0 [1]:
+//   LoadScalarConst temp0 = 10
+//   Move temp1.v0 = temp0
+//   Move temp2.v0 = temp0
+//   IntAdd64 temp3.v0 = temp1.v0 temp2.v0
+//   ReturnScalar temp3.v0
+//   VarKill temp0
+//
+//test:disasm_opt
+// opttest.todoMultiAssign code=9 frame=48 (2 slots: 0 params, 2 locals)
+//   LoadScalarConst temp0 = 10
+//   IntAdd64 temp1 = temp0 temp0
+//   ReturnScalar temp1
+func todoMultiAssign() int {
+	x := 10
+	a := x
+	b := x
+	return a + b
+}
