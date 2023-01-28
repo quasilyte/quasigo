@@ -91,3 +91,18 @@ func addByteAsInt2(b byte, i int) int {
 func binaryopTempReuse(x, y int) int {
 	return (x + y + 2) * (x + y)
 }
+
+//test:disasm_opt
+// opttest.spectralNormEvalA code=39 frame=240 (10 slots: 2 params, 8 locals)
+//   IntAdd64 temp4 = i j
+//   IntAdd64 temp6 = i j
+//   LoadScalarConst temp7 = 1
+//   IntAdd64 temp5 = temp6 temp7
+//   IntMul64 temp3 = temp4 temp5
+//   LoadScalarConst temp4 = 2
+//   IntDiv temp2 = temp3 temp4
+//   IntAdd64 temp1 = temp2 i
+//   LoadScalarConst temp2 = 1
+//   IntAdd64 temp0 = temp1 temp2
+//   ReturnScalar temp0
+func spectralNormEvalA(i, j int) int { return ((i+j)*(i+j+1)/2 + i + 1) }
