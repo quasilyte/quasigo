@@ -104,3 +104,17 @@ func todoMultiAssign() int {
 	b := x
 	return a + b
 }
+
+// TODO: reuse a const loaded into temp2 instead of loading it again.
+//
+//test:disasm_opt
+// opttest.todoReuseConstLoad code=20 frame=144 (6 slots: 2 params, 4 locals)
+//   LoadScalarConst temp2 = 2
+//   IntAdd64 temp1 = x temp2
+//   LoadScalarConst temp3 = 2
+//   IntMul64 temp2 = y temp3
+//   IntAdd64 temp0 = temp1 temp2
+//   ReturnScalar temp0
+func todoReuseConstLoad(x, y int) int {
+	return (x + 2) + (y * 2)
+}
