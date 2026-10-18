@@ -24,6 +24,16 @@ func (op Op) IsJump() bool {
 	}
 }
 
+// IsCall reports whether op calls a function that is allowed to have side effects.
+func (op Op) IsCall() bool {
+	switch op {
+	case OpCall, OpCallRecur, OpCallNative:
+		return true
+	default:
+		return false
+	}
+}
+
 type OpcodeFlags uint8
 
 const (

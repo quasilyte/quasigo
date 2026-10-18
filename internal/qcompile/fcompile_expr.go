@@ -686,6 +686,10 @@ func (cl *funcCompiler) compileNativeCall(dst ir.Slot, key qruntime.FuncKey) boo
 
 func (cl *funcCompiler) compileRecurCall(dst ir.Slot) bool {
 	cl.hasCalls = true
+	if dst == voidSlot {
+		cl.emitOp(bytecode.OpCallRecurVoid)
+		return true
+	}
 	cl.emit1(bytecode.OpCallRecur, dst)
 	return true
 }

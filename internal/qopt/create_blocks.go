@@ -61,7 +61,7 @@ func (builder *blocksBuilder) Build() []ir.Block {
 			fallthrough
 		case bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnVoid:
 			fallthrough
-		case bytecode.OpReturnScalar, bytecode.OpReturnStr:
+		case bytecode.OpReturnScalar, bytecode.OpReturnStr, bytecode.OpReturn2:
 			i++
 			for i < len(code) && code[i].Pseudo == ir.OpVarKill {
 				i++

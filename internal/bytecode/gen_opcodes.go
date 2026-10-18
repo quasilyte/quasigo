@@ -86,6 +86,7 @@ var opcodePrototypes = []opcodeProto{
 
 	{"Call", "op dst:wslot fn:funcid"},
 	{"CallRecur", "op dst:wslot"},
+	{"CallRecurVoid", "op"},
 	{"CallVoid", "op fn:funcid"},
 	{"CallNative", "op dst:wslot fn:nativefuncid"},
 	{"CallVoidNative", "op fn:nativefuncid"},
@@ -102,6 +103,7 @@ var opcodePrototypes = []opcodeProto{
 	{"ReturnStr", "op x:rslot"},
 	{"ReturnScalar", "op x:rslot"},
 	{"Return", "op x:rslot"},
+	{"Return2", "op x:rslot y:rslot"},
 
 	{"FloatAdd64", "op dst:wslot x:rslot y:rslot"},
 	{"FloatSub64", "op dst:wslot x:rslot y:rslot"},

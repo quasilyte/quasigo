@@ -7,6 +7,7 @@ import (
 	"go/types"
 
 	"github.com/quasilyte/quasigo/internal/bytecode"
+	"github.com/quasilyte/quasigo/internal/goutil"
 	"github.com/quasilyte/quasigo/internal/ir"
 )
 
@@ -66,6 +67,11 @@ func (cl *funcCompiler) compileReturnStmt(ret *ast.ReturnStmt) {
 		panic(cl.errorf(ret, "'naked' return statements are not allowed"))
 	}
 
+	if cl.fnType.Results().Len() == 2 {
+		cl.compileReturn2(ret)
+		return
+	}
+
 	cv := cl.ctx.Types.Types[ret.Results[0]].Value
 	if cv != nil {
 		// Return of a constant value.
@@ -99,6 +105,24 @@ func (cl *funcCompiler) compileReturnStmt(ret *ast.ReturnStmt) {
 	cl.beginTempBlock()
 	slot := cl.compileTempExpr(ret.Results[0])
 	cl.emit1(op, slot)
+	cl.endTempBlock()
+}
+
+func (cl *funcCompiler) compileReturn2(ret *ast.ReturnStmt) {
+	cl.beginTempBlock()
+	var slot1, slot2 ir.Slot
+	switch {
+	case len(ret.Results) == 1:
+		// `return f()`, where f() has 2 results.
+		slot1 = cl.allocTemp()
+		slot2 = cl.allocTemp()
+		cl.CompileExpr(slot1, ret.Results[0])
+		cl.emit1(bytecode.OpMoveResult2, slot2)
+	default:
+		slot1 = cl.compileTempExpr(ret.Results[0])
+		slot2 = cl.compileTempExpr(ret.Results[1])
+	}
+	cl.emit2(bytecode.OpReturn2, slot1, slot2)
 	cl.endTempBlock()
 }
 
@@ -229,24 +253,51 @@ func (cl *funcCompiler) compileAssignStmt(assign *ast.AssignStmt) {
 		}
 	}
 
+	if len(assign.Lhs) == 2 {
+		cl.compileAssign2(assign)
+		return
+	}
+
 	dst1 := assign.Lhs[0].(*ast.Ident)
 	rhs := assign.Rhs[0]
 	var lhs1slot ir.Slot
-	var lhs2slot ir.Slot
 	switch assign.Tok {
 	case token.ASSIGN, token.DEFINE:
 		lhs1slot = cl.defineOrLookupVar(dst1, dst1.Name, assign.Tok == token.DEFINE)
 	default:
 		panic(cl.errorf(assign, "can't compile %s assign op", assign.Tok))
 	}
-
-	if len(assign.Lhs) == 2 {
-		dst2 := assign.Lhs[1].(*ast.Ident)
-		lhs2slot = cl.defineOrLookupVar(dst2, dst2.Name, assign.Tok == token.DEFINE)
-	}
 	cl.compileRootExpr(lhs1slot, rhs)
-	if len(assign.Lhs) == 2 {
-		cl.emit1(bytecode.OpMoveResult2, lhs2slot)
+}
+
+func (cl *funcCompiler) compileAssign2(assign *ast.AssignStmt) {
+	// The first result is stored by the call instruction itself,
+	// the second one is moved from the result register right after that.
+	// A blank identifier discards the corresponding result.
+
+	call, ok := goutil.Unparen(assign.Rhs[0]).(*ast.CallExpr)
+	if !ok {
+		panic(cl.errorf(assign.Rhs[0], "can only assign 2 values from a func call"))
+	}
+	if assign.Tok != token.ASSIGN && assign.Tok != token.DEFINE {
+		panic(cl.errorf(assign, "can't compile %s assign op", assign.Tok))
+	}
+
+	var dst [2]ir.Slot
+	for i, lhs := range assign.Lhs {
+		ident := lhs.(*ast.Ident)
+		if ident.Name == "_" {
+			dst[i] = voidSlot
+			continue
+		}
+		dst[i] = cl.defineOrLookupVar(ident, ident.Name, assign.Tok == token.DEFINE)
+	}
+
+	// With a voidSlot dst the call is compiled as a CallVoid-like op,
+	// it still sets the result registers.
+	cl.compileRootExpr(dst[0], call)
+	if dst[1] != voidSlot {
+		cl.emit1(bytecode.OpMoveResult2, dst[1])
 	}
 }
 

@@ -89,3 +89,64 @@ func TestCompileError(t *testing.T) {
 
 	}
 }
+
+func TestCompileErrorMultiResult(t *testing.T) {
+	tests := []struct {
+		src string
+		err string
+	}{
+		{
+			src: `func f() (int, int, int) { return 1, 2, 3 }`,
+			err: `at most 2 value results are supported, f has 3`,
+		},
+
+		{
+			src: `func f() (int, map[int]int) { return 1, nil }`,
+			err: `function result type: map[int]int is not supported`,
+		},
+
+		{
+			src: `func f() (a, b int) { return }`,
+			err: `'naked' return statements are not allowed`,
+		},
+
+		{
+			src: `
+				func two() (int, int) { return 1, 2 }
+				func f() { two() }`,
+			err: `only void funcs can be used in stmt context`,
+		},
+
+		{
+			src: `
+				func two() (int, int) { return 1, 2 }
+				func take(x, y int) int { return x + y }
+				func f() int { return take(two()) }`,
+			err: `can't pass tuple as a func argument`,
+		},
+
+		{
+			src: `func f() int { a, b := 1, 2; return a + b }`,
+			err: `only single right operand is allowed in assignments`,
+		},
+	}
+
+	for i := range tests {
+		test := tests[i]
+		t.Run(fmt.Sprintf("test%d", i), func(t *testing.T) {
+			env := quasigo.NewEnv()
+			src := "package " + testPackage + "\n" + test.src
+			parsed, err := testutil.ParseGoFile(testPackage, src)
+			if err != nil {
+				t.Fatalf("parse %s: %v", test.src, err)
+			}
+			_, err = testutil.CompileTestFile(env, "f", testPackage, parsed)
+			if err == nil {
+				t.Fatalf("expected an error containing %q, got none", test.err)
+			}
+			if !strings.Contains(err.Error(), test.err) {
+				t.Fatalf("errors mismatched:\nhave: %q\nwant: %q", err.Error(), test.err)
+			}
+		})
+	}
+}

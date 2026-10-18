@@ -299,6 +299,12 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			eval(env, fn, nextFrameSlot(slotptr, fn.FrameSize))
 			*getslot(slotptr, dstslot) = env.result
 			codeptr = ptradd(codeptr, 2)
+		case bytecode.OpCallRecurVoid:
+			if !canAllocFrame(slotptr, env.slotend, fn.FrameSize) {
+				panicStackOverflow(fn)
+			}
+			eval(env, fn, nextFrameSlot(slotptr, fn.FrameSize))
+			codeptr = ptradd(codeptr, 1)
 		case bytecode.OpCallVoid:
 			funcid := unpack16(codeptr, 1)
 			callFunc := env.userFuncs[funcid]
@@ -347,7 +353,11 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			if !canAllocFrame(slotptr, env.slotend, callFunc.frameSize) {
 				panicStackOverflow(fn)
 			}
+			// The env is needed even though the result is discarded:
+			// `_, err := f()` calls the native func with CallVoidNative
+			// and then reads the second result with MoveResult2.
 			callFunc.mappedFunc(NativeCallContext{
+				env:     env,
 				slotptr: nextFrameSlot(slotptr, fn.FrameSize),
 			})
 			codeptr = ptradd(codeptr, 3)
@@ -371,6 +381,11 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 		case bytecode.OpReturn:
 			srcslot := unpack8(codeptr, 1)
 			env.result = *getslot(slotptr, srcslot)
+			return
+		case bytecode.OpReturn2:
+			srcslot1, srcslot2 := unpack8x2(codeptr, 1)
+			env.result = *getslot(slotptr, srcslot1)
+			env.result2 = *getslot(slotptr, srcslot2)
 			return
 
 		case bytecode.OpFloatAdd64:

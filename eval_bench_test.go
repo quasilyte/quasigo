@@ -124,6 +124,26 @@ var benchmarksNoAlloc = []*benchTestCase{
 	},
 
 	{
+		name: `CallRet2`,
+		src:  `a, b := ret2(1, 2); return a - b`,
+	},
+
+	{
+		name: `CallRet2Str`,
+		src:  `s, n := ret2str("a", 2); return s == "a" && n == 2`,
+	},
+
+	{
+		name: `CallRet2Discard`,
+		src:  `_, b := ret2(1, 2); return b`,
+	},
+
+	{
+		name: `CallRet2Loop`,
+		src:  `a := 1; b := 2; for i := 0; i < 100; i++ { a, b = ret2(a, b) }; return a - b`,
+	},
+
+	{
 		name: `CallRecur5`,
 		src:  `return recur(5)`,
 	},
@@ -220,6 +240,9 @@ func recur(x int) bool {
 	}
 	return recur(x - 1)
 }
+
+func ret2(x, y int) (int, int) { return y, x }
+func ret2str(s string, n int) (string, int) { return s, n }
 
 func sqrt(x int) int {
 	if x == 0 || x == 1 {

@@ -87,7 +87,13 @@ func (opt *Optimizer) markUniq(b *ir.Block) {
 				info := table[slot.ID]
 				switch info.numReads {
 				case 0:
-					// No reads for this var. Can safely remove it.
+					// No reads for this var. Can safely remove it,
+					// unless it's a call: it may have side effects, and for
+					// the multi-result calls the Call + MoveResult2 pair
+					// can't be broken as the second result is read after it.
+					if b.Code[i].Op.IsCall() {
+						break
+					}
 					b.Code[info.pos].Pseudo = ir.OpUnset
 					b.Code[i].Op = bytecode.OpInvalid
 					b.NumVarKill--

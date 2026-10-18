@@ -68,17 +68,22 @@ type compileError string
 func (e compileError) Error() string { return string(e) }
 
 func (cl *funcCompiler) buildIR(fn *ast.FuncDecl) *ir.Func {
-	switch cl.fnType.Results().Len() {
+	results := cl.fnType.Results()
+	switch results.Len() {
 	case 0:
 		cl.retType = voidType
 	case 1:
-		cl.retType = cl.fnType.Results().At(0).Type()
+		cl.retType = results.At(0).Type()
+	case 2:
+		cl.retType = results
 	default:
-		panic(cl.errorf(fn.Name, "multi-result functions are not supported"))
+		panic(cl.errorf(fn.Name, "at most 2 value results are supported, %s has %d", fn.Name, results.Len()))
 	}
 
-	if !cl.isSupportedType(cl.retType) {
-		panic(cl.errorUnsupportedType(fn.Name, cl.retType, "function result"))
+	for i := 0; i < results.Len(); i++ {
+		if typ := results.At(i).Type(); !cl.isSupportedType(typ) {
+			panic(cl.errorUnsupportedType(fn.Name, typ, "function result"))
+		}
 	}
 
 	dbg := qruntime.FuncDebugInfo{
@@ -284,7 +289,7 @@ func (cl *funcCompiler) lastOp() bytecode.Op {
 
 func (cl *funcCompiler) isUncondJump(op bytecode.Op) bool {
 	switch op {
-	case bytecode.OpJump, bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnStr, bytecode.OpReturnScalar:
+	case bytecode.OpJump, bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnStr, bytecode.OpReturnScalar, bytecode.OpReturn2:
 		return true
 	default:
 		return false
