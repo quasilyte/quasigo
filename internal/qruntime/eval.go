@@ -330,6 +330,10 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			srcslot := unpack8(codeptr, 1)
 			env.vararg = append(env.vararg, getslot(slotptr, srcslot).Bool())
 			codeptr = ptradd(codeptr, 2)
+		case bytecode.OpPushVariadicFloatArg:
+			srcslot := unpack8(codeptr, 1)
+			env.vararg = append(env.vararg, getslot(slotptr, srcslot).Float())
+			codeptr = ptradd(codeptr, 2)
 		case bytecode.OpPushVariadicScalarArg:
 			srcslot := unpack8(codeptr, 1)
 			env.vararg = append(env.vararg, getslot(slotptr, srcslot).Int())

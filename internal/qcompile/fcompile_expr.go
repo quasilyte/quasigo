@@ -580,20 +580,28 @@ func (cl *funcCompiler) compileMakeCall(dst ir.Slot, call *ast.CallExpr) {
 }
 
 func (cl *funcCompiler) compileCallVariadicArgs(args []ast.Expr) {
+	// Evaluate all args before the vararg buffer is touched because
+	// an arg can be a call to a func that uses the variadic args itself.
+	// TODO: allocating a slot slice here is sloppy.
+	slots := make([]ir.Slot, len(args))
+	for i, arg := range args {
+		slots[i] = cl.compileTempExpr(arg)
+	}
+
 	cl.emitOp(bytecode.OpVariadicReset)
-	tempslot := cl.allocTemp()
-	for _, arg := range args {
-		cl.CompileExpr(tempslot, arg)
+	for i, arg := range args {
 		argType := cl.ctx.Types.TypeOf(arg)
 		switch {
 		case typeIsBool(argType):
-			cl.emit1(bytecode.OpPushVariadicBoolArg, tempslot)
+			cl.emit1(bytecode.OpPushVariadicBoolArg, slots[i])
+		case typeIsFloat(argType):
+			cl.emit1(bytecode.OpPushVariadicFloatArg, slots[i])
 		case typeIsScalar(argType):
-			cl.emit1(bytecode.OpPushVariadicScalarArg, tempslot)
+			cl.emit1(bytecode.OpPushVariadicScalarArg, slots[i])
 		case typeIsString(argType):
-			cl.emit1(bytecode.OpPushVariadicStrArg, tempslot)
+			cl.emit1(bytecode.OpPushVariadicStrArg, slots[i])
 		case typeIsInterface(argType):
-			cl.emit1(bytecode.OpPushVariadicInterfaceArg, tempslot)
+			cl.emit1(bytecode.OpPushVariadicInterfaceArg, slots[i])
 		default:
 			panic(cl.errorf(arg, "can't pass %s typed variadic arg", argType.String()))
 		}

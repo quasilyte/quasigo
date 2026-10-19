@@ -70,32 +70,33 @@ func _() {
 	_ = x[OpCallNative-59]
 	_ = x[OpCallVoidNative-60]
 	_ = x[OpPushVariadicBoolArg-61]
-	_ = x[OpPushVariadicScalarArg-62]
-	_ = x[OpPushVariadicStrArg-63]
-	_ = x[OpPushVariadicInterfaceArg-64]
-	_ = x[OpVariadicReset-65]
-	_ = x[OpReturnVoid-66]
-	_ = x[OpReturnZero-67]
-	_ = x[OpReturnOne-68]
-	_ = x[OpReturnStr-69]
-	_ = x[OpReturnScalar-70]
-	_ = x[OpReturn-71]
-	_ = x[OpReturn2-72]
-	_ = x[OpFloatAdd64-73]
-	_ = x[OpFloatSub64-74]
-	_ = x[OpFloatMul64-75]
-	_ = x[OpFloatDiv64-76]
-	_ = x[OpFloatGt-77]
-	_ = x[OpFloatGtEq-78]
-	_ = x[OpFloatLt-79]
-	_ = x[OpFloatLtEq-80]
-	_ = x[OpFloatNeg-81]
-	_ = x[OpConvIntToFloat-82]
+	_ = x[OpPushVariadicFloatArg-62]
+	_ = x[OpPushVariadicScalarArg-63]
+	_ = x[OpPushVariadicStrArg-64]
+	_ = x[OpPushVariadicInterfaceArg-65]
+	_ = x[OpVariadicReset-66]
+	_ = x[OpReturnVoid-67]
+	_ = x[OpReturnZero-68]
+	_ = x[OpReturnOne-69]
+	_ = x[OpReturnStr-70]
+	_ = x[OpReturnScalar-71]
+	_ = x[OpReturn-72]
+	_ = x[OpReturn2-73]
+	_ = x[OpFloatAdd64-74]
+	_ = x[OpFloatSub64-75]
+	_ = x[OpFloatMul64-76]
+	_ = x[OpFloatDiv64-77]
+	_ = x[OpFloatGt-78]
+	_ = x[OpFloatGtEq-79]
+	_ = x[OpFloatLt-80]
+	_ = x[OpFloatLtEq-81]
+	_ = x[OpFloatNeg-82]
+	_ = x[OpConvIntToFloat-83]
 }
 
-const _Op_name = "InvalidLoadScalarConstLoadStrConstZeroMoveMove8MoveResult2NotIsNilIsNotNilIsNilInterfaceIsNotNilInterfaceCapStrSliceStrSliceFromStrSliceToStrIndexSliceIndexScalar8SliceIndexScalar64BytesSliceBytesSliceFromBytesSliceToSliceSetScalar8SliceSetScalar64ConcatStrEqStrNotEqStrGtStrLtIntNegIntBitwiseNotScalarEqScalarNotEqIntGtIntGtEqIntLtIntLtEqIntAdd8IntAdd64IntSub8IntSub64IntMul8IntMul64IntDivIntModIntXorIntOrIntLshiftIntRshiftIntIncIntDecJumpJumpZeroJumpNotZeroJumpTableCallCallRecurCallRecurVoidCallVoidCallNativeCallVoidNativePushVariadicBoolArgPushVariadicScalarArgPushVariadicStrArgPushVariadicInterfaceArgVariadicResetReturnVoidReturnZeroReturnOneReturnStrReturnScalarReturnReturn2FloatAdd64FloatSub64FloatMul64FloatDiv64FloatGtFloatGtEqFloatLtFloatLtEqFloatNegConvIntToFloat"
+const _Op_name = "InvalidLoadScalarConstLoadStrConstZeroMoveMove8MoveResult2NotIsNilIsNotNilIsNilInterfaceIsNotNilInterfaceCapStrSliceStrSliceFromStrSliceToStrIndexSliceIndexScalar8SliceIndexScalar64BytesSliceBytesSliceFromBytesSliceToSliceSetScalar8SliceSetScalar64ConcatStrEqStrNotEqStrGtStrLtIntNegIntBitwiseNotScalarEqScalarNotEqIntGtIntGtEqIntLtIntLtEqIntAdd8IntAdd64IntSub8IntSub64IntMul8IntMul64IntDivIntModIntXorIntOrIntLshiftIntRshiftIntIncIntDecJumpJumpZeroJumpNotZeroJumpTableCallCallRecurCallRecurVoidCallVoidCallNativeCallVoidNativePushVariadicBoolArgPushVariadicFloatArgPushVariadicScalarArgPushVariadicStrArgPushVariadicInterfaceArgVariadicResetReturnVoidReturnZeroReturnOneReturnStrReturnScalarReturnReturn2FloatAdd64FloatSub64FloatMul64FloatDiv64FloatGtFloatGtEqFloatLtFloatLtEqFloatNegConvIntToFloat"
 
-var _Op_index = [...]uint16{0, 7, 22, 34, 38, 42, 47, 58, 61, 66, 74, 88, 105, 108, 116, 128, 138, 146, 163, 181, 191, 205, 217, 232, 248, 254, 259, 267, 272, 277, 283, 296, 304, 315, 320, 327, 332, 339, 346, 354, 361, 369, 376, 384, 390, 396, 402, 407, 416, 425, 431, 437, 441, 449, 460, 469, 473, 482, 495, 503, 513, 527, 546, 567, 585, 609, 622, 632, 642, 651, 660, 672, 678, 685, 695, 705, 715, 725, 732, 741, 748, 757, 765, 779}
+var _Op_index = [...]uint16{0, 7, 22, 34, 38, 42, 47, 58, 61, 66, 74, 88, 105, 108, 116, 128, 138, 146, 163, 181, 191, 205, 217, 232, 248, 254, 259, 267, 272, 277, 283, 296, 304, 315, 320, 327, 332, 339, 346, 354, 361, 369, 376, 384, 390, 396, 402, 407, 416, 425, 431, 437, 441, 449, 460, 469, 473, 482, 495, 503, 513, 527, 546, 566, 587, 605, 629, 642, 652, 662, 671, 680, 692, 698, 705, 715, 725, 735, 745, 752, 761, 768, 777, 785, 799}
 
 func (i Op) String() string {
 	if i >= Op(len(_Op_index)-1) {

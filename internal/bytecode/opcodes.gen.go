@@ -189,67 +189,70 @@ const (
 	OpPushVariadicBoolArg Op = 61
 
 	// Encoding: 0x3e x:u8 (width=2)
-	OpPushVariadicScalarArg Op = 62
+	OpPushVariadicFloatArg Op = 62
 
 	// Encoding: 0x3f x:u8 (width=2)
-	OpPushVariadicStrArg Op = 63
+	OpPushVariadicScalarArg Op = 63
 
 	// Encoding: 0x40 x:u8 (width=2)
-	OpPushVariadicInterfaceArg Op = 64
+	OpPushVariadicStrArg Op = 64
 
-	// Encoding: 0x41 (width=1)
-	OpVariadicReset Op = 65
+	// Encoding: 0x41 x:u8 (width=2)
+	OpPushVariadicInterfaceArg Op = 65
 
 	// Encoding: 0x42 (width=1)
-	OpReturnVoid Op = 66
+	OpVariadicReset Op = 66
 
 	// Encoding: 0x43 (width=1)
-	OpReturnZero Op = 67
+	OpReturnVoid Op = 67
 
 	// Encoding: 0x44 (width=1)
-	OpReturnOne Op = 68
+	OpReturnZero Op = 68
 
-	// Encoding: 0x45 x:u8 (width=2)
-	OpReturnStr Op = 69
+	// Encoding: 0x45 (width=1)
+	OpReturnOne Op = 69
 
 	// Encoding: 0x46 x:u8 (width=2)
-	OpReturnScalar Op = 70
+	OpReturnStr Op = 70
 
 	// Encoding: 0x47 x:u8 (width=2)
-	OpReturn Op = 71
+	OpReturnScalar Op = 71
 
-	// Encoding: 0x48 x:u8 y:u8 (width=3)
-	OpReturn2 Op = 72
+	// Encoding: 0x48 x:u8 (width=2)
+	OpReturn Op = 72
 
-	// Encoding: 0x49 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatAdd64 Op = 73
+	// Encoding: 0x49 x:u8 y:u8 (width=3)
+	OpReturn2 Op = 73
 
 	// Encoding: 0x4a dst:u8 x:u8 y:u8 (width=4)
-	OpFloatSub64 Op = 74
+	OpFloatAdd64 Op = 74
 
 	// Encoding: 0x4b dst:u8 x:u8 y:u8 (width=4)
-	OpFloatMul64 Op = 75
+	OpFloatSub64 Op = 75
 
 	// Encoding: 0x4c dst:u8 x:u8 y:u8 (width=4)
-	OpFloatDiv64 Op = 76
+	OpFloatMul64 Op = 76
 
 	// Encoding: 0x4d dst:u8 x:u8 y:u8 (width=4)
-	OpFloatGt Op = 77
+	OpFloatDiv64 Op = 77
 
 	// Encoding: 0x4e dst:u8 x:u8 y:u8 (width=4)
-	OpFloatGtEq Op = 78
+	OpFloatGt Op = 78
 
 	// Encoding: 0x4f dst:u8 x:u8 y:u8 (width=4)
-	OpFloatLt Op = 79
+	OpFloatGtEq Op = 79
 
 	// Encoding: 0x50 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatLtEq Op = 80
+	OpFloatLt Op = 80
 
-	// Encoding: 0x51 dst:u8 x:u8 (width=3)
-	OpFloatNeg Op = 81
+	// Encoding: 0x51 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatLtEq Op = 81
 
 	// Encoding: 0x52 dst:u8 x:u8 (width=3)
-	OpConvIntToFloat Op = 82
+	OpFloatNeg Op = 82
+
+	// Encoding: 0x53 dst:u8 x:u8 (width=3)
+	OpConvIntToFloat Op = 83
 )
 
 var opcodeInfoTable = [256]OpcodeInfo{
@@ -701,6 +704,12 @@ var opcodeInfoTable = [256]OpcodeInfo{
 			{Name: "fn", Kind: ArgNativeFuncID, Offset: 1, Flags: 0}},
 	},
 	OpPushVariadicBoolArg: {
+		Width: 2,
+		Flags: 0,
+		Args: []Argument{
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
+	},
+	OpPushVariadicFloatArg: {
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{

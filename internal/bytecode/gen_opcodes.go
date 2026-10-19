@@ -92,6 +92,7 @@ var opcodePrototypes = []opcodeProto{
 	{"CallVoidNative", "op fn:nativefuncid"},
 
 	{"PushVariadicBoolArg", "op x:rslot"},
+	{"PushVariadicFloatArg", "op x:rslot"},
 	{"PushVariadicScalarArg", "op x:rslot"},
 	{"PushVariadicStrArg", "op x:rslot"},
 	{"PushVariadicInterfaceArg", "op x:rslot"},
