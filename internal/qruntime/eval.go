@@ -286,7 +286,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			funcid := unpack16(codeptr, 2)
 			callFunc := env.userFuncs[funcid]
 			if !canAllocFrame(slotptr, env.slotend, callFunc.FrameSize) {
-				panicStackOverflow(fn)
+				panicStackOverflow(callFunc)
 			}
 			eval(env, callFunc, nextFrameSlot(slotptr, fn.FrameSize))
 			*getslot(slotptr, dstslot) = env.result
@@ -309,7 +309,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			funcid := unpack16(codeptr, 1)
 			callFunc := env.userFuncs[funcid]
 			if !canAllocFrame(slotptr, env.slotend, callFunc.FrameSize) {
-				panicStackOverflow(fn)
+				panicStackOverflow(callFunc)
 			}
 			eval(env, callFunc, nextFrameSlot(slotptr, fn.FrameSize))
 			codeptr = ptradd(codeptr, 3)
@@ -335,12 +335,12 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			codeptr = ptradd(codeptr, 2)
 
 		case bytecode.OpCallNative:
+			// Notice the lack of stack overflow check.
+			// The stack guarantees some excessive slots to accomodate
+			// the max number of native call args.
 			dstslot := unpack8(codeptr, 1)
 			funcid := unpack16(codeptr, 2)
 			callFunc := env.nativeFuncs[funcid]
-			if !canAllocFrame(slotptr, env.slotend, callFunc.frameSize) {
-				panicStackOverflow(fn)
-			}
 			callFunc.mappedFunc(NativeCallContext{
 				env:     env,
 				slotptr: nextFrameSlot(slotptr, fn.FrameSize),
@@ -348,14 +348,9 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			*getslot(slotptr, dstslot) = env.result
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpCallVoidNative:
+			// Same as OpCallNative, no stack check.
 			funcid := unpack16(codeptr, 1)
 			callFunc := env.nativeFuncs[funcid]
-			if !canAllocFrame(slotptr, env.slotend, callFunc.frameSize) {
-				panicStackOverflow(fn)
-			}
-			// The env is needed even though the result is discarded:
-			// `_, err := f()` calls the native func with CallVoidNative
-			// and then reads the second result with MoveResult2.
 			callFunc.mappedFunc(NativeCallContext{
 				env:     env,
 				slotptr: nextFrameSlot(slotptr, fn.FrameSize),
