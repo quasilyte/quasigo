@@ -127,6 +127,20 @@ func (cl *funcCompiler) compileReturn2(ret *ast.ReturnStmt) {
 }
 
 func (cl *funcCompiler) compileIfStmt(stmt *ast.IfStmt) {
+	if stmt.Init == nil {
+		cl.compileIfBranches(stmt)
+		return
+	}
+
+	// Variables defined by the init statement are visible
+	// in all branches and are dead after the whole if statement.
+	cl.scope.Enter()
+	cl.compileStmt(stmt.Init)
+	cl.compileIfBranches(stmt)
+	cl.killScopeVars(cl.scope.Leave())
+}
+
+func (cl *funcCompiler) compileIfBranches(stmt *ast.IfStmt) {
 	if stmt.Else == nil {
 		labelEnd := cl.newLabel()
 		{
