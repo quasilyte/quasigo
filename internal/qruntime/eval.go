@@ -7,8 +7,13 @@ import (
 )
 
 //go:noinline
-func panicStackOverflow(fn *Func) {
-	panic(fmt.Sprintf("can't call %s func: stack overflow", fn.Name))
+func panicStackOverflow(srcFunc, dstFunc *Func) {
+	panic(fmt.Sprintf("can't call %s -> %s: stack overflow", srcFunc.Name, dstFunc.Name))
+}
+
+//go:noinline
+func panicStackOverflowRecur(fn *Func) {
+	panic(fmt.Sprintf("can't recursively call %s: stack overflow", fn.Name))
 }
 
 func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
@@ -285,33 +290,37 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			dstslot := unpack8(codeptr, 1)
 			funcid := unpack16(codeptr, 2)
 			callFunc := env.userFuncs[funcid]
-			if !canAllocFrame(slotptr, env.slotend, callFunc.FrameSize) {
-				panicStackOverflow(callFunc)
+			nextslot := nextFrameSlot(slotptr, fn.FrameSize)
+			if !canAllocFrame(nextslot, env.slotend, callFunc.FrameSize) {
+				panicStackOverflow(fn, callFunc)
 			}
-			eval(env, callFunc, nextFrameSlot(slotptr, fn.FrameSize))
+			eval(env, callFunc, nextslot)
 			*getslot(slotptr, dstslot) = env.result
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpCallRecur:
 			dstslot := unpack8(codeptr, 1)
-			if !canAllocFrame(slotptr, env.slotend, fn.FrameSize) {
-				panicStackOverflow(fn)
+			nextslot := nextFrameSlot(slotptr, fn.FrameSize)
+			if !canAllocFrame(nextslot, env.slotend, fn.FrameSize) {
+				panicStackOverflowRecur(fn)
 			}
-			eval(env, fn, nextFrameSlot(slotptr, fn.FrameSize))
+			eval(env, fn, nextslot)
 			*getslot(slotptr, dstslot) = env.result
 			codeptr = ptradd(codeptr, 2)
 		case bytecode.OpCallRecurVoid:
-			if !canAllocFrame(slotptr, env.slotend, fn.FrameSize) {
-				panicStackOverflow(fn)
+			nextslot := nextFrameSlot(slotptr, fn.FrameSize)
+			if !canAllocFrame(nextslot, env.slotend, fn.FrameSize) {
+				panicStackOverflowRecur(fn)
 			}
-			eval(env, fn, nextFrameSlot(slotptr, fn.FrameSize))
+			eval(env, fn, nextslot)
 			codeptr = ptradd(codeptr, 1)
 		case bytecode.OpCallVoid:
 			funcid := unpack16(codeptr, 1)
 			callFunc := env.userFuncs[funcid]
-			if !canAllocFrame(slotptr, env.slotend, callFunc.FrameSize) {
-				panicStackOverflow(callFunc)
+			nextslot := nextFrameSlot(slotptr, fn.FrameSize)
+			if !canAllocFrame(nextslot, env.slotend, callFunc.FrameSize) {
+				panicStackOverflow(fn, callFunc)
 			}
-			eval(env, callFunc, nextFrameSlot(slotptr, fn.FrameSize))
+			eval(env, callFunc, nextslot)
 			codeptr = ptradd(codeptr, 3)
 
 		case bytecode.OpVariadicReset:

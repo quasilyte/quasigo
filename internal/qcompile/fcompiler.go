@@ -86,6 +86,10 @@ func (cl *funcCompiler) buildIR(fn *ast.FuncDecl) *ir.Func {
 		}
 	}
 
+	if cl.fnType.Params().Len() > qruntime.MaxNativeFuncArgs {
+		panic(cl.errorf(fn.Name, "%s has more than %d params", fn.Name, qruntime.MaxNativeFuncArgs))
+	}
+
 	dbg := qruntime.FuncDebugInfo{
 		SlotNames: make([]string, 0, len(cl.params)),
 	}

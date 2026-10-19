@@ -172,7 +172,7 @@ var benchmarksNoAlloc = []*benchTestCase{
 func TestNoAllocs(t *testing.T) {
 	for _, test := range benchmarksNoAlloc {
 		env, compiled := compileBenchFunc(t, test.params, test.src)
-		evalEnv := env.GetEvalEnv(4096)
+		evalEnv := env.GetEvalEnv(2 * 4096)
 		evalEnv.BindArgs(test.args...)
 
 		allocs := testing.AllocsPerRun(5, func() {
