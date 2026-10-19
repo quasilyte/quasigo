@@ -81,7 +81,7 @@ type CompileContext struct {
 	Optimize bool
 	Static   bool
 
-	TestingContext interface{}
+	TestingContext any
 }
 
 // Compile prepares an executable version of fn.
@@ -111,7 +111,7 @@ func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
 // simple wrapper that does this combination for you.
 // Note, however, that reusing bound arguments, whether possible,
 // if more efficient.
-func (env *EvalEnv) BindArgs(args ...interface{}) {
+func (env *EvalEnv) BindArgs(args ...any) {
 	env.data.BindArgs(args...)
 }
 

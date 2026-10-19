@@ -29,11 +29,11 @@ func (ncc NativeCallContext) StringArg(index int) string {
 	return getslot(ncc.slotptr, byte(index)).String()
 }
 
-func (ncc NativeCallContext) InterfaceArg(index int) interface{} {
+func (ncc NativeCallContext) InterfaceArg(index int) any {
 	return getslot(ncc.slotptr, byte(index)).Interface()
 }
 
-func (ncc NativeCallContext) VariadicArg() []interface{} {
+func (ncc NativeCallContext) VariadicArg() []any {
 	return ncc.env.vararg
 }
 
@@ -52,5 +52,5 @@ func (ncc NativeCallContext) SetStringResult2(v string) { ncc.env.result2.SetStr
 func (ncc NativeCallContext) SetByteSliceResult(v []byte)  { ncc.env.result.SetByteSlice(v) }
 func (ncc NativeCallContext) SetByteSliceResult2(v []byte) { ncc.env.result2.SetByteSlice(v) }
 
-func (ncc NativeCallContext) SetInterfaceResult(v interface{})  { ncc.env.result.SetInterface(v) }
-func (ncc NativeCallContext) SetInterfaceResult2(v interface{}) { ncc.env.result2.SetInterface(v) }
+func (ncc NativeCallContext) SetInterfaceResult(v any)  { ncc.env.result.SetInterface(v) }
+func (ncc NativeCallContext) SetInterfaceResult2(v any) { ncc.env.result2.SetInterface(v) }

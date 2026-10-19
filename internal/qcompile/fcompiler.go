@@ -262,7 +262,7 @@ func (cl *funcCompiler) emitCall(op bytecode.Op, dst ir.Slot, funcid int) {
 	})
 }
 
-func (cl *funcCompiler) fatalf(format string, args ...interface{}) {
+func (cl *funcCompiler) fatalf(format string, args ...any) {
 	loc := cl.ctx.Fset.Position(cl.fnName.Pos())
 	panic(fmt.Sprintf("%s:%d: internal error: %s", loc.Filename, loc.Line, fmt.Sprintf(format, args...)))
 }
@@ -271,7 +271,7 @@ func (cl *funcCompiler) errorUnsupportedType(e ast.Node, typ types.Type, where s
 	return cl.errorf(e, "%s type: %s is not supported, try something simpler", where, typ)
 }
 
-func (cl *funcCompiler) errorf(n ast.Node, format string, args ...interface{}) compileError {
+func (cl *funcCompiler) errorf(n ast.Node, format string, args ...any) compileError {
 	loc := cl.ctx.Fset.Position(n.Pos())
 	message := fmt.Sprintf("%s:%d: %s", loc.Filename, loc.Line, fmt.Sprintf(format, args...))
 	return compileError(message)

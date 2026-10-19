@@ -16,11 +16,11 @@ func (foo *Foo) Method1(x int) string { return foo.Prefix + fmt.Sprint(x) }
 
 func NewFoo(prefix string) *Foo { return &Foo{Prefix: prefix} }
 
-func NilEface() interface{} { return nil }
+func NilEface() any { return nil }
 
 func NilFoo() *Foo { return nil }
 
-func NilFooAsEface() interface{} { return (*Foo)(nil) }
+func NilFooAsEface() any { return (*Foo)(nil) }
 
 type FooPair struct {
 	first  *Foo

@@ -56,18 +56,18 @@ func (slot *Slot) MoveInterface(src *Slot) {
 	slot.Scalar = src.Scalar
 }
 
-func (slot *Slot) SetInterface(v interface{}) {
+func (slot *Slot) SetInterface(v any) {
 	raw := (*goIface)(unsafe.Pointer(&v))
 	slot.Ptr = raw.data
 	slot.Scalar = raw.typeinfo
 }
 
-func (slot Slot) Interface() interface{} {
+func (slot Slot) Interface() any {
 	v := goIface{
 		typeinfo: slot.Scalar,
 		data:     slot.Ptr,
 	}
-	return *(*interface{})(unsafe.Pointer(&v))
+	return *(*any)(unsafe.Pointer(&v))
 }
 
 func (slot *Slot) SetString(v string) {

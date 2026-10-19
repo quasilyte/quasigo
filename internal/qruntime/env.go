@@ -30,7 +30,7 @@ type EvalEnv struct {
 
 	result  Slot
 	result2 Slot
-	vararg  []interface{}
+	vararg  []any
 }
 
 func InitEnv(env *Env) {
@@ -96,7 +96,7 @@ func (env *Env) addFunc(key FuncKey, f *Func) {
 	env.NameToFuncID[key] = uint16(id)
 }
 
-func (env *EvalEnv) BindArgs(args ...interface{}) {
+func (env *EvalEnv) BindArgs(args ...any) {
 	for i, arg := range args {
 		switch arg := arg.(type) {
 		case int:

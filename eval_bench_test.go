@@ -15,7 +15,7 @@ type benchTestCase struct {
 	name   string
 	src    string
 	params string
-	args   []interface{}
+	args   []any
 }
 
 var benchmarksNoAlloc = []*benchTestCase{
@@ -48,14 +48,14 @@ var benchmarksNoAlloc = []*benchTestCase{
 		name:   `ParamInt`,
 		src:    `return x + y + z`,
 		params: `x, y, z int`,
-		args:   []interface{}{10, 20, 30},
+		args:   []any{10, 20, 30},
 	},
 
 	{
 		name:   `IntSliceIndex`,
 		src:    `xs[0] = 10; return xs[0]`,
 		params: `xs []int`,
-		args:   []interface{}{[]int{0}},
+		args:   []any{[]int{0}},
 	},
 
 	{
@@ -273,7 +273,7 @@ func _nestedcall2(x int) bool { return _nestedcall3(x) }
 func _nestedcall1(x int) bool { return _nestedcall2(x) }
 func nestedcall(x int) bool { return _nestedcall1(x) }
 
-func f(` + paramsSig + `) interface{} {
+func f(` + paramsSig + `) any {
 	` + body + `
 }
 func imul(x, y int) int

@@ -33,13 +33,13 @@ func TestCompileError(t *testing.T) {
 		  package ` + testPackage + `
 		  func add1(x int) int { return x + 1 }
 		  func concat(s1, s2 string) string { return s1 + s2 }
-		  func f(i int, s string, b bool, err error) interface{} {
+		  func f(i int, s string, b bool, err error) any {
 			` + body + `
 		  }
 		  func imul(x, y int) int
 		  func idiv2(x, y int) (int, int)
 		  func manyargs(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9 int) int
-		  func sprintf(format string, args ...interface{}) string
+		  func sprintf(format string, args ...any) string
 		  `
 	}
 

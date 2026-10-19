@@ -195,7 +195,7 @@ func main() {
 	}
 
 	var buf bytes.Buffer
-	err := fileTemplate.Execute(&buf, map[string]interface{}{
+	err := fileTemplate.Execute(&buf, map[string]any{
 		"Opcodes": opcodes,
 	})
 	if err != nil {
