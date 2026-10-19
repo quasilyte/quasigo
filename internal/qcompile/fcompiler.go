@@ -281,19 +281,23 @@ func (cl *funcCompiler) errorf(n ast.Node, format string, args ...any) compileEr
 	return compileError(message)
 }
 
+// lastOp returns the last emitted op or OpInvalid if the code can
+// be reached by a jump from elsewhere (e.g. ends with a label).
 func (cl *funcCompiler) lastOp() bytecode.Op {
 	for i := len(cl.code) - 1; i >= 0; i-- {
-		if cl.code[i].Op == bytecode.OpInvalid {
-			continue
+		switch inst := cl.code[i]; inst.Pseudo {
+		case ir.OpLabel:
+			return bytecode.OpInvalid
+		case ir.OpUnset:
+			return inst.Op
 		}
-		return cl.code[i].Op
 	}
 	return bytecode.OpInvalid
 }
 
 func (cl *funcCompiler) isUncondJump(op bytecode.Op) bool {
 	switch op {
-	case bytecode.OpJump, bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnStr, bytecode.OpReturnScalar, bytecode.OpReturn2:
+	case bytecode.OpJump, bytecode.OpReturnZero, bytecode.OpReturnOne, bytecode.OpReturnStr, bytecode.OpReturnScalar, bytecode.OpReturn, bytecode.OpReturnVoid, bytecode.OpReturn2:
 		return true
 	default:
 		return false
