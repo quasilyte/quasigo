@@ -741,6 +741,167 @@ func withBreak3(x, y int) int {
 	return res
 }
 
+
+// main.jumptabUnsorted code=99 frame=96 (4 slots: 1 params, 3 locals)
+//   Move temp0 = x
+//   Zero temp2
+//   IntLt temp1 = temp0 temp2
+//   JumpNotZero L0 temp1
+//   LoadScalarConst temp2 = 8
+//   IntGt temp1 = temp0 temp2
+//   JumpNotZero L0 temp1
+//   JumpTable temp0
+//   Jump L1
+//   Jump L2
+//   Jump L3
+//   Jump L4
+//   Jump L5
+//   Jump L6
+//   Jump L7
+//   Jump L8
+//   Jump L9
+// L1:
+//   LoadScalarConst temp1 = 20
+//   ReturnScalar temp1
+// L2:
+//   LoadScalarConst temp1 = 30
+//   ReturnScalar temp1
+// L3:
+//   LoadScalarConst temp1 = 40
+//   ReturnScalar temp1
+// L4:
+//   LoadScalarConst temp1 = 50
+//   ReturnScalar temp1
+// L5:
+//   LoadScalarConst temp1 = 60
+//   ReturnScalar temp1
+// L6:
+//   LoadScalarConst temp1 = 70
+//   ReturnScalar temp1
+// L7:
+//   LoadScalarConst temp1 = 80
+//   ReturnScalar temp1
+// L8:
+//   LoadScalarConst temp1 = 90
+//   ReturnScalar temp1
+// L9:
+//   LoadScalarConst temp1 = 100
+//   ReturnScalar temp1
+// L0:
+//   ReturnZero
+func jumptabUnsorted(x int) int {
+	switch x {
+	case 0:
+		return 20
+	case 7:
+		return 90
+	case 6:
+		return 80
+	case 5:
+		return 70
+	case 4:
+		return 60
+	case 3:
+		return 50
+	case 2:
+		return 40
+	case 1:
+		return 30
+	case 8:
+		return 100
+	default:
+		return 0
+	}
+}
+
+//test:disasm_opt
+// main.withGap code=170 frame=96 (4 slots: 1 params, 3 locals)
+//   Move temp0 = x
+//   Zero temp2
+//   IntLt temp1 = temp0 temp2
+//   JumpNotZero L0 temp1
+//   LoadScalarConst temp2 = 100
+//   IntGt temp1 = temp0 temp2
+//   JumpNotZero L0 temp1
+//   LoadScalarConst temp2 = 4
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L1 temp1
+//   IntGt temp1 = temp0 temp2
+//   JumpNotZero L2 temp1
+//   Zero temp2
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L3 temp1
+//   LoadScalarConst temp2 = 2
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L4 temp1
+//   LoadScalarConst temp2 = 3
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L5 temp1
+//   Jump L0
+// L2:
+//   LoadScalarConst temp2 = 5
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L6 temp1
+//   LoadScalarConst temp2 = 6
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L7 temp1
+//   LoadScalarConst temp2 = 7
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L8 temp1
+//   LoadScalarConst temp2 = 100
+//   ScalarEq temp1 = temp0 temp2
+//   JumpNotZero L9 temp1
+//   Jump L0
+// L3:
+//   LoadStrConst temp1 = "zero"
+//   ReturnStr temp1
+// L4:
+//   LoadStrConst temp1 = "two"
+//   ReturnStr temp1
+// L5:
+//   LoadStrConst temp1 = "three"
+//   ReturnStr temp1
+// L1:
+//   LoadStrConst temp1 = "four"
+//   ReturnStr temp1
+// L6:
+//   LoadStrConst temp1 = "five"
+//   ReturnStr temp1
+// L7:
+//   LoadStrConst temp1 = "six"
+//   ReturnStr temp1
+// L8:
+//   LoadStrConst temp1 = "seven"
+//   ReturnStr temp1
+// L9:
+//   LoadStrConst temp1 = "hundred"
+//   ReturnStr temp1
+// L0:
+//   LoadStrConst temp1 = "default"
+//   ReturnStr temp1
+func withGap(x int) string {
+	switch x {
+	case 0:
+		return "zero"
+	case 100:
+		return "hundred"
+	case 2:
+		return "two"
+	case 3:
+		return "three"
+	case 4:
+		return "four"
+	case 5:
+		return "five"
+	case 6:
+		return "six"
+	case 7:
+		return "seven"
+	default:
+		return "default"
+	}
+}
+
 func main() {
 	for i := -5; i < 50; i++ {
 		println(withBreak1(i))
@@ -749,6 +910,8 @@ func main() {
 		println(test5withDefault(i))
 		println(test10noDefault(i))
 		println(test10withDefault(i))
+		println(withGap(i))
+		println(jumptabUnsorted(i))
 	}
 	for i2 := -25; i2 < 100; i2++ {
 		println(test21withDefault(i2))

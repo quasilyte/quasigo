@@ -97,6 +97,10 @@ func (cl switchCompiler) compile(stmt *ast.SwitchStmt) {
 		numCases--
 	}
 	if len(constCases) == numCases {
+		// Both table and binary search need the cases to be pre-sorted.
+		sort.Slice(constCases, func(i, j int) bool {
+			return constant.Compare(constCases[i].value, token.LSS, constCases[j].value)
+		})
 		if cl.canCompileAsTable(constCases) {
 			cl.compileTableSearch(defaultBody, constCases)
 		} else {
@@ -111,18 +115,15 @@ func (cl switchCompiler) canCompileAsTable(cases []constCaseClause) bool {
 	if cl.opEq != bytecode.OpScalarEq || len(cases) < 8 {
 		return false
 	}
-	first := cases[0].value
-	if first.Kind() != constant.Int {
-		return false
-	}
-	firstVal, exact := constant.Int64Val(first)
-	if !exact || firstVal != 0 {
-		return false
-	}
-	last := cases[len(cases)-1].value
-	lastVal, exact := constant.Int64Val(last)
-	if !exact || lastVal != int64(len(cases)-1) {
-		return false
+	// The cases are pre-sorted and unique (guaranteed by go/types checker),
+	// so the table is dense only if the i-th case value is exactly i.
+	for i, c := range cases {
+		if c.value.Kind() != constant.Int {
+			return false
+		}
+		if v, exact := constant.Int64Val(c.value); !exact || v != int64(i) {
+			return false
+		}
 	}
 	return true
 }
