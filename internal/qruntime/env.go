@@ -46,15 +46,24 @@ func InitEnv(env *Env) {
 
 func InitEvalEnv(env *Env, ee *EvalEnv, stackSize int) {
 	numSlots := stackSize / int(SizeofSlot)
-	if numSlots < 4 {
+	if numSlots < 16+MaxNativeFuncArgs {
 		panic("stack size is too small")
 	}
-	slots := make([]Slot, numSlots)
 	ee.nativeFuncs = env.NativeFuncs
 	ee.userFuncs = env.UserFuncs
+
+	// This covers both script slots plus some slots
+	// available to call a native func at the end of the stack.
+	slots := make([]Slot, numSlots)
+
 	ee.slots = slots
 	ee.slotbase = &slots[0]
-	ee.slotend = &slots[len(slots)-1]
+
+	// Scripts can use slots up until the space reserved for
+	// the pre-overflow native call. It can be treated as
+	// there is some safe space for args beyond the normal stack space.
+	numScriptSlots := numSlots - MaxNativeFuncArgs - 1
+	ee.slotend = &slots[numScriptSlots]
 }
 
 type NativeFunc struct {
