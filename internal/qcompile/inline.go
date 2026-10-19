@@ -20,7 +20,10 @@ type inliner struct {
 
 	dst ir.Slot
 
+	// tempOffset is a temp slot that the inlined func frame starts at.
 	tempOffset int
+	// numReserved is a number of temp slots that the inlined func frame takes.
+	numReserved int
 }
 
 var inlineableOps = [256]bool{
@@ -120,6 +123,7 @@ func (cl *funcCompiler) inlineCall(dst ir.Slot, recv ast.Expr, args []ast.Expr, 
 	inlined := inl.Inline(recv, args)
 	if inlined {
 		cl.bindLabel(inl.labelRet)
+		cl.killScopeVars(inl.numReserved)
 	} else {
 		cl.numLabels = numLabels
 		cl.numTemp = numTemps
@@ -239,6 +243,11 @@ func (inl *inliner) Inline(recv ast.Expr, args []ast.Expr) bool {
 		return false
 	}
 
+	// The inlined frame temps should not be used by args evaluation:
+	// `add(10, inc(1))` would store inc() frame over the first arg otherwise.
+	// See inlinenested tests for examples (nestedInlineDisasm).
+	inl.numReserved = int(fn.NumParams) + int(fn.NumTemps)
+	inl.cl.tempSeq += inl.numReserved
 	inl.compileInlinedCallArgs(recv, args)
 	inl.cl.code = append(inl.cl.code, inlined...)
 
