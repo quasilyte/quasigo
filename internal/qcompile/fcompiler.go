@@ -400,7 +400,15 @@ func (cl *funcCompiler) internStrConstant(s string) int {
 	return id
 }
 
-func (cl *funcCompiler) defineOrLookupVar(e ast.Expr, varname string, define bool) ir.Slot {
+// pendingVarName is a name of the variable that is defined, but is not visible yet.
+// In assignments like `x := x + 1` it makes the outer `x` mismatch the lookup by its name
+// and find the existing (outer) slot for `x + 1`.
+const pendingVarName = "$pending$"
+
+// prepareAssignVar returns a slot for varname.
+// Newly defined variable should be made visible with publishVar
+// after its initializer is compiled.
+func (cl *funcCompiler) prepareAssignVar(e ast.Expr, varname string, define bool) ir.Slot {
 	if !define {
 		return cl.getNamedSlot(e, varname)
 	}
@@ -417,8 +425,14 @@ func (cl *funcCompiler) defineOrLookupVar(e ast.Expr, varname string, define boo
 	}
 
 	slot := cl.allocTemp()
-	cl.scope.PushVar(varname)
+	cl.scope.PushVar(pendingVarName)
 	return slot
+}
+
+func (cl *funcCompiler) bindVar(slot ir.Slot, varname string) {
+	if slot.IsTemp() && cl.scope.vars[slot.ID] == pendingVarName {
+		cl.scope.SetName(int(slot.ID), varname)
+	}
 }
 
 func (cl *funcCompiler) getNamedSlot(v ast.Expr, varname string) ir.Slot {

@@ -209,7 +209,63 @@ func testForScope() {
 	println(forScopeTest2())
 }
 
+func swap(x, y int) (int, int) {
+	return y, x
+}
+
+func shadowParam(x int) int {
+	{
+		x := x + 1
+		return x
+	}
+}
+
+func testShadowing() {
+	x := 10
+	{
+		x := x + 1
+		println(x)
+		{
+			x := x * 2
+			println(x)
+		}
+		println(x)
+	}
+	println(x)
+
+	println(shadowParam(5))
+
+	a, b := swap(1, 2)
+	{
+		a, b := swap(a, b)
+		println(a)
+		println(b)
+		a, b = swap(a+10, b+10)
+		println(a)
+		println(b)
+	}
+	println(a)
+	println(b)
+
+	for i := 1; i < 3; i++ {
+		i := i * 10
+		println(i)
+	}
+
+	s := "a"
+	{
+		s := s + "b"
+		{
+			s := s + "c"
+			println(s)
+		}
+		println(s)
+	}
+	println(s)
+}
+
 func main() {
 	testBlockScope()
 	testForScope()
+	testShadowing()
 }

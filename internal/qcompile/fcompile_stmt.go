@@ -263,11 +263,12 @@ func (cl *funcCompiler) compileAssignStmt(assign *ast.AssignStmt) {
 	var lhs1slot ir.Slot
 	switch assign.Tok {
 	case token.ASSIGN, token.DEFINE:
-		lhs1slot = cl.defineOrLookupVar(dst1, dst1.Name, assign.Tok == token.DEFINE)
+		lhs1slot = cl.prepareAssignVar(dst1, dst1.Name, assign.Tok == token.DEFINE)
 	default:
 		panic(cl.errorf(assign, "can't compile %s assign op", assign.Tok))
 	}
 	cl.compileRootExpr(lhs1slot, rhs)
+	cl.bindVar(lhs1slot, dst1.Name)
 }
 
 func (cl *funcCompiler) compileAssign2(assign *ast.AssignStmt) {
@@ -290,7 +291,7 @@ func (cl *funcCompiler) compileAssign2(assign *ast.AssignStmt) {
 			dst[i] = voidSlot
 			continue
 		}
-		dst[i] = cl.defineOrLookupVar(ident, ident.Name, assign.Tok == token.DEFINE)
+		dst[i] = cl.prepareAssignVar(ident, ident.Name, assign.Tok == token.DEFINE)
 	}
 
 	// With a voidSlot dst the call is compiled as a CallVoid-like op,
@@ -298,6 +299,9 @@ func (cl *funcCompiler) compileAssign2(assign *ast.AssignStmt) {
 	cl.compileRootExpr(dst[0], call)
 	if dst[1] != voidSlot {
 		cl.emit1(bytecode.OpMoveResult2, dst[1])
+	}
+	for i, lhs := range assign.Lhs {
+		cl.bindVar(dst[i], lhs.(*ast.Ident).Name)
 	}
 }
 

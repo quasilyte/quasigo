@@ -24,6 +24,11 @@ func (s *scope) Leave() int {
 	return depth
 }
 
+// SetName gives a name to the variable that was pushed with a pending name.
+func (s *scope) SetName(index int, name string) {
+	s.vars[index] = name
+}
+
 func (s *scope) PushVar(name string) {
 	s.depths[len(s.depths)-1]++
 	s.vars = append(s.vars, name)
