@@ -202,6 +202,14 @@ func BenchmarkEval(b *testing.B) {
 			name: `CallNativeVariadic3`,
 			src:  `message := "bad"; return fmt.Sprintf("%s:%d: %s", "foo.go", 105, message)`,
 		},
+		{
+			name: "CallNativeVariadicInts",
+			src:  `return variadicInts(1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000)`,
+		},
+		{
+			name: "CallNativeVariadicFloats",
+			src:  `return variadicFloats(1000.1, 2000.2, 3000.3, 4000.4, 5000.5, 6000.6, 7000.7, 8000.8)`,
+		},
 	}
 
 	tests = append(tests, benchmarksNoAlloc...)
@@ -233,6 +241,8 @@ var _ = fmt.Sprintf
 func fn0() bool { return false }
 func fn1(x int) bool { return false }
 func fn2(x, y int) bool { return false }
+func variadicInts(xs ...int) int { return 0 }
+func variadicFloats(xs ...float64) float64 { return 0 }
 
 func recur(x int) bool {
 	if x == 0 {
@@ -281,6 +291,12 @@ func imul(x, y int) int
 	}
 
 	env := quasigo.NewEnv()
+	env.AddNativeFunc(testPackage, "variadicInts", func(ctx qnative.CallContext) {
+		ctx.SetIntResult(11)
+	})
+	env.AddNativeFunc(testPackage, "variadicFloats", func(ctx qnative.CallContext) {
+		ctx.SetFloatResult(22)
+	})
 	env.AddNativeFunc(testPackage, "imul", func(ctx qnative.CallContext) {
 		x := ctx.IntArg(0)
 		y := ctx.IntArg(1)
