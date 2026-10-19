@@ -240,6 +240,10 @@ func (cl *funcCompiler) compileAssignStmt(assign *ast.AssignStmt) {
 			op = bytecode.OpIntXor
 		case token.OR_ASSIGN:
 			op = bytecode.OpIntOr
+		case token.AND_ASSIGN:
+			op = bytecode.OpIntAnd
+		case token.AND_NOT_ASSIGN:
+			op = bytecode.OpIntAndNot
 		case token.ADD_ASSIGN:
 			switch {
 			case typeIsString(typ):

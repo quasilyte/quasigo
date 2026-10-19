@@ -2,27 +2,30 @@ package main
 
 const one int = 1
 
-//test:disasm
 // main.constexpr1 code=25 frame=48 (2 slots: 0 params, 2 locals)
-//   LoadScalarConst temp0 = 1
-//   Move arg0 = temp0
-//   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst arg0 = 1
-//   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst temp1 = 3
-//   Move arg0 = temp1
-//   CallVoidNative builtin.PrintInt()
-//   ReturnVoid
 //
-//test:disasm_opt
+//	LoadScalarConst temp0 = 1
+//	Move arg0 = temp0
+//	CallVoidNative builtin.PrintInt()
+//	LoadScalarConst arg0 = 1
+//	CallVoidNative builtin.PrintInt()
+//	LoadScalarConst temp1 = 3
+//	Move arg0 = temp1
+//	CallVoidNative builtin.PrintInt()
+//	ReturnVoid
+//
 // main.constexpr1 code=19 frame=0 (0 slots: 0 params, 0 locals)
-//   LoadScalarConst arg0 = 1
-//   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst arg0 = 1
-//   CallVoidNative builtin.PrintInt()
-//   LoadScalarConst arg0 = 3
-//   CallVoidNative builtin.PrintInt()
-//   ReturnVoid
+//
+//	LoadScalarConst arg0 = 1
+//	CallVoidNative builtin.PrintInt()
+//	LoadScalarConst arg0 = 1
+//	CallVoidNative builtin.PrintInt()
+//	LoadScalarConst arg0 = 3
+//	CallVoidNative builtin.PrintInt()
+//	ReturnVoid
+//
+//test:disasm
+//test:disasm_opt
 func constexpr1() {
 	x := one
 	println(x)
@@ -30,18 +33,22 @@ func constexpr1() {
 	println(one + 1 + one)
 }
 
-//test:disasm_both
 // main.intnegvar code=5 frame=48 (2 slots: 1 params, 1 locals)
-//   IntNeg temp0 = x
-//   ReturnScalar temp0
+//
+//	IntNeg temp0 = x
+//	ReturnScalar temp0
+//
+//test:disasm_both
 func intnegvar(x int) int {
 	return -x
 }
 
-//test:disasm_both
 // main.intnegconst code=5 frame=24 (1 slots: 0 params, 1 locals)
-//   LoadScalarConst temp0 = -50
-//   ReturnScalar temp0
+//
+//	LoadScalarConst temp0 = -50
+//	ReturnScalar temp0
+//
+//test:disasm_both
 func intnegconst() int {
 	return -50
 }

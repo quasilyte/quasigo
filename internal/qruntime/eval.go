@@ -206,6 +206,14 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
 			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() | getslot(slotptr, yslot).Int())
 			codeptr = ptradd(codeptr, 4)
+		case bytecode.OpIntAnd:
+			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar & getslot(slotptr, yslot).Scalar
+			codeptr = ptradd(codeptr, 4)
+		case bytecode.OpIntAndNot:
+			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
+			getslot(slotptr, dstslot).Scalar = getslot(slotptr, xslot).Scalar &^ getslot(slotptr, yslot).Scalar
+			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpIntLshift:
 			dstslot, xslot, yslot := unpack8x3(codeptr, 1)
 			getslot(slotptr, dstslot).SetInt(getslot(slotptr, xslot).Int() << getslot(slotptr, yslot).Int())

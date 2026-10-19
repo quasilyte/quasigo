@@ -199,6 +199,10 @@ func (cl *funcCompiler) compileBinaryExpr(dst ir.Slot, e *ast.BinaryExpr) {
 
 	case token.OR:
 		cl.compileBinaryOp(dst, bytecode.OpIntOr, e)
+	case token.AND:
+		cl.compileBinaryOp(dst, bytecode.OpIntAnd, e)
+	case token.AND_NOT:
+		cl.compileBinaryOp(dst, bytecode.OpIntAndNot, e)
 
 	case token.ADD:
 		switch {
