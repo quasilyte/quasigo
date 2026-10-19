@@ -85,8 +85,11 @@ func (env *Env) AddFunc(pkgPath, funcName string, f *Func) {
 }
 
 func (env *Env) GetFunc(pkgPath, funcName string) *Func {
-	id := env.NameToFuncID[FuncKey{Qualifier: pkgPath, Name: funcName}]
-	return env.UserFuncs[id]
+	id, ok := env.NameToFuncID[FuncKey{Qualifier: pkgPath, Name: funcName}]
+	if ok {
+		return env.UserFuncs[id]
+	}
+	return nil
 }
 
 func (env *Env) addNativeFunc(key FuncKey, f func(NativeCallContext)) {
