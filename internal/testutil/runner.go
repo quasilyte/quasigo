@@ -37,8 +37,9 @@ type Runner struct {
 }
 
 type RunnerTarget struct {
-	Name string
-	Path string
+	Prefix string
+	Name   string
+	Path   string
 }
 
 func NewRunner(t *testing.T) *Runner {
@@ -62,26 +63,44 @@ func (r *Runner) Run() {
 	}
 
 	for _, target := range r.Targets {
-		r.root.Run(target.Name, func(t *testing.T) {
+		testName := target.Name
+		if target.Prefix != "" {
+			testName = target.Prefix + "/" + target.Name
+		}
+		r.root.Run(testName, func(t *testing.T) {
 			r.runTarget(t, target)
 		})
 	}
 }
 
 func (r *Runner) testdataTargets() []RunnerTarget {
-	files, err := os.ReadDir("testdata")
+	return r.collectTargets("", filepath.Join(r.workdir, "testdata"))
+}
+
+func (r *Runner) collectTargets(prefix, p string) []RunnerTarget {
+	files, err := os.ReadDir(p)
 	if err != nil {
-		r.root.Fatalf("find testdata targets: %v", err)
+		r.root.Fatalf("find %q targets: %v", p, err)
 	}
+
 	targets := make([]RunnerTarget, 0, len(files))
 	for _, d := range files {
 		if !d.IsDir() {
 			continue
 		}
-		absPath := filepath.Join(r.workdir, "testdata", d.Name())
+		absPath := filepath.Join(p, d.Name())
+		if strings.HasSuffix(d.Name(), "_list") {
+			newPrefix := d.Name()
+			if prefix != "" {
+				newPrefix = prefix + "/" + d.Name()
+			}
+			targets = append(targets, r.collectTargets(newPrefix, absPath)...)
+			continue
+		}
 		targets = append(targets, RunnerTarget{
-			Name: d.Name(),
-			Path: absPath,
+			Prefix: prefix,
+			Name:   d.Name(),
+			Path:   absPath,
 		})
 	}
 	return targets
