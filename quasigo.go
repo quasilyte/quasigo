@@ -49,7 +49,7 @@ func (env *Env) GetEvalEnv(stackSize int) *EvalEnv {
 // It method is defined on pointer type, the typeName should start with `*`,
 // like `*github.com/user/pkgname.TypeName`.
 func (env *Env) AddNativeMethod(typeName, methodName string, f func(ctx qnative.CallContext)) {
-	env.data.AddNativeFunc(typeName, methodName, f)
+	env.data.AddNativeMethod(typeName, methodName, f)
 }
 
 // AddNativeFunc binds `$pkgPath.$funcName` symbol with f.
