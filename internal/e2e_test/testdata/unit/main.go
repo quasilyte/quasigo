@@ -21,7 +21,19 @@ func sumTo(n int) int {
 	return n + sumTo(n-1)
 }
 
-// Mutual recursion.
+//test:irdump
+// block0 [0]:
+//   Zero temp1.v0
+//   ScalarEq temp0.v0 = n temp1.v0
+//   JumpZero L0 temp0.v0
+// block1 [0]:
+//   ReturnOne
+// block2 (L0) [0]:
+//   LoadScalarConst temp2.v0 = 1
+//   IntSub64 temp1.v1 = n temp2.v0
+//   Move arg0 = temp1.v1
+//   Call temp0.v1 = main.isOdd
+//   ReturnScalar temp0.v1
 func isEven(n int) bool {
 	if n == 0 {
 		return true
@@ -57,14 +69,26 @@ func greet(name string) string {
 
 func prefix() string { return "hello, " }
 
-// A chain where everything is a forward call.
-//test:irdump
-// block0 [0]:
+//test:disasm
+// main.chain code=16 frame=96 (4 slots: 1 params, 3 locals)
 //   Move arg0 = x
-//   Call temp1.v0 = main.chain2
-//   LoadScalarConst temp2.v0 = 1
-//   IntAdd64 temp0.v0 = temp1.v0 temp2.v0
-//   ReturnScalar temp0.v0
+//   Call temp1 = main.chain2()
+//   LoadScalarConst temp2 = 1
+//   IntAdd64 temp0 = temp1 temp2
+//   ReturnScalar temp0
+//test:disasm_opt
+// main.chain code=35 frame=264 (11 slots: 1 params, 10 locals)
+//   Move temp2 = x
+//   Move temp6 = temp2
+//   LoadScalarConst temp9 = 1
+//   IntAdd64 temp8 = temp6 temp9
+//   Move temp5 = temp8
+//   LoadScalarConst temp6 = 1
+//   IntAdd64 temp4 = temp5 temp6
+//   Move temp1 = temp4
+//   LoadScalarConst temp2 = 1
+//   IntAdd64 temp0 = temp1 temp2
+//   ReturnScalar temp0
 func chain(x int) int { return chain2(x) + 1 }
 func chain2(x int) int { return chain3(x) + 1 }
 func chain3(x int) int { return x + 1 }

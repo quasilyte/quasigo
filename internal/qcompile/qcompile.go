@@ -6,6 +6,7 @@ import (
 	"go/types"
 	"math"
 
+	"github.com/quasilyte/quasigo/internal/goutil"
 	"github.com/quasilyte/quasigo/internal/ir"
 	"github.com/quasilyte/quasigo/internal/qruntime"
 )
@@ -109,16 +110,89 @@ func (c *Compiler) CompileUnit(ctx *Context, config UnitCompilationConfig) error
 	}
 
 	// Pass 2: compile all funcs.
-	for i, decl := range config.Funcs {
-		compiled, err := c.CompileFunc(&unitCtx, decl)
+	// The callees are compiled before their callers whenever possible,
+	// so the callers can inline them.
+	for _, i := range c.funcCompileOrder(&unitCtx, config.Funcs) {
+		compiled, err := c.CompileFunc(&unitCtx, config.Funcs[i])
 		if err != nil {
 			return err
 		}
 		entries[i].fn = compiled
-		config.OnFuncCompiled(compiled)
+	}
+
+	// The results are reported in the declaration order,
+	// as it matches the reserved IDs.
+	for i := range entries {
+		config.OnFuncCompiled(entries[i].fn)
 	}
 
 	return nil
+}
+
+// compileOrder returns the indexes of funcs in the order they should be compiled.
+//
+// It's a post-order walk over the call graph, so a callee goes before its callers.
+// Ties are resolved by the declaration order, so the order is stable.
+// If there are cycles (recursion), they are broken at an arbitrary edge:
+// funcs that call each other can't be inlined anyway.
+func (c *Compiler) funcCompileOrder(ctx *Context, funcs []*ast.FuncDecl) []int {
+	if !ctx.Optimize {
+		order := make([]int, len(funcs))
+		for i := range funcs {
+			order[i] = i
+		}
+		return order
+	}
+
+	indexes := make(map[qruntime.FuncKey]int, len(funcs))
+	for i, decl := range funcs {
+		key := qruntime.FuncKey{Qualifier: ctx.Package.Path(), Name: decl.Name.Name}
+		indexes[key] = i
+	}
+
+	callees := make([][]int, len(funcs))
+	for i, decl := range funcs {
+		ast.Inspect(decl.Body, func(n ast.Node) bool {
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+			_, fn := goutil.ResolveFunc(ctx.Types, call.Fun)
+			if fn == nil || fn.Pkg() == nil || fn.Type().(*types.Signature).Recv() != nil {
+				return true
+			}
+			key := qruntime.FuncKey{Qualifier: fn.Pkg().Path(), Name: fn.Name()}
+			if j, ok := indexes[key]; ok {
+				callees[i] = append(callees[i], j)
+			}
+			return true
+		})
+	}
+
+	const (
+		stateUnvisited = iota
+		stateVisiting
+		stateDone
+	)
+	states := make([]byte, len(funcs))
+	order := make([]int, 0, len(funcs))
+	var visit func(i int)
+	visit = func(i int) {
+		if states[i] != stateUnvisited {
+			// Either done, or we're inside a cycle.
+			return
+		}
+		states[i] = stateVisiting
+		for _, j := range callees[i] {
+			visit(j)
+		}
+		states[i] = stateDone
+		order = append(order, i)
+	}
+	for i := range funcs {
+		visit(i)
+	}
+	return order
 }
 
 // lookupUserFunc finds a user func by its key, looking at the unit being
