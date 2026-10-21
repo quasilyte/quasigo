@@ -7,6 +7,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"strings"
 
 	"github.com/quasilyte/quasigo/internal/qcompile"
 	"github.com/quasilyte/quasigo/internal/qdisasm"
@@ -58,8 +59,12 @@ func (env *Env) AddNativeFunc(pkgPath, funcName string, f func(ctx qnative.CallC
 	env.data.AddNativeFunc(pkgPath, funcName, f)
 }
 
-// AddFunc binds `$pkgPath.$funcName` symbol with f.
-func (env *Env) AddFunc(pkgPath, funcName string, f Func) {
+// AddFunc binds f, it will be available under pkgPath and funcName
+// associated with f.
+func (env *Env) AddFunc(f Func) {
+	dotIndex := strings.LastIndexByte(f.Name(), '.')
+	pkgPath := f.Name()[:dotIndex]
+	funcName := f.Name()[dotIndex+1:]
 	env.data.AddFunc(pkgPath, funcName, f.data)
 }
 
@@ -85,8 +90,7 @@ type CompileContext struct {
 	TestingContext any
 }
 
-// Compile prepares an executable version of fn.
-func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
+func (ctx *CompileContext) internal() qcompile.Context {
 	internalCtx := qcompile.Context{
 		Env:      &ctx.Env.data,
 		Optimize: ctx.Optimize,
@@ -99,9 +103,46 @@ func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
 	if testingContext, ok := ctx.TestingContext.(qcompile.TestingContext); ok {
 		internalCtx.TestingContext = testingContext
 	}
+	return internalCtx
+}
+
+// Compile prepares an executable version of fn.
+//
+// Calls to other funcs are resolved using ctx.Env, so a callee
+// should be already bound (see Env.AddFunc) by the time its caller is compiled.
+// Use CompileUnit if funcs call each other in an arbitrary order.
+func Compile(ctx *CompileContext, fn *ast.FuncDecl) (Func, error) {
+	internalCtx := ctx.internal()
 	compiler := qcompile.NewCompiler()
 	compiled, err := compiler.CompileFunc(&internalCtx, fn)
 	return Func{data: compiled}, err
+}
+
+// CompilationUnit is a set of declarations that are compiled together.
+// It can be used for an entire package compilation (or its selected portion).
+type CompilationUnit struct {
+	// Funcs are the funcs to compile. They can call each other (and themselves)
+	// no matter what their order is.
+	Funcs []*ast.FuncDecl
+}
+
+type UnitCompilationResult struct {
+	Funcs []Func
+}
+
+// CompileUnit compiles all unit declarations at once.
+// See CompilationUnit doc comment for more info.
+func CompileUnit(ctx *CompileContext, unit *CompilationUnit) (UnitCompilationResult, error) {
+	internalCtx := ctx.internal()
+	compiler := qcompile.NewCompiler()
+	result := UnitCompilationResult{}
+	err := compiler.CompileUnit(&internalCtx, qcompile.UnitCompilationConfig{
+		Funcs: unit.Funcs,
+		OnFuncCompiled: func(compiled *qruntime.Func) {
+			result.Funcs = append(result.Funcs, Func{data: compiled})
+		},
+	})
+	return result, err
 }
 
 // BindArgs prepares the arguments for the call.
@@ -145,6 +186,8 @@ func Disasm(env *Env, fn Func) string {
 type Func struct {
 	data *qruntime.Func
 }
+
+func (fn Func) Name() string { return fn.data.Name }
 
 func (fn Func) IsNil() bool { return fn.data == nil }
 

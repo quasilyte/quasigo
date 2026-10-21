@@ -91,11 +91,10 @@ func (cl *funcCompiler) inlineCall(dst ir.Slot, recv ast.Expr, args []ast.Expr, 
 		return false
 	}
 
-	funcID, ok := cl.ctx.Env.NameToFuncID[key]
-	if !ok {
+	_, fn, ok := cl.lookupUserFunc(key)
+	if !ok || fn == nil { // fn is nil for funcs that are not compiled yet
 		return false
 	}
-	fn := cl.ctx.Env.UserFuncs[funcID]
 	if !fn.CanInline || len(fn.Code) > 48 {
 		return false
 	}

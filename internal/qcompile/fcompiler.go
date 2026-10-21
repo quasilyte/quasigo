@@ -3,6 +3,7 @@ package qcompile
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"math"
 
@@ -275,10 +276,14 @@ func (cl *funcCompiler) errorUnsupportedType(e ast.Node, typ types.Type, where s
 	return cl.errorf(e, "%s type: %s is not supported, try something simpler", where, typ)
 }
 
-func (cl *funcCompiler) errorf(n ast.Node, format string, args ...any) compileError {
-	loc := cl.ctx.Fset.Position(n.Pos())
+func cerrorf(fset *token.FileSet, pos token.Pos, format string, args ...any) compileError {
+	loc := fset.Position(pos)
 	message := fmt.Sprintf("%s:%d: %s", loc.Filename, loc.Line, fmt.Sprintf(format, args...))
 	return compileError(message)
+}
+
+func (cl *funcCompiler) errorf(n ast.Node, format string, args ...any) compileError {
+	return cerrorf(cl.ctx.Fset, n.Pos(), format, args...)
 }
 
 // lastOp returns the last emitted op or OpInvalid if the code can

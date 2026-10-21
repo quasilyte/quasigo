@@ -189,17 +189,22 @@ func (r *Runner) runTest(t *testing.T, pkg *testPackage, goResult string, optimi
 		}
 	}
 	var irdumpResults map[string]string
+	var irSnapshots []*ir.Func
 	if checkIR {
-		irdumpResults = make(map[string]string)
 		compileContext.TestingContext = &compilerTestingContext{
 			OnFuncIR: func(fn *ir.Func) {
-				dump := ir.Dump(fn)
-				irdumpResults[fn.Name] = dump
+				irSnapshots = append(irSnapshots, cloneIRFunc(fn))
 			},
 		}
 	}
-	for _, f := range pkg.files {
-		r.compileQuasigo(t, compileContext, f.syntax)
+	r.compileQuasigo(t, compileContext, pkg)
+	if checkIR {
+		// IR is dumped after the unit is compiled: a func can call
+		// the funcs that are not bound to the env at the time of its compilation.
+		irdumpResults = make(map[string]string, len(irSnapshots))
+		for _, fn := range irSnapshots {
+			irdumpResults[fn.Name] = ir.Dump(fn)
+		}
 	}
 
 	suffix := ""
@@ -327,21 +332,28 @@ func (r *Runner) checkDisasm(t *testing.T, f *testFile, env *testEnv, checks []d
 	}
 }
 
-func (r *Runner) compileQuasigo(t *testing.T, ctx *quasigo.CompileContext, f *ast.File) {
-	filename := filepath.Base(ctx.Fset.Position(f.Pos()).Filename)
-	for _, decl := range f.Decls {
-		decl, ok := decl.(*ast.FuncDecl)
-		if !ok {
-			continue
+// compileQuasigo compiles all package files as one unit,
+// so the test funcs can call each other in any order.
+func (r *Runner) compileQuasigo(t *testing.T, ctx *quasigo.CompileContext, pkg *testPackage) {
+	var unit quasigo.CompilationUnit
+	for _, f := range pkg.files {
+		for _, decl := range f.syntax.Decls {
+			decl, ok := decl.(*ast.FuncDecl)
+			if !ok {
+				continue
+			}
+			if decl.Body == nil {
+				continue
+			}
+			unit.Funcs = append(unit.Funcs, decl)
 		}
-		if decl.Body == nil {
-			continue
-		}
-		fn, err := quasigo.Compile(ctx, decl)
-		if err != nil {
-			t.Fatalf("%s: compile %s: %v", filename, decl.Name, err)
-		}
-		ctx.Env.AddFunc(ctx.Package.Path(), decl.Name.String(), fn)
+	}
+	result, err := quasigo.CompileUnit(ctx, &unit)
+	if err != nil {
+		t.Fatalf("compile %s: %v", pkg.typesPackage.Path(), err)
+	}
+	for _, fn := range result.Funcs {
+		ctx.Env.AddFunc(fn)
 	}
 }
 
@@ -596,6 +608,17 @@ type compilerTestingContext struct {
 
 func (ctx *compilerTestingContext) FuncIR(fn *ir.Func) {
 	ctx.OnFuncIR(fn)
+}
+
+// cloneIRFunc makes a copy of fn that is not affected by the further optimizations.
+func cloneIRFunc(fn *ir.Func) *ir.Func {
+	clone := *fn
+	clone.Blocks = make([]ir.Block, len(fn.Blocks))
+	for i, b := range fn.Blocks {
+		b.Code = append([]ir.Inst(nil), b.Code...)
+		clone.Blocks[i] = b
+	}
+	return &clone
 }
 
 // formatFloat formats a float value in builtin println() style.

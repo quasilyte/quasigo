@@ -707,7 +707,7 @@ func (cl *funcCompiler) compileRecurCall(dst ir.Slot) bool {
 }
 
 func (cl *funcCompiler) compileCall(dst ir.Slot, key qruntime.FuncKey) bool {
-	funcID, ok := cl.ctx.Env.NameToFuncID[key]
+	funcID, _, ok := cl.lookupUserFunc(key)
 	if !ok {
 		return false
 	}

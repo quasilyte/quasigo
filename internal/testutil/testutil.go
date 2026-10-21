@@ -76,7 +76,7 @@ func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *Parse
 		if decl.Name.String() == targetFunc {
 			resultFunc = fn
 		} else {
-			env.AddFunc(pkgPath, decl.Name.String(), fn)
+			env.AddFunc(fn)
 		}
 	}
 	return resultFunc, nil
