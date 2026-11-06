@@ -50,8 +50,10 @@ var inlineableOps = [256]bool{
 	bytecode.OpStrIndex:           true,
 	bytecode.OpSliceIndexScalar8:  true,
 	bytecode.OpSliceIndexScalar64: true,
+	bytecode.OpSliceIndexStr:      true,
 	bytecode.OpSliceSetScalar8:    true,
 	bytecode.OpSliceSetScalar64:   true,
+	bytecode.OpSliceSetStr:        true,
 
 	bytecode.OpNot:               true,
 	bytecode.OpIsNil:             true,

@@ -328,6 +328,8 @@ func (cl *funcCompiler) compileIndexExpr(dst ir.Slot, e *ast.IndexExpr) {
 			op = bytecode.OpSliceIndexScalar64
 		case typeIsBool(elemType), typeIsByte(elemType):
 			op = bytecode.OpSliceIndexScalar8
+		case typeIsString(elemType):
+			op = bytecode.OpSliceIndexStr
 		}
 	}
 	if op == bytecode.OpInvalid {

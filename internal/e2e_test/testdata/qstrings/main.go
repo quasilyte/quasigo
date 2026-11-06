@@ -27,5 +27,21 @@ func main() {
 	println(strings.ReplaceAll(s, "l", "12"))
 	println(strings.ReplaceAll(s, "ll", ""))
 
+	parts := strings.Split("a,b,,c", ",")
+	println(len(parts))
+	for i := 0; i < len(parts); i++ {
+		println(parts[i])
+	}
+	println(strings.Join(parts, "|"))
+	parts[2] = "x"
+	println(strings.Join(parts, ""))
+	println(len(strings.Split("", ",")))
+
+	words := strings.Fields("  foo bar\tbaz\n")
+	println(len(words))
+	words[0] = words[2] + words[1]
+	println(strings.Join(words, " "))
+	println(len(strings.Fields("   ")))
+
 	println(s)
 }

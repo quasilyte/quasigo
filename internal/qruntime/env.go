@@ -113,12 +113,20 @@ func (env *EvalEnv) BindArgs(args ...any) {
 		switch arg := arg.(type) {
 		case int:
 			env.slots[i].SetInt(arg)
+		case float64:
+			env.slots[i].SetFloat(arg)
 		case bool:
 			env.slots[i].SetBool(arg)
 		case string:
 			env.slots[i].SetString(arg)
 		case []byte:
 			env.slots[i].SetByteSlice(arg)
+		case []int:
+			env.slots[i].SetIntSlice(arg)
+		case []float64:
+			env.slots[i].SetFloatSlice(arg)
+		case []string:
+			env.slots[i].SetStringSlice(arg)
 		default:
 			env.slots[i].SetInterface(arg)
 		}

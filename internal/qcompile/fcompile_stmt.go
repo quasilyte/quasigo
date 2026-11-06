@@ -201,6 +201,8 @@ func (cl *funcCompiler) compileAssignIndex(e *ast.IndexExpr, assign *ast.AssignS
 		op = bytecode.OpSliceSetScalar64
 	case typeIsBool(elemType), typeIsByte(elemType):
 		op = bytecode.OpSliceSetScalar8
+	case typeIsString(elemType):
+		op = bytecode.OpSliceSetStr
 	default:
 		panic(cl.errorf(assign, "can't assign %s element type", elemType))
 	}

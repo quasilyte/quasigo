@@ -15,6 +15,9 @@ func ImportAll(env *quasigo.Env) {
 	env.AddNativeFunc(`strings`, `HasPrefix`, HasPrefix)
 	env.AddNativeFunc(`strings`, `HasSuffix`, HasSuffix)
 	env.AddNativeFunc(`strings`, `Contains`, Contains)
+	env.AddNativeFunc(`strings`, `Split`, Split)
+	env.AddNativeFunc(`strings`, `Fields`, Fields)
+	env.AddNativeFunc(`strings`, `Join`, Join)
 }
 
 func Replace(ctx qnative.CallContext) {
@@ -60,4 +63,21 @@ func Contains(ctx qnative.CallContext) {
 	s := ctx.StringArg(0)
 	substr := ctx.StringArg(1)
 	ctx.SetBoolResult(strings.Contains(s, substr))
+}
+
+func Split(ctx qnative.CallContext) {
+	s := ctx.StringArg(0)
+	sep := ctx.StringArg(1)
+	ctx.SetStringSliceResult(strings.Split(s, sep))
+}
+
+func Fields(ctx qnative.CallContext) {
+	s := ctx.StringArg(0)
+	ctx.SetStringSliceResult(strings.Fields(s))
+}
+
+func Join(ctx qnative.CallContext) {
+	elems := ctx.StringSliceArg(0)
+	sep := ctx.StringArg(1)
+	ctx.SetStringResult(strings.Join(elems, sep))
 }

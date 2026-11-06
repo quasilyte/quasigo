@@ -37,6 +37,7 @@ var opcodePrototypes = []opcodeProto{
 	{"StrIndex", "op dst:wslot str:rslot index:rslot"},
 	{"SliceIndexScalar8", "op dst:wslot slice:rslot index:rslot"},
 	{"SliceIndexScalar64", "op dst:wslot slice:rslot index:rslot"},
+	{"SliceIndexStr", "op dst:wslot slice:rslot index:rslot"},
 
 	{"BytesSlice", "op dst:wslot str:rslot from:rslot to:rslot"},
 	{"BytesSliceFrom", "op dst:wslot str:rslot from:rslot"},
@@ -44,6 +45,7 @@ var opcodePrototypes = []opcodeProto{
 
 	{"SliceSetScalar8", "op slice:rslot index:rslot value:rslot"},
 	{"SliceSetScalar64", "op slice:rslot index:rslot value:rslot"},
+	{"SliceSetStr", "op slice:rslot index:rslot value:rslot"},
 
 	{"Concat", "op dst:wslot s1:rslot s2:rslot"},
 

@@ -102,6 +102,30 @@ func (slot Slot) ByteSlice() []byte {
 	return *(*[]byte)(unsafe.Pointer(&slot))
 }
 
+func (slot *Slot) SetIntSlice(v []int) {
+	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
+}
+
+func (slot Slot) IntSlice() []int {
+	return *(*[]int)(unsafe.Pointer(&slot))
+}
+
+func (slot *Slot) SetFloatSlice(v []float64) {
+	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
+}
+
+func (slot Slot) FloatSlice() []float64 {
+	return *(*[]float64)(unsafe.Pointer(&slot))
+}
+
+func (slot *Slot) SetStringSlice(v []string) {
+	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
+}
+
+func (slot Slot) StringSlice() []string {
+	return *(*[]string)(unsafe.Pointer(&slot))
+}
+
 func (slot *Slot) SetInt(v int) {
 	slot.Scalar = uint64(v)
 }

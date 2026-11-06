@@ -1,5 +1,7 @@
 package main
 
+import "strings"
+
 //test:disasm_both
 // main.makeIntSlice1 code=15 frame=48 (2 slots: 1 params, 1 locals)
 //   LoadScalarConst arg0 = 8
@@ -255,6 +257,37 @@ func boolSliceAppend(xs []bool, value bool) []bool {
 	return append(xs, value)
 }
 
+//test:disasm_both
+// main.stringSliceLenCap code=19 frame=48 (2 slots: 1 params, 1 locals)
+//   Move temp0 = xs
+//   Move arg0 = temp0
+//   CallVoidNative builtin.PrintInt()
+//   Cap temp0 = xs
+//   Move arg0 = temp0
+//   CallVoidNative builtin.PrintInt()
+//   ReturnVoid
+func stringSliceLenCap(xs []string) {
+	println(len(xs))
+	println(cap(xs))
+}
+
+//test:disasm_both
+// main.stringSliceIndexing code=8 frame=48 (2 slots: 2 params, 0 locals)
+//   SliceIndexStr arg0 = xs i
+//   CallVoidNative builtin.PrintString()
+//   ReturnVoid
+func stringSliceIndexing(xs []string, i int) {
+	println(xs[i])
+}
+
+//test:disasm_both
+// main.stringSliceAssign code=5 frame=72 (3 slots: 3 params, 0 locals)
+//   SliceSetStr xs i value
+//   ReturnVoid
+func stringSliceAssign(xs []string, i int, value string) {
+	xs[i] = value
+}
+
 func testIntSlice() {
 	intSliceLenCap(makeIntSlice1(10))
 	intSliceLenCap(makeIntSlice2(3, 11))
@@ -376,9 +409,23 @@ func testBoolSlice() {
 	println(cap(s))
 }
 
+func testStringSlice() {
+	s := strings.Split("a b c", " ")
+	stringSliceLenCap(s)
+	stringSliceIndexing(s, 0)
+	stringSliceAssign(s, 0, "foo")
+	stringSliceIndexing(s, 0)
+	s[1] = s[0] + s[2]
+	println(s[1])
+	for i := 0; i < len(s); i++ {
+		println(s[i])
+	}
+}
+
 func main() {
 	testIntSlice()
 	testFloatSlice()
 	testByteSlice()
 	testBoolSlice()
+	testStringSlice()
 }

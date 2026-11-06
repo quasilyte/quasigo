@@ -70,6 +70,12 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			index := getslot(slotptr, indexslot).Int()
 			getslot(slotptr, dstslot).Scalar = slice[index]
 			codeptr = ptradd(codeptr, 4)
+		case bytecode.OpSliceIndexStr:
+			dstslot, sliceslot, indexslot := unpack8x3(codeptr, 1)
+			slice := getslot(slotptr, sliceslot).StringSlice()
+			index := getslot(slotptr, indexslot).Int()
+			getslot(slotptr, dstslot).SetString(slice[index])
+			codeptr = ptradd(codeptr, 4)
 
 		case bytecode.OpSliceSetScalar8:
 			sliceslot, indexslot, valueslot := unpack8x3(codeptr, 1)
@@ -82,6 +88,12 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			slice := getslot(slotptr, sliceslot).slice64()
 			index := getslot(slotptr, indexslot).Int()
 			slice[index] = getslot(slotptr, valueslot).Scalar
+			codeptr = ptradd(codeptr, 4)
+		case bytecode.OpSliceSetStr:
+			sliceslot, indexslot, valueslot := unpack8x3(codeptr, 1)
+			slice := getslot(slotptr, sliceslot).StringSlice()
+			index := getslot(slotptr, indexslot).Int()
+			slice[index] = getslot(slotptr, valueslot).String()
 			codeptr = ptradd(codeptr, 4)
 
 		case bytecode.OpBytesSliceFrom:
