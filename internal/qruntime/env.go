@@ -1,7 +1,5 @@
 package qruntime
 
-import "reflect"
-
 const MaxNativeFuncArgs = 6
 
 // Env is used to hold both compilation and evaluation data.
@@ -110,36 +108,28 @@ func (env *Env) addFunc(key FuncKey, f *Func) {
 	env.NameToFuncID[key] = uint16(id)
 }
 
-func (env *EvalEnv) BindArgs(args ...any) {
-	for i, arg := range args {
-		switch arg := arg.(type) {
-		case int:
-			env.slots[i].SetInt(arg)
-		case float64:
-			env.slots[i].SetFloat(arg)
-		case bool:
-			env.slots[i].SetBool(arg)
-		case string:
-			env.slots[i].SetString(arg)
-		case []byte:
-			*env.slots[i].Slice[[]byte]() = arg
-		case []int:
-			*env.slots[i].Slice[[]int]() = arg
-		case []float64:
-			*env.slots[i].Slice[[]float64]() = arg
-		case []string:
-			*env.slots[i].Slice[[]string]() = arg
-		default:
-			if v := reflect.ValueOf(arg); v.Kind() == reflect.Slice {
-				// Slices of other types, like []*T.
-				env.slots[i].setRawSlice(goSlice{
-					data: v.UnsafePointer(),
-					len:  v.Len(),
-					cap:  v.Cap(),
-				})
-				continue
-			}
-			env.slots[i].SetInterface(arg)
-		}
-	}
+// ArgsPusher binds the call arguments, one by one.
+type ArgsPusher struct {
+	slots []Slot
+	n     int
 }
+
+func (env *EvalEnv) PrepareArgs() ArgsPusher {
+	return ArgsPusher{slots: env.slots}
+}
+
+func (p *ArgsPusher) next() *Slot {
+	slot := &p.slots[p.n]
+	p.n++
+	return slot
+}
+
+func (p *ArgsPusher) PushBool(v bool)     { p.next().SetBool(v) }
+func (p *ArgsPusher) PushByte(v byte)     { p.next().SetByte(v) }
+func (p *ArgsPusher) PushInt(v int)       { p.next().SetInt(v) }
+func (p *ArgsPusher) PushFloat(v float64) { p.next().SetFloat(v) }
+func (p *ArgsPusher) PushString(v string) { p.next().SetString(v) }
+func (p *ArgsPusher) PushInterface(v any) { p.next().SetInterface(v) }
+
+func (p *ArgsPusher) PushSlice[T any](v []T) { *p.next().Slice[T]() = v }
+func (p *ArgsPusher) PushPtr[T any](v *T)    { p.next().SetPtr(v) }

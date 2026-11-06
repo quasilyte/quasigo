@@ -13,8 +13,8 @@ func (ncc NativeCallContext) ByteArg(index int) byte {
 	return getslot(ncc.slotptr, byte(index)).Byte()
 }
 
-func (ncc NativeCallContext) SliceArg[S ~[]E, E any](index int) S {
-	return *getslot(ncc.slotptr, byte(index)).Slice[S]()
+func (ncc NativeCallContext) SliceArg[T any](index int) []T {
+	return *getslot(ncc.slotptr, byte(index)).Slice[T]()
 }
 
 func (ncc NativeCallContext) PtrArg[T any](index int) *T {
@@ -56,8 +56,8 @@ func (ncc NativeCallContext) SetStringResult2(v string) { ncc.env.result2.SetStr
 func (ncc NativeCallContext) SetInterfaceResult(v any)  { ncc.env.result.SetInterface(v) }
 func (ncc NativeCallContext) SetInterfaceResult2(v any) { ncc.env.result2.SetInterface(v) }
 
-func (ncc NativeCallContext) SetSliceResult[S ~[]E, E any](v S)  { *ncc.env.result.Slice[S]() = v }
-func (ncc NativeCallContext) SetSliceResult2[S ~[]E, E any](v S) { *ncc.env.result2.Slice[S]() = v }
+func (ncc NativeCallContext) SetSliceResult[T any](v []T)  { *ncc.env.result.Slice[T]() = v }
+func (ncc NativeCallContext) SetSliceResult2[T any](v []T) { *ncc.env.result2.Slice[T]() = v }
 
 func (ncc NativeCallContext) SetPtrResult[T any](v *T)  { ncc.env.result.SetPtr(v) }
 func (ncc NativeCallContext) SetPtrResult2[T any](v *T) { ncc.env.result2.SetPtr(v) }

@@ -77,7 +77,7 @@ func Fields(ctx qnative.CallContext) {
 }
 
 func Join(ctx qnative.CallContext) {
-	elems := ctx.SliceArg[[]string](0)
+	elems := ctx.SliceArg[string](0)
 	sep := ctx.StringArg(1)
 	ctx.SetStringResult(strings.Join(elems, sep))
 }

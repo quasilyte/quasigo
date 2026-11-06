@@ -86,16 +86,16 @@ func (slot *Slot) setRawSlice(s goSlice) {
 	slot.Scalar2 = uint64(s.cap)
 }
 
-// Slice reinterprets the slot as a slice of type S.
+// Slice reinterprets the slot as a []T slice.
 // The returned pointer can be used to both read and write the slot.
-func (slot *Slot) Slice[S ~[]E, E any]() *S {
-	return (*S)(unsafe.Pointer(slot))
+func (slot *Slot) Slice[T any]() *[]T {
+	return (*[]T)(unsafe.Pointer(slot))
 }
 
 // ptrSlice is like Slice, but the element type is erased.
 // It's used for []*T slices of any T.
 func (slot *Slot) ptrSlice() []unsafe.Pointer {
-	return *slot.Slice[[]unsafe.Pointer]()
+	return *slot.Slice[unsafe.Pointer]()
 }
 
 // Ptr reinterprets the slot as a pointer of type *T.

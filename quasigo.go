@@ -145,26 +145,42 @@ func CompileUnit(ctx *CompileContext, unit *CompilationUnit) (UnitCompilationRes
 	return result, err
 }
 
-// BindArgs prepares the arguments for the call.
-// Bound args can be used many times if you don't need to change
-// the call arguments.
+// ArgsPusher binds the call arguments, one by one.
+// Every Push method writes the next argument, starting from the first one:
 //
-// If BindArgs+Call is not convenient for you, consider using the
-// simple wrapper that does this combination for you.
-// Note, however, that reusing bound arguments, whether possible,
-// if more efficient.
-func (env *EvalEnv) BindArgs(args ...any) {
-	env.data.BindArgs(args...)
+// args := evalEnv.PrepareArgs()
+// args.PushString("hello")
+// args.PushInt(10)
+// args.PushSlice(xs)
+// quasigo.Call(evalEnv, fn)
+//
+// The value types should match the called function params.
+// When calling a function with N arguments, exactly N arguments
+// should be pushed.
+//
+// Bound args can be used for many calls if you don't need to change them.
+//
+// ArgsPusher is efficient, zero alloc and reflection-free.
+// You can build a more convenient args marshaling on top of it if you want to.
+// You can either use a reflection approach and forward to it or
+// use code generation that would insert the boilerplate for you.
+type ArgsPusher = qruntime.ArgsPusher
+
+// PrepareArgs returns a pusher that starts from the first call argument.
+// See [ArgsPusher] doc comment for more info.
+func (env *EvalEnv) PrepareArgs() ArgsPusher {
+	return env.data.PrepareArgs()
 }
 
 // Call invokes a given function.
+//
 // Before calling this function, be sure to bind arguments
-// to the env using BindArgs.
+// to the env using PrepareArgs builder.
 func Call(env *EvalEnv, fn Func) CallResult {
 	return CallResult{v: qruntime.Call(&env.data, fn.data)}
 }
 
-// CallResult is a return value of Call function.
+// CallResult is a return value of a function call.
 type CallResult struct {
 	v qruntime.Slot
 }

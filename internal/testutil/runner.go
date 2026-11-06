@@ -109,24 +109,12 @@ func (r *Runner) collectTargets(prefix, p string) []RunnerTarget {
 
 func (r *Runner) runTarget(t *testing.T, target RunnerTarget) {
 	fset := token.NewFileSet()
-	packages, err := parser.ParseDir(fset, target.Path, nil, parser.ParseComments|parser.SkipObjectResolution)
+	pkgName, pkgFiles, err := parsePackageDir(fset, target.Path)
 	if err != nil {
 		t.Fatalf("parse %s dir: %v", target.Name, err)
 	}
-	if len(packages) != 1 {
-		t.Fatalf("%s: expected 1 package, found %d", target.Name, len(packages))
-	}
-	var pkg *ast.Package
-	for k := range packages {
-		pkg = packages[k]
-		break
-	}
-	var pkgFiles []*ast.File
-	for _, f := range pkg.Files {
-		pkgFiles = append(pkgFiles, f)
-	}
 	typesConfig := &types.Config{Importer: &fallbackImporter{
-		// The default importer can't find module-local packages (like testtypes).
+		// The default importer can't find module-local packages (like evaltest).
 		primary:  importer.Default(),
 		fallback: importer.ForCompiler(fset, "source", nil),
 	}}
@@ -135,7 +123,7 @@ func (r *Runner) runTarget(t *testing.T, target RunnerTarget) {
 		Uses:  make(map[*ast.Ident]types.Object),
 		Defs:  make(map[*ast.Ident]types.Object),
 	}
-	typesPkg, err := typesConfig.Check(pkg.Name, fset, pkgFiles, typesInfo)
+	typesPkg, err := typesConfig.Check(pkgName, fset, pkgFiles, typesInfo)
 	if err != nil {
 		t.Fatalf("typecheck %s: %v", target.Name, err)
 	}
@@ -643,7 +631,7 @@ func importEvalTest(env *quasigo.Env) {
 		ctx.SetSliceResult(evaltest.NewPoints(ctx.IntArg(0)))
 	})
 	env.AddNativeFunc(pkgPath, `SumX`, func(ctx qnative.CallContext) {
-		ctx.SetIntResult(evaltest.SumX(ctx.SliceArg[[]*evaltest.Point](0)))
+		ctx.SetIntResult(evaltest.SumX(ctx.SliceArg[*evaltest.Point](0)))
 	})
 	env.AddNativeMethod(pointType, `X`, func(ctx qnative.CallContext) {
 		ctx.SetIntResult(ctx.PtrArg[evaltest.Point](0).X)
@@ -664,4 +652,33 @@ func (imp *fallbackImporter) Import(path string) (*types.Package, error) {
 		return pkg, nil
 	}
 	return imp.fallback.Import(path)
+}
+
+// parsePackageDir parses all Go files inside dir.
+// All of these files should belong to the same package.
+func parsePackageDir(fset *token.FileSet, dir string) (string, []*ast.File, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return "", nil, err
+	}
+	pkgName := ""
+	var files []*ast.File
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".go") {
+			continue
+		}
+		f, err := parser.ParseFile(fset, filepath.Join(dir, e.Name()), nil, parser.ParseComments|parser.SkipObjectResolution)
+		if err != nil {
+			return "", nil, err
+		}
+		if pkgName != "" && f.Name.Name != pkgName {
+			return "", nil, fmt.Errorf("expected 1 package, found %s and %s", pkgName, f.Name.Name)
+		}
+		pkgName = f.Name.Name
+		files = append(files, f)
+	}
+	if len(files) == 0 {
+		return "", nil, fmt.Errorf("no Go files found")
+	}
+	return pkgName, files, nil
 }

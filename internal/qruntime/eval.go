@@ -60,19 +60,19 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpSliceIndexScalar8:
 			dstslot, sliceslot, indexslot := unpack8x3(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]byte]()
+			slice := *getslot(slotptr, sliceslot).Slice[byte]()
 			index := getslot(slotptr, indexslot).Int()
 			getslot(slotptr, dstslot).SetByte(slice[index])
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpSliceIndexScalar64:
 			dstslot, sliceslot, indexslot := unpack8x3(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]uint64]()
+			slice := *getslot(slotptr, sliceslot).Slice[uint64]()
 			index := getslot(slotptr, indexslot).Int()
 			getslot(slotptr, dstslot).Scalar = slice[index]
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpSliceIndexStr:
 			dstslot, sliceslot, indexslot := unpack8x3(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]string]()
+			slice := *getslot(slotptr, sliceslot).Slice[string]()
 			index := getslot(slotptr, indexslot).Int()
 			getslot(slotptr, dstslot).SetString(slice[index])
 			codeptr = ptradd(codeptr, 4)
@@ -85,19 +85,19 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 
 		case bytecode.OpSliceSetScalar8:
 			sliceslot, indexslot, valueslot := unpack8x3(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]byte]()
+			slice := *getslot(slotptr, sliceslot).Slice[byte]()
 			index := getslot(slotptr, indexslot).Int()
 			slice[index] = byte(getslot(slotptr, valueslot).Scalar)
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpSliceSetScalar64:
 			sliceslot, indexslot, valueslot := unpack8x3(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]uint64]()
+			slice := *getslot(slotptr, sliceslot).Slice[uint64]()
 			index := getslot(slotptr, indexslot).Int()
 			slice[index] = getslot(slotptr, valueslot).Scalar
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpSliceSetStr:
 			sliceslot, indexslot, valueslot := unpack8x3(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]string]()
+			slice := *getslot(slotptr, sliceslot).Slice[string]()
 			index := getslot(slotptr, indexslot).Int()
 			slice[index] = getslot(slotptr, valueslot).String()
 			codeptr = ptradd(codeptr, 4)
@@ -110,22 +110,22 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 
 		case bytecode.OpBytesSliceFrom:
 			dstslot, sliceslot, fromslot := unpack8x3(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]byte]()
+			slice := *getslot(slotptr, sliceslot).Slice[byte]()
 			from := getslot(slotptr, fromslot).Scalar
-			*getslot(slotptr, dstslot).Slice[[]byte]() = slice[from:]
+			*getslot(slotptr, dstslot).Slice[byte]() = slice[from:]
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpBytesSliceTo:
 			dstslot, sliceslot, toslot := unpack8x3(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]byte]()
+			slice := *getslot(slotptr, sliceslot).Slice[byte]()
 			to := getslot(slotptr, toslot).Scalar
-			*getslot(slotptr, dstslot).Slice[[]byte]() = slice[:to]
+			*getslot(slotptr, dstslot).Slice[byte]() = slice[:to]
 			codeptr = ptradd(codeptr, 4)
 		case bytecode.OpBytesSlice:
 			dstslot, sliceslot, fromslot, toslot := unpack8x4(codeptr, 1)
-			slice := *getslot(slotptr, sliceslot).Slice[[]byte]()
+			slice := *getslot(slotptr, sliceslot).Slice[byte]()
 			from := getslot(slotptr, fromslot).Scalar
 			to := getslot(slotptr, toslot).Scalar
-			*getslot(slotptr, dstslot).Slice[[]byte]() = slice[from:to]
+			*getslot(slotptr, dstslot).Slice[byte]() = slice[from:to]
 			codeptr = ptradd(codeptr, 5)
 
 		case bytecode.OpStrSliceFrom:
@@ -381,7 +381,7 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 
 		case bytecode.OpCallNative:
 			// Notice the lack of stack overflow check.
-			// The stack guarantees some excessive slots to accomodate
+			// The stack guarantees some excessive slots to accommodate
 			// the max number of native call args.
 			dstslot := unpack8(codeptr, 1)
 			funcid := unpack16(codeptr, 2)

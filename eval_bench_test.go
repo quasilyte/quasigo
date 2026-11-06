@@ -1,6 +1,7 @@
 package quasigo_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/quasilyte/quasigo"
@@ -17,6 +18,36 @@ type benchTestCase struct {
 	src    string
 	params string
 	args   []any
+}
+
+// bindArgs pushes the args using their dynamic types.
+// It only supports the types that are used in these tests.
+func bindArgs(env *quasigo.EvalEnv, args ...any) {
+	pusher := env.PrepareArgs()
+	for _, arg := range args {
+		switch arg := arg.(type) {
+		case nil:
+			pusher.PushInterface(nil)
+		case bool:
+			pusher.PushBool(arg)
+		case byte:
+			pusher.PushByte(arg)
+		case int:
+			pusher.PushInt(arg)
+		case float64:
+			pusher.PushFloat(arg)
+		case string:
+			pusher.PushString(arg)
+		case []int:
+			pusher.PushSlice(arg)
+		case *evaltest.Point:
+			pusher.PushPtr(arg)
+		case []*evaltest.Point:
+			pusher.PushSlice(arg)
+		default:
+			panic(fmt.Sprintf("bindArgs: unsupported %T arg", arg))
+		}
+	}
 }
 
 var benchmarksNoAlloc = []*benchTestCase{
@@ -174,7 +205,7 @@ func TestNoAllocs(t *testing.T) {
 	for _, test := range benchmarksNoAlloc {
 		env, compiled := compileBenchFunc(t, test.params, test.src)
 		evalEnv := env.GetEvalEnv(2 * 4096)
-		evalEnv.BindArgs(test.args...)
+		bindArgs(evalEnv, test.args...)
 
 		allocs := testing.AllocsPerRun(5, func() {
 			quasigo.Call(evalEnv, compiled)
@@ -185,7 +216,7 @@ func TestNoAllocs(t *testing.T) {
 	}
 }
 
-func TestBindSliceArgs(t *testing.T) {
+func TestPushArgs(t *testing.T) {
 	points := evaltest.NewPoints(3)
 	points[1] = nil
 	tests := []struct {
@@ -194,19 +225,45 @@ func TestBindSliceArgs(t *testing.T) {
 		args   []any
 		want   int
 	}{
+		{`b bool`, `if b { return 1 }; return 0`, []any{true}, 1},
+		{`b byte`, `return int(b)`, []any{byte('A')}, 65},
+		{`x float64`, `if x > 1.5 { return 1 }; return 0`, []any{2.5}, 1},
+		{`s string, i int, xs []int`, `return len(s) + xs[i]`, []any{"abc", 1, []int{10, 20}}, 23},
+		{`err error`, `if err == nil { return 1 }; return 0`, []any{nil}, 1},
+		{`p *evaltest.Point`, `return p.X`, []any{evaltest.NewPoint(7, 70)}, 7},
 		{`xs []*evaltest.Point, i int`, `return xs[i].X`, []any{points, 2}, 2},
 		{`xs []*evaltest.Point`, `if xs[1] == nil { return len(xs) }; return 0`, []any{points}, 3},
-		{`xs []*evaltest.Point`, `return cap(xs)`, []any{points}, 3},
-		{`xs []int, i int`, `return xs[i]`, []any{[]int{10, 20}, 1}, 20},
 	}
 	for _, test := range tests {
 		env, compiled := compileBenchFunc(t, test.params, test.src)
 		evalEnv := env.GetEvalEnv(4096)
-		evalEnv.BindArgs(test.args...)
+		bindArgs(evalEnv, test.args...)
 		have := quasigo.Call(evalEnv, compiled).IntValue()
 		if have != test.want {
 			t.Errorf("%s: have %d, want %d", test.src, have, test.want)
 		}
+	}
+}
+
+func TestPushArgsNoAllocs(t *testing.T) {
+	env, compiled := compileBenchFunc(t, `s string, i int, xs []int, p *evaltest.Point`, `return len(s) + xs[i] + p.X`)
+	evalEnv := env.GetEvalEnv(4096)
+	xs := []int{10, 20}
+	p := evaltest.NewPoint(7, 70)
+	var have int
+	allocs := testing.AllocsPerRun(10, func() {
+		args := evalEnv.PrepareArgs()
+		args.PushString("abc")
+		args.PushInt(1)
+		args.PushSlice(xs)
+		args.PushPtr(p)
+		have = quasigo.Call(evalEnv, compiled).IntValue()
+	})
+	if int(allocs) != 0 {
+		t.Errorf("args pushing does allocate (%d allocs)", int(allocs))
+	}
+	if have != 30 {
+		t.Errorf("have %d, want 30", have)
 	}
 }
 
@@ -251,7 +308,7 @@ func BenchmarkEval(b *testing.B) {
 		b.Run(test.name, func(b *testing.B) {
 			env, compiled := compileBenchFunc(b, test.params, test.src)
 			evalEnv := env.GetEvalEnv(2 * 4096)
-			evalEnv.BindArgs(test.args...)
+			bindArgs(evalEnv, test.args...)
 			b.ResetTimer()
 			runBench(b, evalEnv, compiled)
 		})
