@@ -23,10 +23,7 @@ func (builder *blocksBuilder) Build() []ir.Block {
 	numVarKill := 0
 	seenBlockInst := false
 	i := 0
-	for {
-		if i >= len(code) {
-			break
-		}
+	for i < len(code) {
 		inst := code[i]
 
 		if inst.Pseudo == ir.OpVarKill {

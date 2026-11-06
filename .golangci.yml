@@ -1,43 +1,46 @@
 {
+  "version": "2",
   "run": {
-    # timeout for analysis, e.g. 30s, 5m, default is 1m
-    "deadline": "3m",
+    # timeout for analysis, e.g. 30s, 5m, default is no timeout
+    "timeout": "3m",
   },
-  "fast": false,
   "linters": {
+    # errcheck, govet, ineffassign, staticcheck (includes gosimple), unused
+    "default": "standard",
     "enable": [
-      "errcheck",
-      "gas",
       "gocritic",
-      "gofmt",
-      "goimports",
-      "govet",
-      "gosimple",
-      "ineffassign",
-      "megacheck",
+      "gosec",
       "misspell",
       "nakedret",
-      "staticcheck",
-      "typecheck",
       "unconvert",
-      "unused",
     ],
-  },
-  "disable": [
-    "depguard",
-    "dupl",
-    "gocyclo",
-    "interfacer",
-    "lll",
-    "maligned",
-    "prealloc",
-  ],
-  "linters-settings": {
-    "gocritic": {
-      "enabled-checks": [
-        "commentedOutCode",
+    "settings": {
+      "gocritic": {
+        "enabled-checks": [
+          "commentedOutCode",
+        ],
+      },
+      "gosec": {
+        "excludes": [
+          # Integer conversions are a part of the slots data reinterpretation.
+          "G115",
+        ],
+      },
+    },
+    "exclusions": {
+      # Same as the v1 default exclude rules.
+      "presets": [
+        "comments",
+        "common-false-positives",
+        "legacy",
+        "std-error-handling",
       ],
     },
   },
+  "formatters": {
+    "enable": [
+      "gofmt",
+      "goimports",
+    ],
+  },
 }
-

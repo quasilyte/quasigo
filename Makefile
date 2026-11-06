@@ -6,7 +6,8 @@ test:
 	@echo "everything is OK"
 
 ci-lint:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(GOPATH_DIR)/bin v1.50.1
+	# Built from source, so it can handle the Go version that is used to build it.
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.15.0
 	$(GOPATH_DIR)/bin/golangci-lint run ./...
 	@echo "everything is OK"
 
