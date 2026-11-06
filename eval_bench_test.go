@@ -250,7 +250,7 @@ func BenchmarkEval(b *testing.B) {
 		test := test
 		b.Run(test.name, func(b *testing.B) {
 			env, compiled := compileBenchFunc(b, test.params, test.src)
-			evalEnv := env.GetEvalEnv(4096)
+			evalEnv := env.GetEvalEnv(2 * 4096)
 			evalEnv.BindArgs(test.args...)
 			b.ResetTimer()
 			runBench(b, evalEnv, compiled)
