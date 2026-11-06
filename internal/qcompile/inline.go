@@ -51,9 +51,11 @@ var inlineableOps = [256]bool{
 	bytecode.OpSliceIndexScalar8:  true,
 	bytecode.OpSliceIndexScalar64: true,
 	bytecode.OpSliceIndexStr:      true,
+	bytecode.OpSliceIndexPtr:      true,
 	bytecode.OpSliceSetScalar8:    true,
 	bytecode.OpSliceSetScalar64:   true,
 	bytecode.OpSliceSetStr:        true,
+	bytecode.OpSliceSetPtr:        true,
 
 	bytecode.OpNot:               true,
 	bytecode.OpIsNil:             true,
@@ -182,9 +184,7 @@ func (inl *inliner) Inline(recv ast.Expr, args []ast.Expr) bool {
 		// Some ops require ad-hoc handling.
 		isReturnOp := false
 		switch op {
-		case bytecode.OpReturn:
-			isReturnOp = true
-		case bytecode.OpReturnScalar, bytecode.OpReturnStr:
+		case bytecode.OpReturn, bytecode.OpReturnScalar, bytecode.OpReturnStr:
 			srcslot := inl.convertSlot(fn.Code[pc+1])
 			inlined = append(inlined, ir.Inst{
 				Op:   bytecode.OpMove,

@@ -47,3 +47,31 @@ func (p *FooPair) Get(key string) *Foo {
 
 func (p *FooPair) First() *Foo  { return p.first }
 func (p *FooPair) Second() *Foo { return p.second }
+
+type Point struct {
+	X int
+	Y int
+}
+
+func NewPoint(x, y int) *Point {
+	return &Point{X: x, Y: y}
+}
+
+func NewPoints(n int) []*Point {
+	points := make([]*Point, n)
+	for i := range points {
+		points[i] = &Point{X: i, Y: i * 10}
+	}
+	return points
+}
+
+// SumX returns the sum of the X fields, nil elements are skipped.
+func SumX(points []*Point) int {
+	sum := 0
+	for _, p := range points {
+		if p != nil {
+			sum += p.X
+		}
+	}
+	return sum
+}

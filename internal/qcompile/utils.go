@@ -100,6 +100,11 @@ func typeIsInterface(typ types.Type) bool {
 	return ok
 }
 
+func typeIsPtr(typ types.Type) bool {
+	_, ok := typ.Underlying().(*types.Pointer)
+	return ok
+}
+
 func typeIsSlice(typ types.Type) bool {
 	_, ok := typ.Underlying().(*types.Slice)
 	return ok

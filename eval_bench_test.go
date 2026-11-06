@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/internal/evaltest"
 	"github.com/quasilyte/quasigo/internal/testutil"
 	"github.com/quasilyte/quasigo/qnative"
 	"github.com/quasilyte/quasigo/stdlib/qfmt"
@@ -184,6 +185,31 @@ func TestNoAllocs(t *testing.T) {
 	}
 }
 
+func TestBindSliceArgs(t *testing.T) {
+	points := evaltest.NewPoints(3)
+	points[1] = nil
+	tests := []struct {
+		params string
+		src    string
+		args   []any
+		want   int
+	}{
+		{`xs []*evaltest.Point, i int`, `return xs[i].X`, []any{points, 2}, 2},
+		{`xs []*evaltest.Point`, `if xs[1] == nil { return len(xs) }; return 0`, []any{points}, 3},
+		{`xs []*evaltest.Point`, `return cap(xs)`, []any{points}, 3},
+		{`xs []int, i int`, `return xs[i]`, []any{[]int{10, 20}, 1}, 20},
+	}
+	for _, test := range tests {
+		env, compiled := compileBenchFunc(t, test.params, test.src)
+		evalEnv := env.GetEvalEnv(4096)
+		evalEnv.BindArgs(test.args...)
+		have := quasigo.Call(evalEnv, compiled).IntValue()
+		if have != test.want {
+			t.Errorf("%s: have %d, want %d", test.src, have, test.want)
+		}
+	}
+}
+
 func BenchmarkEval(b *testing.B) {
 	var tests = []*benchTestCase{
 		{
@@ -237,7 +263,9 @@ func compileBenchFunc(t testing.TB, paramsSig, bodySrc string) (*quasigo.Env, qu
 		return `
 package ` + testPackage + `
 import "fmt"
+import "github.com/quasilyte/quasigo/internal/evaltest"
 var _ = fmt.Sprintf
+var _ = evaltest.NewPoint
 func fn0() bool { return false }
 func fn1(x int) bool { return false }
 func fn2(x, y int) bool { return false }
@@ -301,6 +329,9 @@ func imul(x, y int) int
 		x := ctx.IntArg(0)
 		y := ctx.IntArg(1)
 		ctx.SetIntResult(x * y)
+	})
+	env.AddNativeMethod(`*github.com/quasilyte/quasigo/internal/evaltest.Point`, `X`, func(ctx qnative.CallContext) {
+		ctx.SetIntResult(ctx.PtrArg[evaltest.Point](0).X)
 	})
 	qfmt.ImportAll(env)
 	src := makePackageSource(bodySrc)

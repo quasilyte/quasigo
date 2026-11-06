@@ -1,6 +1,10 @@
 package main
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/quasilyte/quasigo/internal/evaltest"
+)
 
 //test:disasm_both
 // main.makeIntSlice1 code=15 frame=48 (2 slots: 1 params, 1 locals)
@@ -422,10 +426,65 @@ func testStringSlice() {
 	}
 }
 
+//test:disasm_both
+// main.pointSliceIndexing code=6 frame=72 (3 slots: 2 params, 1 locals)
+//   SliceIndexPtr temp0 = xs i
+//   Return temp0
+func pointSliceIndexing(xs []*evaltest.Point, i int) *evaltest.Point {
+	return xs[i]
+}
+
+//test:disasm_both
+// main.pointSliceAssign code=5 frame=72 (3 slots: 3 params, 0 locals)
+//   SliceSetPtr xs i value
+//   ReturnVoid
+func pointSliceAssign(xs []*evaltest.Point, i int, value *evaltest.Point) {
+	xs[i] = value
+}
+
+func printPoint(p *evaltest.Point) {
+	if p == nil {
+		println("nil")
+		return
+	}
+	println(p.X)
+	println(p.Y)
+}
+
+func testPointSlice() {
+	points := evaltest.NewPoints(3)
+	println(len(points))
+	println(cap(points))
+	for i := 0; i < len(points); i++ {
+		printPoint(points[i])
+	}
+	println(evaltest.SumX(points))
+
+	printPoint(pointSliceIndexing(points, 2))
+	pointSliceAssign(points, 0, evaltest.NewPoint(5, 50))
+	printPoint(points[0])
+	println(evaltest.SumX(points))
+
+	points[1] = points[2]
+	printPoint(points[1])
+	points[2] = nil
+	println(points[2] == nil)
+	println(points[1] != nil)
+	printPoint(points[2])
+	println(evaltest.SumX(points))
+
+	p := points[0]
+	points[0] = evaltest.NewPoint(7, 70)
+	printPoint(p)
+	printPoint(points[0])
+	println(points[0].X + points[1].Y)
+}
+
 func main() {
 	testIntSlice()
 	testFloatSlice()
 	testByteSlice()
 	testBoolSlice()
 	testStringSlice()
+	testPointSlice()
 }

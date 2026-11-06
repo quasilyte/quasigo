@@ -25,18 +25,18 @@ type goSlice struct {
 }
 
 type Slot struct {
-	// TODO: make fields unexported, adjust the user code as needed.
-	Ptr     unsafe.Pointer
+	// TODO: make the remaining fields unexported, adjust the user code as needed.
+	ptr     unsafe.Pointer
 	Scalar  uint64
 	Scalar2 uint64
 }
 
 func (slot Slot) IsNil() bool {
-	return slot.Ptr == nil
+	return slot.ptr == nil
 }
 
 func (slot Slot) IsNilInterface() bool {
-	return slot.Ptr == nil && slot.Scalar == 0
+	return slot.ptr == nil && slot.Scalar == 0
 }
 
 func (slot *Slot) SetBool(v bool) {
@@ -52,27 +52,27 @@ func (slot Slot) Bool() bool {
 }
 
 func (slot *Slot) MoveInterface(src *Slot) {
-	slot.Ptr = src.Ptr
+	slot.ptr = src.ptr
 	slot.Scalar = src.Scalar
 }
 
 func (slot *Slot) SetInterface(v any) {
 	raw := (*goIface)(unsafe.Pointer(&v))
-	slot.Ptr = raw.data
+	slot.ptr = raw.data
 	slot.Scalar = raw.typeinfo
 }
 
 func (slot Slot) Interface() any {
 	v := goIface{
 		typeinfo: slot.Scalar,
-		data:     slot.Ptr,
+		data:     slot.ptr,
 	}
 	return *(*any)(unsafe.Pointer(&v))
 }
 
 func (slot *Slot) SetString(v string) {
 	raw := *(*goString)(unsafe.Pointer(&v))
-	slot.Ptr = raw.data
+	slot.ptr = raw.data
 	slot.Scalar = uint64(raw.len)
 }
 
@@ -80,50 +80,31 @@ func (slot Slot) String() string {
 	return *(*string)(unsafe.Pointer(&slot))
 }
 
-func (slot Slot) slice64() []uint64 {
-	return *(*[]uint64)(unsafe.Pointer(&slot))
-}
-
 func (slot *Slot) setRawSlice(s goSlice) {
-	slot.Ptr = s.data
+	slot.ptr = s.data
 	slot.Scalar = uint64(s.len)
 	slot.Scalar2 = uint64(s.cap)
 }
 
-func (slot *Slot) setSlice64(v []uint64) {
-	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
+// Slice reinterprets the slot as a slice of type S.
+// The returned pointer can be used to both read and write the slot.
+func (slot *Slot) Slice[S ~[]E, E any]() *S {
+	return (*S)(unsafe.Pointer(slot))
 }
 
-func (slot *Slot) SetByteSlice(v []byte) {
-	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
+// ptrSlice is like Slice, but the element type is erased.
+// It's used for []*T slices of any T.
+func (slot *Slot) ptrSlice() []unsafe.Pointer {
+	return *slot.Slice[[]unsafe.Pointer]()
 }
 
-func (slot Slot) ByteSlice() []byte {
-	return *(*[]byte)(unsafe.Pointer(&slot))
+// Ptr reinterprets the slot as a pointer of type *T.
+func (slot Slot) Ptr[T any]() *T {
+	return (*T)(slot.ptr)
 }
 
-func (slot *Slot) SetIntSlice(v []int) {
-	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
-}
-
-func (slot Slot) IntSlice() []int {
-	return *(*[]int)(unsafe.Pointer(&slot))
-}
-
-func (slot *Slot) SetFloatSlice(v []float64) {
-	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
-}
-
-func (slot Slot) FloatSlice() []float64 {
-	return *(*[]float64)(unsafe.Pointer(&slot))
-}
-
-func (slot *Slot) SetStringSlice(v []string) {
-	slot.setRawSlice(*(*goSlice)(unsafe.Pointer(&v)))
-}
-
-func (slot Slot) StringSlice() []string {
-	return *(*[]string)(unsafe.Pointer(&slot))
+func (slot *Slot) SetPtr[T any](p *T) {
+	slot.ptr = unsafe.Pointer(p)
 }
 
 func (slot *Slot) SetInt(v int) {

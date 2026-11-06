@@ -102,7 +102,7 @@ func CompileTestFunc(env *quasigo.Env, fn string, parsed *ParsedTestFile) (quasi
 		Env:     env,
 		Package: parsed.Pkg,
 		Types:   parsed.Types,
-		Sizes:   types.SizesFor("gc", runtime.GOOS),
+		Sizes:   types.SizesFor("gc", runtime.GOARCH),
 		Fset:    parsed.Fset,
 	}
 	return quasigo.Compile(ctx, target)

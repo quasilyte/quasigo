@@ -68,16 +68,16 @@ func Contains(ctx qnative.CallContext) {
 func Split(ctx qnative.CallContext) {
 	s := ctx.StringArg(0)
 	sep := ctx.StringArg(1)
-	ctx.SetStringSliceResult(strings.Split(s, sep))
+	ctx.SetSliceResult(strings.Split(s, sep))
 }
 
 func Fields(ctx qnative.CallContext) {
 	s := ctx.StringArg(0)
-	ctx.SetStringSliceResult(strings.Fields(s))
+	ctx.SetSliceResult(strings.Fields(s))
 }
 
 func Join(ctx qnative.CallContext) {
-	elems := ctx.StringSliceArg(0)
+	elems := ctx.SliceArg[[]string](0)
 	sep := ctx.StringArg(1)
 	ctx.SetStringResult(strings.Join(elems, sep))
 }

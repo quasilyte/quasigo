@@ -330,6 +330,8 @@ func (cl *funcCompiler) compileIndexExpr(dst ir.Slot, e *ast.IndexExpr) {
 			op = bytecode.OpSliceIndexScalar8
 		case typeIsString(elemType):
 			op = bytecode.OpSliceIndexStr
+		case typeIsPtr(elemType):
+			op = bytecode.OpSliceIndexPtr
 		}
 	}
 	if op == bytecode.OpInvalid {
@@ -738,6 +740,10 @@ func (cl *funcCompiler) compileIdent(dst ir.Slot, ident *ast.Ident) {
 	cv := tv.Value
 	if cv != nil {
 		cl.compileConstantValue(dst, ident, cv)
+		return
+	}
+	if tv.IsNil() {
+		cl.emit1(bytecode.OpZero, dst)
 		return
 	}
 

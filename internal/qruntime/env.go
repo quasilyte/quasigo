@@ -1,5 +1,7 @@
 package qruntime
 
+import "reflect"
+
 const MaxNativeFuncArgs = 6
 
 // Env is used to hold both compilation and evaluation data.
@@ -120,14 +122,23 @@ func (env *EvalEnv) BindArgs(args ...any) {
 		case string:
 			env.slots[i].SetString(arg)
 		case []byte:
-			env.slots[i].SetByteSlice(arg)
+			*env.slots[i].Slice[[]byte]() = arg
 		case []int:
-			env.slots[i].SetIntSlice(arg)
+			*env.slots[i].Slice[[]int]() = arg
 		case []float64:
-			env.slots[i].SetFloatSlice(arg)
+			*env.slots[i].Slice[[]float64]() = arg
 		case []string:
-			env.slots[i].SetStringSlice(arg)
+			*env.slots[i].Slice[[]string]() = arg
 		default:
+			if v := reflect.ValueOf(arg); v.Kind() == reflect.Slice {
+				// Slices of other types, like []*T.
+				env.slots[i].setRawSlice(goSlice{
+					data: v.UnsafePointer(),
+					len:  v.Len(),
+					cap:  v.Cap(),
+				})
+				continue
+			}
 			env.slots[i].SetInterface(arg)
 		}
 	}

@@ -18,18 +18,18 @@ func nativeMakeSlice(ctx NativeCallContext) {
 }
 
 func nativeAppend8(ctx NativeCallContext) {
-	slice := getslot(ctx.slotptr, 0).ByteSlice()
+	slice := ctx.SliceArg[[]byte](0)
 	value := getslot(ctx.slotptr, 1).Byte()
-	ctx.env.result.SetByteSlice(append(slice, value))
+	ctx.SetSliceResult(append(slice, value))
 }
 
 func nativeAppend64(ctx NativeCallContext) {
-	slice := getslot(ctx.slotptr, 0).slice64()
+	slice := ctx.SliceArg[[]uint64](0)
 	value := getslot(ctx.slotptr, 1).Scalar
-	ctx.env.result.setSlice64(append(slice, value))
+	ctx.SetSliceResult(append(slice, value))
 }
 
 func nativeBytesToString(ctx NativeCallContext) {
-	slice := ctx.ByteSliceArg(0)
+	slice := ctx.SliceArg[[]byte](0)
 	ctx.SetStringResult(string(slice))
 }

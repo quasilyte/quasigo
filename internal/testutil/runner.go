@@ -18,6 +18,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/quasilyte/quasigo"
+	"github.com/quasilyte/quasigo/internal/evaltest"
 	"github.com/quasilyte/quasigo/internal/ir"
 	"github.com/quasilyte/quasigo/internal/qruntime"
 	"github.com/quasilyte/quasigo/qnative"
@@ -124,7 +125,11 @@ func (r *Runner) runTarget(t *testing.T, target RunnerTarget) {
 	for _, f := range pkg.Files {
 		pkgFiles = append(pkgFiles, f)
 	}
-	typesConfig := &types.Config{Importer: importer.Default()}
+	typesConfig := &types.Config{Importer: &fallbackImporter{
+		// The default importer can't find module-local packages (like testtypes).
+		primary:  importer.Default(),
+		fallback: importer.ForCompiler(fset, "source", nil),
+	}}
 	typesInfo := &types.Info{
 		Types: make(map[ast.Expr]types.TypeAndValue),
 		Uses:  make(map[*ast.Ident]types.Object),
@@ -410,6 +415,7 @@ func (r *Runner) newTestEnv() *testEnv {
 	qstrings.ImportAll(env)
 	qstrconv.ImportAll(env)
 	qfmt.ImportAll(env)
+	importEvalTest(env)
 
 	return &testEnv{
 		handle: env,
@@ -623,70 +629,39 @@ func cloneIRFunc(fn *ir.Func) *ir.Func {
 
 // formatFloat formats a float value in builtin println() style.
 func formatFloat(v float64) []byte {
-	switch {
-	case v != v:
-		return []byte("NaN")
-	case v+v == v && v > 0:
-		return []byte("+Inf")
-	case v+v == v && v < 0:
-		return []byte("-Inf")
+	return strconv.AppendFloat(nil, v, 'g', -1, 64)
+}
+
+func importEvalTest(env *quasigo.Env) {
+	const pkgPath = `github.com/quasilyte/quasigo/internal/evaltest`
+	const pointType = `*` + pkgPath + `.Point`
+
+	env.AddNativeFunc(pkgPath, `NewPoint`, func(ctx qnative.CallContext) {
+		ctx.SetPtrResult(evaltest.NewPoint(ctx.IntArg(0), ctx.IntArg(1)))
+	})
+	env.AddNativeFunc(pkgPath, `NewPoints`, func(ctx qnative.CallContext) {
+		ctx.SetSliceResult(evaltest.NewPoints(ctx.IntArg(0)))
+	})
+	env.AddNativeFunc(pkgPath, `SumX`, func(ctx qnative.CallContext) {
+		ctx.SetIntResult(evaltest.SumX(ctx.SliceArg[[]*evaltest.Point](0)))
+	})
+	env.AddNativeMethod(pointType, `X`, func(ctx qnative.CallContext) {
+		ctx.SetIntResult(ctx.PtrArg[evaltest.Point](0).X)
+	})
+	env.AddNativeMethod(pointType, `Y`, func(ctx qnative.CallContext) {
+		ctx.SetIntResult(ctx.PtrArg[evaltest.Point](0).Y)
+	})
+}
+
+type fallbackImporter struct {
+	primary  types.Importer
+	fallback types.Importer
+}
+
+func (imp *fallbackImporter) Import(path string) (*types.Package, error) {
+	pkg, err := imp.primary.Import(path)
+	if err == nil {
+		return pkg, nil
 	}
-
-	const n = 7 // digits printed
-	var buf [n + 7]byte
-	buf[0] = '+'
-	e := 0 // exp
-	if v == 0 {
-		if 1/v < 0 {
-			buf[0] = '-'
-		}
-	} else {
-		if v < 0 {
-			v = -v
-			buf[0] = '-'
-		}
-
-		// normalize
-		for v >= 10 {
-			e++
-			v /= 10
-		}
-		for v < 1 {
-			e--
-			v *= 10
-		}
-
-		// round
-		h := 5.0
-		for i := 0; i < n; i++ {
-			h /= 10
-		}
-		v += h
-		if v >= 10 {
-			e++
-			v /= 10
-		}
-	}
-
-	// format +d.dddd+edd
-	for i := 0; i < n; i++ {
-		s := int(v)
-		buf[i+2] = byte(s + '0')
-		v -= float64(s)
-		v *= 10
-	}
-	buf[1] = buf[2]
-	buf[2] = '.'
-
-	buf[n+2] = 'e'
-	buf[n+3] = '+'
-	if e < 0 {
-		e = -e
-		buf[n+3] = '-'
-	}
-
-	buf[n+4] = byte(e/100) + '0'
-	buf[n+5] = byte(e/10)%10 + '0'
-	buf[n+6] = byte(e%10) + '0'
-	return buf[:]
+	return imp.fallback.Import(path)
 }
