@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/quasilyte/quasigo/internal/evaltest"
+)
 
 func wrap(n int) string {
 	return fmt.Sprintf("<%d>", n)
@@ -24,4 +28,20 @@ func main() {
 	b := true
 	by := byte(200)
 	println(fmt.Sprintf("%v %v %v", b, by, "s"))
+
+	// Nested variadic calls.
+	println(evaltest.Digits(1, 2, evaltest.Digits(3, 4, 5)))
+	println(evaltest.Digits(evaltest.Digits(1, 2), 3, evaltest.Digits(4, evaltest.Digits(5, 6))))
+	println(fmt.Sprintf("%s|%s", fmt.Sprintf("%d", 1), fmt.Sprintf("%d-%s", 2, fmt.Sprintf("%v", 3))))
+	println(fmt.Sprintf("%q", fmt.Sprintf("str")))
+	println(fmt.Sprintf(fmt.Sprintf("%%s:%s", "a"), "b"))
+	println(fmt.Sprintf("%s %d", wrap(evaltest.Digits(1, 2)), evaltest.Digits(3, len(fmt.Sprintf("%d", 45)))))
+	for i := 0; i < 3; i++ {
+		println(evaltest.Digits(i, evaltest.Digits(i+1, i+2), i+3))
+	}
+
+	// A call without variadic args should not observe the previous call args.
+	println(evaltest.Digits(1, 2, evaltest.Digits()))
+	println(evaltest.Digits(7, 8))
+	println(evaltest.Digits())
 }

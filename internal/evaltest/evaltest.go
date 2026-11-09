@@ -65,6 +65,16 @@ func NewPoints(n int) []*Point {
 	return points
 }
 
+// Digits folds xs into a single number: the result depends
+// on both the values and their order, 0 is returned for an empty xs.
+func Digits(xs ...int) int {
+	result := 0
+	for _, x := range xs {
+		result = result*10 + x
+	}
+	return result
+}
+
 // SumX returns the sum of the X fields, nil elements are skipped.
 func SumX(points []*Point) int {
 	sum := 0

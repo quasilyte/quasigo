@@ -355,12 +355,6 @@ func (cl *funcCompiler) compileSelectorExpr(dst ir.Slot, e *ast.SelectorExpr) {
 	panic(cl.errorf(e, "can't compile %s field access", e.Sel))
 }
 
-func (cl *funcCompiler) compileCallExpr(dst ir.Slot, call *ast.CallExpr) {
-	insideVariadic := cl.insideVariadic
-	cl.compileCallExprImpl(dst, call)
-	cl.insideVariadic = insideVariadic
-}
-
 func (cl *funcCompiler) compileIntConv(dst ir.Slot, call *ast.CallExpr) {
 	x := call.Args[0]
 	typ := cl.ctx.Types.TypeOf(x)
@@ -412,7 +406,7 @@ func (cl *funcCompiler) compileStringConv(dst ir.Slot, call *ast.CallExpr) {
 	}
 }
 
-func (cl *funcCompiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
+func (cl *funcCompiler) compileCallExpr(dst ir.Slot, call *ast.CallExpr) {
 	calledExpr := goutil.Unparen(call.Fun)
 
 	if id, ok := calledExpr.(*ast.Ident); ok {
@@ -454,13 +448,14 @@ func (cl *funcCompiler) compileCallExprImpl(dst ir.Slot, call *ast.CallExpr) {
 	normalArgs := call.Args
 	var variadicArgs []ast.Expr
 	if sig.Variadic() {
-		if cl.insideVariadic {
-			panic(cl.errorf(call.Fun, "can't call %s: nested variadic calls are not supported", key))
-		}
-		cl.insideVariadic = true
 		variadic := sig.Params().Len() - 1
 		normalArgs = call.Args[:variadic]
 		variadicArgs = call.Args[variadic:]
+		if variadicArgs == nil {
+			// A non-nil slice is needed to get the vararg buffer reset,
+			// otherwise this call would observe the previous call args.
+			variadicArgs = []ast.Expr{}
+		}
 	}
 
 	if !sig.Variadic() && cl.inlineCall(dst, expr, normalArgs, key) {

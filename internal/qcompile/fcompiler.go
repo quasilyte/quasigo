@@ -29,8 +29,6 @@ type funcCompiler struct {
 	fnType  *types.Signature
 	retType types.Type
 
-	insideVariadic bool
-
 	hasCalls bool
 	hasLoops bool
 

@@ -633,6 +633,14 @@ func importEvalTest(env *quasigo.Env) {
 	env.AddNativeFunc(pkgPath, `SumX`, func(ctx qnative.CallContext) {
 		ctx.SetIntResult(evaltest.SumX(ctx.SliceArg[*evaltest.Point](0)))
 	})
+	env.AddNativeFunc(pkgPath, `Digits`, func(ctx qnative.CallContext) {
+		args := ctx.VariadicArg()
+		xs := make([]int, len(args))
+		for i, arg := range args {
+			xs[i] = arg.(int)
+		}
+		ctx.SetIntResult(evaltest.Digits(xs...))
+	})
 	env.AddNativeMethod(pointType, `X`, func(ctx qnative.CallContext) {
 		ctx.SetIntResult(ctx.PtrArg[evaltest.Point](0).X)
 	})
