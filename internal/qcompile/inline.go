@@ -184,19 +184,26 @@ func (inl *inliner) Inline(recv ast.Expr, args []ast.Expr) bool {
 		// Some ops require ad-hoc handling.
 		isReturnOp := false
 		switch op {
+		// A discarded result (dst is a voidSlot) needs no move.
 		case bytecode.OpReturn, bytecode.OpReturnScalar, bytecode.OpReturnStr:
-			srcslot := inl.convertSlot(fn.Code[pc+1])
-			inlined = append(inlined, ir.Inst{
-				Op:   bytecode.OpMove,
-				Arg0: inl.dst.ToInstArg(),
-				Arg1: srcslot.ToInstArg(),
-			})
+			if inl.dst != voidSlot {
+				srcslot := inl.convertSlot(fn.Code[pc+1])
+				inlined = append(inlined, ir.Inst{
+					Op:   bytecode.OpMove,
+					Arg0: inl.dst.ToInstArg(),
+					Arg1: srcslot.ToInstArg(),
+				})
+			}
 			isReturnOp = true
 		case bytecode.OpReturnZero:
-			inlined = append(inlined, inl.cl.moveInt(inl.dst, 0))
+			if inl.dst != voidSlot {
+				inlined = append(inlined, inl.cl.moveInt(inl.dst, 0))
+			}
 			isReturnOp = true
 		case bytecode.OpReturnOne:
-			inlined = append(inlined, inl.cl.moveInt(inl.dst, 1))
+			if inl.dst != voidSlot {
+				inlined = append(inlined, inl.cl.moveInt(inl.dst, 1))
+			}
 			isReturnOp = true
 		}
 		if isReturnOp {

@@ -424,10 +424,7 @@ func (cl *funcCompiler) compileForStmt(stmt *ast.ForStmt) {
 
 func (cl *funcCompiler) compileExprStmt(stmt *ast.ExprStmt) {
 	if call, ok := stmt.X.(*ast.CallExpr); ok {
-		sig := cl.ctx.Types.TypeOf(call.Fun).(*types.Signature)
-		if sig.Results() != nil {
-			panic(cl.errorf(call, "only void funcs can be used in stmt context"))
-		}
+		// The results of a non-void func are discarded.
 		cl.compileRootExpr(voidSlot, call)
 		return
 	}

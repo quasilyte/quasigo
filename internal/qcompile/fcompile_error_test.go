@@ -108,13 +108,6 @@ func TestCompileErrorMultiResult(t *testing.T) {
 		{
 			src: `
 				func two() (int, int) { return 1, 2 }
-				func f() { two() }`,
-			err: `only void funcs can be used in stmt context`,
-		},
-
-		{
-			src: `
-				func two() (int, int) { return 1, 2 }
 				func take(x, y int) int { return x + y }
 				func f() int { return take(two()) }`,
 			err: `can't pass tuple as a func argument`,
