@@ -66,6 +66,10 @@ func (c *Compiler) CompileFunc(ctx *Context, fn *ast.FuncDecl) (compiled *qrunti
 		panic(rv) // not our panic
 	}()
 
+	if fn.Type.TypeParams != nil {
+		return nil, cerrorf(ctx.Fset, fn.Name.Pos(), "%s: generic funcs can only be bound as natives", fn.Name.Name)
+	}
+
 	p := patternCompiler{}
 	cl := funcCompiler{
 		code: c.instPool[:0],

@@ -28,8 +28,21 @@ func MatchBuiltin(info *types.Info, fn ast.Expr, name string) bool {
 	return obj.Name() == name
 }
 
+// UnwrapInstantiation returns f for the explicitly instantiated f[T1, T2].
+// Any other expr is returned as is.
+func UnwrapInstantiation(e ast.Expr) ast.Expr {
+	switch e := e.(type) {
+	case *ast.IndexExpr:
+		return Unparen(e.X)
+	case *ast.IndexListExpr:
+		return Unparen(e.X)
+	default:
+		return e
+	}
+}
+
 func ResolveFunc(info *types.Info, callable ast.Expr) (ast.Expr, *types.Func) {
-	switch callable := Unparen(callable).(type) {
+	switch callable := UnwrapInstantiation(Unparen(callable)).(type) {
 	case *ast.Ident:
 		sig, ok := info.ObjectOf(callable).(*types.Func)
 		if !ok {

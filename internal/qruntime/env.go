@@ -93,6 +93,7 @@ func (env *Env) GetFunc(pkgPath, funcName string) *Func {
 }
 
 func (env *Env) addNativeFunc(key FuncKey, f func(NativeCallContext)) {
+	key.Name = canonicalInstantiationName(key.Name)
 	id := len(env.NativeFuncs)
 	env.NativeFuncs = append(env.NativeFuncs, NativeFunc{
 		mappedFunc: f,

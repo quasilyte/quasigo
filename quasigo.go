@@ -55,6 +55,20 @@ func (env *Env) AddNativeMethod(typeName, methodName string, f func(ctx qnative.
 
 // AddNativeFunc binds `$pkgPath.$funcName` symbol with f.
 // A pkgPath should be a full package path in which funcName is defined.
+//
+// Generic funcs are bound per instantiation, the type args are
+// a part of the funcName: `If[int]`, `Pair[string,[]uint8]`.
+// Only the bound instantiations can be called.
+// Generic stubs need a body to pass the type checking, but
+// it's never compiled, so `var zero T; return zero` is enough.
+// The type args spelling rules:
+//   - predeclared aliases are interchangeable: byte/uint8, rune/int32, interface{}/any
+//   - user-defined aliases should be spelled as the types they refer to
+//   - named types are fully qualified: `*github.com/user/pkgname.TypeName`
+//   - type args are separated by a comma without spaces
+//
+// The type args are taken from types.Info.Instances, so it should be
+// populated (see CompileContext.Types).
 func (env *Env) AddNativeFunc(pkgPath, funcName string, f func(ctx qnative.CallContext)) {
 	env.data.AddNativeFunc(pkgPath, funcName, f)
 }

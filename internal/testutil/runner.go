@@ -119,9 +119,10 @@ func (r *Runner) runTarget(t *testing.T, target RunnerTarget) {
 		fallback: importer.ForCompiler(fset, "source", nil),
 	}}
 	typesInfo := &types.Info{
-		Types: make(map[ast.Expr]types.TypeAndValue),
-		Uses:  make(map[*ast.Ident]types.Object),
-		Defs:  make(map[*ast.Ident]types.Object),
+		Types:     make(map[ast.Expr]types.TypeAndValue),
+		Uses:      make(map[*ast.Ident]types.Object),
+		Defs:      make(map[*ast.Ident]types.Object),
+		Instances: make(map[*ast.Ident]types.Instance),
 	}
 	typesPkg, err := typesConfig.Check(pkgName, fset, pkgFiles, typesInfo)
 	if err != nil {
@@ -335,8 +336,8 @@ func (r *Runner) compileQuasigo(t *testing.T, ctx *quasigo.CompileContext, pkg *
 			if !ok {
 				continue
 			}
-			if decl.Body == nil {
-				continue
+			if decl.Body == nil || decl.Type.TypeParams != nil {
+				continue // Native func stubs
 			}
 			unit.Funcs = append(unit.Funcs, decl)
 		}
@@ -640,6 +641,27 @@ func importEvalTest(env *quasigo.Env) {
 			xs[i] = arg.(int)
 		}
 		ctx.SetIntResult(evaltest.Digits(xs...))
+	})
+	env.AddNativeFunc(pkgPath, `If[int]`, func(ctx qnative.CallContext) {
+		ctx.SetIntResult(evaltest.If(ctx.BoolArg(0), ctx.IntArg(1), ctx.IntArg(2)))
+	})
+	env.AddNativeFunc(pkgPath, `If[bool]`, func(ctx qnative.CallContext) {
+		ctx.SetBoolResult(evaltest.If(ctx.BoolArg(0), ctx.BoolArg(1), ctx.BoolArg(2)))
+	})
+	env.AddNativeFunc(pkgPath, `If[string]`, func(ctx qnative.CallContext) {
+		ctx.SetStringResult(evaltest.If(ctx.BoolArg(0), ctx.StringArg(1), ctx.StringArg(2)))
+	})
+	env.AddNativeFunc(pkgPath, `If[[]byte]`, func(ctx qnative.CallContext) {
+		ctx.SetSliceResult(evaltest.If(ctx.BoolArg(0), ctx.SliceArg[byte](1), ctx.SliceArg[byte](2)))
+	})
+	env.AddNativeFunc(pkgPath, `If[`+pointType+`]`, func(ctx qnative.CallContext) {
+		ctx.SetPtrResult(evaltest.If(ctx.BoolArg(0), ctx.PtrArg[evaltest.Point](1), ctx.PtrArg[evaltest.Point](2)))
+	})
+	env.AddNativeFunc(pkgPath, `Len[`+pointType+`]`, func(ctx qnative.CallContext) {
+		ctx.SetIntResult(evaltest.Len(ctx.SliceArg[*evaltest.Point](0)))
+	})
+	env.AddNativeFunc(pkgPath, `Describe[string,int]`, func(ctx qnative.CallContext) {
+		ctx.SetStringResult(evaltest.Describe(ctx.StringArg(0), ctx.IntArg(1)))
 	})
 	env.AddNativeMethod(pointType, `X`, func(ctx qnative.CallContext) {
 		ctx.SetIntResult(ctx.PtrArg[evaltest.Point](0).X)

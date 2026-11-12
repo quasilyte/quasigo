@@ -85,3 +85,18 @@ func SumX(points []*Point) int {
 	}
 	return sum
 }
+
+// The generic funcs below are bound as natives for some instantiations.
+
+func If[T any](cond bool, onTrue, onFalse T) T {
+	if cond {
+		return onTrue
+	}
+	return onFalse
+}
+
+func Len[T any](xs []T) int { return len(xs) }
+
+func Describe[K comparable, V any](k K, v V) string {
+	return fmt.Sprintf("%v=%v", k, v)
+}

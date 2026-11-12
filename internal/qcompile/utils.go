@@ -123,6 +123,40 @@ func typeIsString(typ types.Type) bool {
 	return basic.Info()&types.IsString != 0
 }
 
+// typeArgString returns a canonical type arg spelling that is used
+// inside the generic native func instantiation names, like `If[int]`.
+//
+// Aliases are resolved, so byte is uint8, rune is int32 and any
+// is the same as interface{}. Named types are fully qualified,
+// like `github.com/user/pkgname.TypeName`.
+//
+// Only a small subset of types is supported for now.
+func typeArgString(typ types.Type) (string, bool) {
+	switch typ := types.Unalias(typ).(type) {
+	case *types.Basic:
+		return types.Typ[typ.Kind()].String(), true
+	case *types.Pointer:
+		elem, ok := typeArgString(typ.Elem())
+		return "*" + elem, ok
+	case *types.Slice:
+		elem, ok := typeArgString(typ.Elem())
+		return "[]" + elem, ok
+	case *types.Interface:
+		return "any", typ.Empty()
+	case *types.Named:
+		if typ.TypeArgs().Len() != 0 {
+			return "", false
+		}
+		obj := typ.Obj()
+		if obj.Pkg() == nil {
+			return obj.Name(), true // A predeclared type, like error
+		}
+		return obj.Pkg().Path() + "." + obj.Name(), true
+	default:
+		return "", false
+	}
+}
+
 func identName(n ast.Expr) string {
 	id, ok := n.(*ast.Ident)
 	if ok {

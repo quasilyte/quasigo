@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"go/types"
 	"strconv"
+	"strings"
 
 	"github.com/quasilyte/quasigo/internal/goutil"
 	"github.com/quasilyte/quasigo/internal/ir"
@@ -444,6 +445,14 @@ func (cl *funcCompiler) compileCallExpr(dst ir.Slot, call *ast.CallExpr) {
 	} else {
 		key.Qualifier = fn.Pkg().Path()
 	}
+	if sig.TypeParams().Len() != 0 {
+		// Generic funcs can only be called as natives that are
+		// bound for this specific instantiation, like `If[int]`.
+		key.Name = cl.instantiatedFuncName(call.Fun, fn.Name())
+		if _, ok := cl.ctx.Env.NameToNativeFuncID[key]; !ok {
+			panic(cl.errorf(call.Fun, "no native binding for %s instantiation", key))
+		}
+	}
 
 	normalArgs := call.Args
 	var variadicArgs []ast.Expr
@@ -693,6 +702,33 @@ func (cl *funcCompiler) compileNativeCall(dst ir.Slot, key qruntime.FuncKey) boo
 
 	cl.emitCall(bytecode.OpCallNative, dst, int(funcID))
 	return true
+}
+
+// instantiatedFuncName returns a name with type args, like `If[int]`.
+// Both explicit and inferred type args are supported.
+func (cl *funcCompiler) instantiatedFuncName(callable ast.Expr, name string) string {
+	var ident *ast.Ident
+	switch callable := goutil.UnwrapInstantiation(goutil.Unparen(callable)).(type) {
+	case *ast.Ident:
+		ident = callable
+	case *ast.SelectorExpr:
+		ident = callable.Sel
+	}
+	inst, ok := cl.ctx.Types.Instances[ident]
+	if !ok {
+		panic(cl.errorf(callable, "can't find %s type args (types.Info.Instances is not populated?)", name))
+	}
+
+	typeArgs := make([]string, inst.TypeArgs.Len())
+	for i := range typeArgs {
+		typ := inst.TypeArgs.At(i)
+		s, ok := typeArgString(typ)
+		if !ok {
+			panic(cl.errorf(callable, "can't call %s: %s type arg is not supported", name, typ))
+		}
+		typeArgs[i] = s
+	}
+	return name + "[" + strings.Join(typeArgs, ",") + "]"
 }
 
 func (cl *funcCompiler) compileRecurCall(dst ir.Slot) bool {

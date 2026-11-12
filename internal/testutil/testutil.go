@@ -29,9 +29,10 @@ func ParseGoFile(pkgPath, src string) (*ParsedTestFile, error) {
 		Importer: importer.ForCompiler(fset, "source", nil),
 	}
 	info := &types.Info{
-		Types: make(map[ast.Expr]types.TypeAndValue),
-		Uses:  make(map[*ast.Ident]types.Object),
-		Defs:  make(map[*ast.Ident]types.Object),
+		Types:     make(map[ast.Expr]types.TypeAndValue),
+		Uses:      make(map[*ast.Ident]types.Object),
+		Defs:      make(map[*ast.Ident]types.Object),
+		Instances: make(map[*ast.Ident]types.Instance),
 	}
 	pkg, err := typechecker.Check(pkgPath, fset, []*ast.File{file}, info)
 	result := &ParsedTestFile{
@@ -58,8 +59,8 @@ func compileTestFile(env *quasigo.Env, targetFunc, pkgPath string, parsed *Parse
 		if !ok {
 			continue
 		}
-		if decl.Body == nil {
-			continue
+		if decl.Body == nil || decl.Type.TypeParams != nil {
+			continue // Native func stubs
 		}
 		ctx := &quasigo.CompileContext{
 			Env:      env,
