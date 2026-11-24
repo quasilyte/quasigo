@@ -57,6 +57,13 @@ var benchmarksNoAlloc = []*benchTestCase{
 	},
 
 	{
+		name:   `CallNativeVariadicPtr`,
+		params: `p *evaltest.Point`,
+		src:    `return variadicPtrs(p, nil, p)`,
+		args:   []any{evaltest.NewPoint(1, 2)},
+	},
+
+	{
 		name: `Return0`,
 		src:  `return 0`,
 	},
@@ -233,6 +240,9 @@ func TestPushArgs(t *testing.T) {
 		{`p *evaltest.Point`, `return p.X`, []any{evaltest.NewPoint(7, 70)}, 7},
 		{`xs []*evaltest.Point, i int`, `return xs[i].X`, []any{points, 2}, 2},
 		{`xs []*evaltest.Point`, `if xs[1] == nil { return len(xs) }; return 0`, []any{points}, 3},
+		{`p *evaltest.Point`, `return variadicPtrs(p, nil, p)`, []any{evaltest.NewPoint(7, 70)}, 14},
+		{`xs []*evaltest.Point`, `return variadicPtrs(xs[0], xs[2]) + variadicPtrs()`, []any{points}, 2},
+		{``, `return len(fmt.Sprintf("%v", nil))`, nil, len("<nil>")},
 	}
 	for _, test := range tests {
 		env, compiled := compileBenchFunc(t, test.params, test.src)
@@ -350,6 +360,7 @@ func fn1(x int) bool { return false }
 func fn2(x, y int) bool { return false }
 func variadicInts(xs ...int) int { return 0 }
 func variadicFloats(xs ...float64) float64 { return 0 }
+func variadicPtrs(xs ...*evaltest.Point) int { return 0 }
 
 func recur(x int) bool {
 	if x == 0 {
@@ -403,6 +414,16 @@ func imul(x, y int) int
 	})
 	env.AddNativeFunc(testPackage, "variadicFloats", func(ctx qnative.CallContext) {
 		ctx.SetFloatResult(22)
+	})
+	env.AddNativeFunc(testPackage, "variadicPtrs", func(ctx qnative.CallContext) {
+		sum := 0
+		for i := range ctx.VariadicArg() {
+			p := ctx.VariadicPtrArg[evaltest.Point](i)
+			if p != nil {
+				sum += p.X
+			}
+		}
+		ctx.SetIntResult(sum)
 	})
 	env.AddNativeFunc(testPackage, "imul", func(ctx qnative.CallContext) {
 		x := ctx.IntArg(0)

@@ -378,6 +378,10 @@ func eval(env *EvalEnv, fn *Func, slotptr *Slot) {
 			srcslot := unpack8(codeptr, 1)
 			env.vararg = append(env.vararg, getslot(slotptr, srcslot).Interface())
 			codeptr = ptradd(codeptr, 2)
+		case bytecode.OpPushVariadicPtrArg:
+			srcslot := unpack8(codeptr, 1)
+			env.vararg = append(env.vararg, getslot(slotptr, srcslot).ptr)
+			codeptr = ptradd(codeptr, 2)
 
 		case bytecode.OpCallNative:
 			// Notice the lack of stack overflow check.

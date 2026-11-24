@@ -173,6 +173,14 @@ func TestCompileErrorMultiResult(t *testing.T) {
 			src: `func f() int { a, b := 1, 2; return a + b }`,
 			err: `only single right operand is allowed in assignments`,
 		},
+
+		{
+			src: `
+				type point struct{ x int }
+				func anyargs(xs ...any) int
+				func f(p *point) int { return anyargs(p) }`,
+			err: `can't pass *testpkg.point typed variadic arg`,
+		},
 	}
 
 	for i := range tests {

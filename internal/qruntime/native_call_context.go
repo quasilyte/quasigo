@@ -1,5 +1,7 @@
 package qruntime
 
+import "unsafe"
+
 type NativeCallContext struct {
 	env     *EvalEnv
 	slotptr *Slot
@@ -39,6 +41,10 @@ func (ncc NativeCallContext) InterfaceArg(index int) any {
 
 func (ncc NativeCallContext) VariadicArg() []any {
 	return ncc.env.vararg
+}
+
+func (ncc NativeCallContext) VariadicPtrArg[T any](index int) *T {
+	return (*T)(ncc.env.vararg[index].(unsafe.Pointer))
 }
 
 func (ncc NativeCallContext) SetIntResult(v int)  { ncc.env.result.SetInt(v) }

@@ -218,59 +218,62 @@ const (
 	// Encoding: 0x47 x:u8 (width=2)
 	OpPushVariadicInterfaceArg Op = 71
 
-	// Encoding: 0x48 (width=1)
-	OpVariadicReset Op = 72
+	// Encoding: 0x48 x:u8 (width=2)
+	OpPushVariadicPtrArg Op = 72
 
 	// Encoding: 0x49 (width=1)
-	OpReturnVoid Op = 73
+	OpVariadicReset Op = 73
 
 	// Encoding: 0x4a (width=1)
-	OpReturnZero Op = 74
+	OpReturnVoid Op = 74
 
 	// Encoding: 0x4b (width=1)
-	OpReturnOne Op = 75
+	OpReturnZero Op = 75
 
-	// Encoding: 0x4c x:u8 (width=2)
-	OpReturnStr Op = 76
+	// Encoding: 0x4c (width=1)
+	OpReturnOne Op = 76
 
 	// Encoding: 0x4d x:u8 (width=2)
-	OpReturnScalar Op = 77
+	OpReturnStr Op = 77
 
 	// Encoding: 0x4e x:u8 (width=2)
-	OpReturn Op = 78
+	OpReturnScalar Op = 78
 
-	// Encoding: 0x4f x:u8 y:u8 (width=3)
-	OpReturn2 Op = 79
+	// Encoding: 0x4f x:u8 (width=2)
+	OpReturn Op = 79
 
-	// Encoding: 0x50 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatAdd64 Op = 80
+	// Encoding: 0x50 x:u8 y:u8 (width=3)
+	OpReturn2 Op = 80
 
 	// Encoding: 0x51 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatSub64 Op = 81
+	OpFloatAdd64 Op = 81
 
 	// Encoding: 0x52 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatMul64 Op = 82
+	OpFloatSub64 Op = 82
 
 	// Encoding: 0x53 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatDiv64 Op = 83
+	OpFloatMul64 Op = 83
 
 	// Encoding: 0x54 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatGt Op = 84
+	OpFloatDiv64 Op = 84
 
 	// Encoding: 0x55 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatGtEq Op = 85
+	OpFloatGt Op = 85
 
 	// Encoding: 0x56 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatLt Op = 86
+	OpFloatGtEq Op = 86
 
 	// Encoding: 0x57 dst:u8 x:u8 y:u8 (width=4)
-	OpFloatLtEq Op = 87
+	OpFloatLt Op = 87
 
-	// Encoding: 0x58 dst:u8 x:u8 (width=3)
-	OpFloatNeg Op = 88
+	// Encoding: 0x58 dst:u8 x:u8 y:u8 (width=4)
+	OpFloatLtEq Op = 88
 
 	// Encoding: 0x59 dst:u8 x:u8 (width=3)
-	OpConvIntToFloat Op = 89
+	OpFloatNeg Op = 89
+
+	// Encoding: 0x5a dst:u8 x:u8 (width=3)
+	OpConvIntToFloat Op = 90
 )
 
 var opcodeInfoTable = [256]OpcodeInfo{
@@ -794,6 +797,12 @@ var opcodeInfoTable = [256]OpcodeInfo{
 			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
 	},
 	OpPushVariadicInterfaceArg: {
+		Width: 2,
+		Flags: 0,
+		Args: []Argument{
+			{Name: "x", Kind: ArgSlot, Offset: 1, Flags: FlagIsRead}},
+	},
+	OpPushVariadicPtrArg: {
 		Width: 2,
 		Flags: 0,
 		Args: []Argument{

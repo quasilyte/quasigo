@@ -348,7 +348,7 @@ func (cl *funcCompiler) compileSelectorExpr(dst ir.Slot, e *ast.SelectorExpr) {
 		Qualifier: typ.String(),
 	}
 
-	cl.compileCallArgs(nil, []ast.Expr{e.X}, nil)
+	cl.compileCallArgs(nil, []ast.Expr{e.X}, nil, nil)
 	if cl.compileNativeCall(dst, key) {
 		return
 	}
@@ -396,7 +396,7 @@ func (cl *funcCompiler) compileFloatConv(dst ir.Slot, call *ast.CallExpr) {
 func (cl *funcCompiler) compileStringConv(dst ir.Slot, call *ast.CallExpr) {
 	x := call.Args[0]
 	typ := cl.ctx.Types.TypeOf(x)
-	cl.compileCallArgs(nil, call.Args, nil)
+	cl.compileCallArgs(nil, call.Args, nil, nil)
 	if typeIsByteSlice(typ) {
 		key := qruntime.FuncKey{Qualifier: "builtin", Name: "bytesToString"}
 		if !cl.compileNativeCall(dst, key) {
@@ -456,10 +456,12 @@ func (cl *funcCompiler) compileCallExpr(dst ir.Slot, call *ast.CallExpr) {
 
 	normalArgs := call.Args
 	var variadicArgs []ast.Expr
+	var variadicArgType types.Type
 	if sig.Variadic() {
 		variadic := sig.Params().Len() - 1
 		normalArgs = call.Args[:variadic]
 		variadicArgs = call.Args[variadic:]
+		variadicArgType = sig.Params().At(variadic).Type().(*types.Slice).Elem()
 		if variadicArgs == nil {
 			// A non-nil slice is needed to get the vararg buffer reset,
 			// otherwise this call would observe the previous call args.
@@ -472,7 +474,7 @@ func (cl *funcCompiler) compileCallExpr(dst ir.Slot, call *ast.CallExpr) {
 	}
 
 	isMethod := expr != nil
-	cl.compileCallArgs(expr, normalArgs, variadicArgs)
+	cl.compileCallArgs(expr, normalArgs, variadicArgs, variadicArgType)
 
 	if cl.compileNativeCall(dst, key) {
 		if len(normalArgs) > qruntime.MaxNativeFuncArgs {
@@ -525,7 +527,7 @@ func (cl *funcCompiler) compileBuiltinCall(dst ir.Slot, fn *ast.Ident, call *ast
 			panic(cl.errorf(call.Args[0], "can't print %s type yet", argType.String()))
 		}
 		key := qruntime.FuncKey{Qualifier: "builtin", Name: funcName}
-		cl.compileCallArgs(nil, call.Args, nil)
+		cl.compileCallArgs(nil, call.Args, nil, nil)
 		if !cl.compileNativeCall(dst, key) {
 			panic(cl.errorf(fn, "builtin.%s native func is not registered", funcName))
 		}
@@ -552,7 +554,7 @@ func (cl *funcCompiler) compileAppendCall(dst ir.Slot, call *ast.CallExpr) {
 	default:
 		panic(cl.errorf(call.Args[0], "can't append to a slice with elem type %s", sliceType.Elem()))
 	}
-	cl.compileCallArgs(nil, call.Args, nil)
+	cl.compileCallArgs(nil, call.Args, nil, nil)
 	key := qruntime.FuncKey{Qualifier: "builtin", Name: funcName}
 	if !cl.compileNativeCall(dst, key) {
 		panic(cl.errorf(call.Fun, "builtin.%s native func is not registered", funcName))
@@ -584,14 +586,14 @@ func (cl *funcCompiler) compileMakeCall(dst ir.Slot, call *ast.CallExpr) {
 		args = []ast.Expr{elemSizeArg, call.Args[1], call.Args[2]}
 
 	}
-	cl.compileCallArgs(nil, args, nil)
+	cl.compileCallArgs(nil, args, nil, nil)
 	key := qruntime.FuncKey{Qualifier: "builtin", Name: funcName}
 	if !cl.compileNativeCall(dst, key) {
 		panic(cl.errorf(call.Fun, "builtin.%s native func is not registered", funcName))
 	}
 }
 
-func (cl *funcCompiler) compileCallVariadicArgs(args []ast.Expr) {
+func (cl *funcCompiler) compileCallVariadicArgs(args []ast.Expr, variadicArgType types.Type) {
 	// Evaluate all args before the vararg buffer is touched because
 	// an arg can be a call to a func that uses the variadic args itself.
 	// TODO: allocating a slot slice here is sloppy.
@@ -603,6 +605,9 @@ func (cl *funcCompiler) compileCallVariadicArgs(args []ast.Expr) {
 	cl.emitOp(bytecode.OpVariadicReset)
 	for i, arg := range args {
 		argType := cl.ctx.Types.TypeOf(arg)
+		if typeIsUntypedNil(argType) {
+			argType = variadicArgType
+		}
 		switch {
 		case typeIsBool(argType):
 			cl.emit1(bytecode.OpPushVariadicBoolArg, slots[i])
@@ -614,6 +619,8 @@ func (cl *funcCompiler) compileCallVariadicArgs(args []ast.Expr) {
 			cl.emit1(bytecode.OpPushVariadicStrArg, slots[i])
 		case typeIsInterface(argType):
 			cl.emit1(bytecode.OpPushVariadicInterfaceArg, slots[i])
+		case typeIsPtr(argType):
+			cl.emit1(bytecode.OpPushVariadicPtrArg, slots[i])
 		default:
 			panic(cl.errorf(arg, "can't pass %s typed variadic arg", argType.String()))
 		}
@@ -644,7 +651,7 @@ func (cl *funcCompiler) prependRecv(recv ast.Expr, args []ast.Expr) []ast.Expr {
 	return allArgs
 }
 
-func (cl *funcCompiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []ast.Expr) {
+func (cl *funcCompiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic []ast.Expr, variadicArgType types.Type) {
 	cl.checkTupleArg(args)
 	args = cl.prependRecv(recv, args)
 
@@ -675,7 +682,7 @@ func (cl *funcCompiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic
 			tempSlots = append(tempSlots, tempslot)
 		}
 		if variadic != nil {
-			cl.compileCallVariadicArgs(variadic)
+			cl.compileCallVariadicArgs(variadic, variadicArgType)
 		}
 		// Move temporaries to args.
 		for i, slot := range tempSlots {
@@ -689,7 +696,7 @@ func (cl *funcCompiler) compileCallArgs(recv ast.Expr, args []ast.Expr, variadic
 			cl.CompileExpr(argslot, arg)
 		}
 		if variadic != nil {
-			cl.compileCallVariadicArgs(variadic)
+			cl.compileCallVariadicArgs(variadic, variadicArgType)
 		}
 	}
 }

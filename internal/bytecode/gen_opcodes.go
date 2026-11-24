@@ -102,6 +102,7 @@ var opcodePrototypes = []opcodeProto{
 	{"PushVariadicScalarArg", "op x:rslot"},
 	{"PushVariadicStrArg", "op x:rslot"},
 	{"PushVariadicInterfaceArg", "op x:rslot"},
+	{"PushVariadicPtrArg", "op x:rslot"},
 	{"VariadicReset", "op"},
 
 	{"ReturnVoid", "op"},

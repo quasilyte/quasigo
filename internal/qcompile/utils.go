@@ -100,6 +100,11 @@ func typeIsInterface(typ types.Type) bool {
 	return ok
 }
 
+func typeIsUntypedNil(typ types.Type) bool {
+	basic, ok := typ.(*types.Basic)
+	return ok && basic.Kind() == types.UntypedNil
+}
+
 func typeIsPtr(typ types.Type) bool {
 	_, ok := typ.Underlying().(*types.Pointer)
 	return ok
