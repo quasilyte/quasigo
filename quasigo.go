@@ -205,6 +205,8 @@ func (res CallResult) IntValue() int { return res.v.Int() }
 
 func (res CallResult) BoolValue() bool { return res.v.Bool() }
 
+func (res CallResult) FloatValue() float64 { return res.v.Float() }
+
 // Disasm returns the compiled function disassembly text.
 // This output is not guaranteed to be stable between versions
 // and should be used only for debugging purposes.

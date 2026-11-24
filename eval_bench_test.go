@@ -245,6 +245,28 @@ func TestPushArgs(t *testing.T) {
 	}
 }
 
+func TestFloatResult(t *testing.T) {
+	src := `
+package ` + testPackage + `
+func f(x float64, n int) float64 { return x*float64(n) + 0.5 }
+`
+	parsed, err := testutil.ParseGoFile(testPackage, src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	env := quasigo.NewEnv()
+	compiled, err := testutil.CompileOptTestFile(env, "f", testPackage, parsed)
+	if err != nil {
+		t.Fatal(err)
+	}
+	evalEnv := env.GetEvalEnv(4096)
+	bindArgs(evalEnv, 1.25, 3)
+	have := quasigo.Call(evalEnv, compiled).FloatValue()
+	if have != 4.25 {
+		t.Errorf("have %v, want 4.25", have)
+	}
+}
+
 func TestPushArgsNoAllocs(t *testing.T) {
 	env, compiled := compileBenchFunc(t, `s string, i int, xs []int, p *evaltest.Point`, `return len(s) + xs[i] + p.X`)
 	evalEnv := env.GetEvalEnv(4096)
